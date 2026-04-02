@@ -114,7 +114,7 @@ const Dashboard = () => {
             
             <div className="h-[350px] w-full">
               <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={MOCK_CHART_DATA}>
+                  <AreaChart data={stats?.chartData || []}>
                     <defs>
                       <linearGradient id="colorIn" x1="0" y1="0" x2="0" y2="1">
                         <stop offset="5%" stopColor="#2563EB" stopOpacity={0.1}/>
@@ -143,27 +143,21 @@ const Dashboard = () => {
          <div className="bg-white rounded-[2.5rem] border border-slate-200 p-8 shadow-sm flex flex-col">
             <h3 className="text-xl font-black text-slate-900 leading-none mb-8">Operational Alerts</h3>
             <div className="flex-1 space-y-4">
-               <AlertItem 
-                 icon={AlertTriangle} 
-                 title="Critical Stock Warning" 
-                 desc="12 SKUs falling below hub threshold (10 units)." 
-                 time="3 mins ago" 
-                 type="error"
-               />
-               <AlertItem 
-                 icon={Clock} 
-                 title="Delayed Inbound Flow" 
-                 desc="Shipment #TRK-2940 is 1.5h overdue from Nairobi." 
-                 time="25 mins ago" 
-                 type="warning"
-               />
-               <AlertItem 
-                 icon={Users} 
-                 title="Fleet Disconnection" 
-                 desc="Rider James Kamau (Motorbike) went offline mid-delivery." 
-                 time="42 mins ago" 
-                 type="info"
-               />
+               {stats?.alerts?.map(alert => (
+                 <AlertItem 
+                   key={alert.id}
+                   icon={alert.type === 'error' ? AlertTriangle : alert.type === 'warning' ? Clock : CheckCircle2} 
+                   title={alert.title} 
+                   desc={alert.message} 
+                   time={alert.time} 
+                   type={alert.type}
+                 />
+               ))}
+               {!stats?.alerts?.length && (
+                 <div className="text-center py-10">
+                   <p className="text-slate-400 text-xs font-bold uppercase tracking-widest">Everything is optimal</p>
+                 </div>
+               )}
             </div>
             
             <button className="w-full py-4 mt-8 bg-slate-50 hover:bg-slate-100 rounded-3xl text-sm font-bold text-slate-600 transition-all border border-slate-100">
@@ -179,10 +173,11 @@ const AlertItem = ({ icon: Icon, title, desc, time, type }) => {
   const styles = {
     error: 'bg-rose-50 text-rose-600 border-rose-100',
     warning: 'bg-amber-50 text-amber-600 border-amber-100',
-    info: 'bg-blue-50 text-blue-600 border-blue-100'
+    info: 'bg-blue-50 text-blue-600 border-blue-100',
+    success: 'bg-emerald-50 text-emerald-600 border-emerald-100'
   };
   return (
-    <div className={`p-5 rounded-3xl border ${styles[type]} group hover:scale-[1.02] transition-transform cursor-pointer`}>
+    <div className={`p-5 rounded-3xl border ${styles[type] || styles.info} group hover:scale-[1.02] transition-transform cursor-pointer`}>
        <div className="flex items-center gap-3 mb-2">
           <Icon className="w-4 h-4" />
           <span className="text-[10px] font-black uppercase tracking-widest">{title}</span>
@@ -192,15 +187,5 @@ const AlertItem = ({ icon: Icon, title, desc, time, type }) => {
     </div>
   );
 };
-
-const MOCK_CHART_DATA = [
-  { time: '08:00', in: 45, out: 32 },
-  { time: '10:00', in: 52, out: 48 },
-  { time: '12:00', in: 89, out: 95 },
-  { time: '14:00', in: 65, out: 120 },
-  { time: '16:00', in: 45, out: 85 },
-  { time: '18:00', in: 78, out: 56 },
-  { time: '20:00', in: 34, out: 42 },
-];
 
 export default Dashboard;

@@ -371,7 +371,7 @@ const AdminSellerDetails = () => {
                                 </div>
                                 <div className="pt-4 border-t border-white/10">
                                     <div className="flex items-center gap-2 text-[10px] font-black text-emerald-400 uppercase">
-                                        <Globe size={12} /> Service Hub Active
+                                        <Globe size={12} /> Assigned Hub: {seller.fulfillmentHub?.name || 'Local Distribution'}
                                     </div>
                                 </div>
                             </div>

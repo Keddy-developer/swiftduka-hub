@@ -1,5 +1,5 @@
 import axiosInstance from "../services/axiosConfig";
-import { Eye, Trash2, UserRound, Store, Star, Calendar, Phone, Mail, MapPin, Shield, TrendingUp, Plus } from "lucide-react";
+import { Eye, Trash2, UserRound, Store, Star, Calendar, Phone, Mail, MapPin, Shield, TrendingUp, Plus, Edit } from "lucide-react";
 import { useEffect, useState } from "react";
 import { FaAngleLeft } from "react-icons/fa";
 import { Link } from "react-router-dom";
@@ -339,6 +339,12 @@ export default function SellersPage() {
                       className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
                     >
                       <Eye size={16} />
+                    </Link>
+                    <Link
+                      to={`/register-seller?edit=${seller.id}`}
+                      className="p-2 text-gray-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors"
+                    >
+                      <Edit size={16} />
                     </Link>
                     <button
                       onClick={() => handleShowModal(seller.id)}

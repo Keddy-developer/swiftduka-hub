@@ -19,6 +19,7 @@ import Sellers from './pages/Sellers';
 import SellerDetails from './pages/SellerDetails';
 import Returns from './pages/Returns';
 import Login from './pages/Login';
+import RegisterSeller from './pages/RegisterSeller';
 
 const MainLayout = ({ children }) => {
   const { user, hub, logout } = useAuth();
@@ -139,6 +140,7 @@ function App() {
           <Route path="/returns" element={<PrivateRoute><Returns /></PrivateRoute>} />
           <Route path="/sellers" element={<PrivateRoute><Sellers /></PrivateRoute>} />
           <Route path="/sellers/:id" element={<PrivateRoute><SellerDetails /></PrivateRoute>} />
+          <Route path="/register-seller" element={<PrivateRoute><RegisterSeller /></PrivateRoute>} />
           <Route path="/fleet" element={<PrivateRoute><Fleet /></PrivateRoute>} />
           <Route path="/fleet/:id" element={<PrivateRoute><RiderDetails /></PrivateRoute>} />
           {/* Redirect all unknown routes to dashboard */}
