@@ -62,7 +62,7 @@ export default function RegisterSeller() {
     useEffect(() => {
         const fetchLocations = async () => {
             try {
-                const res = await axiosInstance.get("/delivery/locations");
+                const res = await axiosInstance.get("/location/all");
                 setLocations(res.data.data || res.data || []);
             } catch (error) {
                 console.error("Failed to fetch locations:", error);
@@ -213,23 +213,35 @@ export default function RegisterSeller() {
                     {/* Geography & Logistics */}
                     <Section icon={MapPin} title="Operational Geography" subtitle="Business physical location & logistics assignment">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-8 bg-white rounded-[2rem] border border-slate-100 shadow-sm transition-all hover:shadow-md">
-                            <div className="space-y-2">
-                                <Label>Operating City</Label>
-                                <InputIcon
-                                    icon={Globe}
-                                    name="city"
-                                    placeholder="e.g. Nairobi"
-                                    value={form.city}
-                                    onChange={handleChange}
+                             <div className="space-y-2">
+                                <Label>County / Region</Label>
+                                <Select 
+                                    name="county" 
+                                    value={form.county} 
+                                    onChange={(e) => {
+                                        const val = e.target.value;
+                                        setForm(prev => ({ ...prev, county: val, city: "" }));
+                                    }} 
                                     required
-                                />
+                                >
+                                    <option value="">Select County</option>
+                                    {locations.map((loc, i) => (
+                                        <option key={i} value={loc.name}>{loc.name}</option>
+                                    ))}
+                                </Select>
                             </div>
                             <div className="space-y-2">
-                                <Label>County / Zone</Label>
-                                <Select name="county" value={form.county} onChange={handleChange} required>
-                                    <option value="">Select Region</option>
-                                    {locations.map((loc, i) => (
-                                        <option key={i} value={loc.county || loc.name}>{loc.county || loc.name}</option>
+                                <Label>Operating Town / City</Label>
+                                <Select 
+                                    name="city" 
+                                    value={form.city} 
+                                    onChange={handleChange} 
+                                    required
+                                    disabled={!form.county}
+                                >
+                                    <option value="">{form.county ? "Select Town" : "Choose County First"}</option>
+                                    {locations.find(l => l.name === form.county)?.towns?.map((town, i) => (
+                                        <option key={i} value={town.name}>{town.name}</option>
                                     ))}
                                 </Select>
                             </div>
