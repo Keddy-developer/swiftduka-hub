@@ -247,6 +247,13 @@ export default function RidersManagement() {
                   {/* Actions */}
                   <div className="flex flex-wrap gap-2 mt-2 pt-4 border-t border-gray-100">
                     <button
+                      onClick={() => navigate(`/register-a-rider/${rider.id}`)}
+                      className="btn-ghost flex items-center justify-center gap-2 flex-1 py-2 text-sm text-slate-600 hover:bg-slate-50"
+                    >
+                      <Pencil className="w-4 h-4" />
+                      Edit
+                    </button>
+                    <button
                       onClick={() => handleShowModal(rider.id)}
                       className="btn-ghost flex items-center justify-center gap-2 flex-1 py-2 text-sm text-red-600 hover:bg-red-50"
                     >
