@@ -5,14 +5,17 @@ import {
   Package, Users, AlertTriangle, 
   Clock, Box, CheckCircle2, RefreshCw, Layers, TrendingUp, Warehouse,
   Activity, ArrowUpRight, ArrowDownRight, Zap, Target, Shield, Navigation,
-  Globe, ClipboardList
+  Globe, ClipboardList, Truck
 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify';
 import { 
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer 
 } from 'recharts';
 
 const Dashboard = () => {
   const { hub } = useAuth();
+  const navigate = useNavigate();
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -29,7 +32,14 @@ const Dashboard = () => {
       console.error("Dashboard synchronization error", err);
     } finally {
       setLoading(false);
+      // If manually triggered (silent is false/undefined usually, but let's check if we want toast)
+      // fetchStats is called on mount too.
     }
+  };
+
+  const handleForceSync = async () => {
+     await fetchStats();
+     toast.success("Operational telemetry synchronized");
   };
 
   useEffect(() => { fetchStats(); }, [hub]);
@@ -66,8 +76,8 @@ const Dashboard = () => {
             </div>
          </div>
          <div className="flex gap-2 w-full md:w-auto">
-            <button className="flex-1 md:flex-none px-6 py-3 bg-white border border-slate-200 rounded-lg text-[10px] font-black text-slate-600 hover:bg-slate-50 transition-all uppercase tracking-widest shadow-sm">Audit History</button>
-            <button onClick={fetchStats} className="flex-1 md:flex-none px-6 py-3 bg-slate-900 text-white rounded-lg text-[10px] font-black hover:bg-slate-800 transition-all shadow-xl shadow-slate-200 uppercase tracking-widest">
+            <button onClick={() => navigate('/logs')} className="flex-1 md:flex-none px-6 py-3 bg-white border border-slate-200 rounded-lg text-[10px] font-black text-slate-600 hover:bg-slate-50 transition-all uppercase tracking-widest shadow-sm">Audit History</button>
+            <button onClick={handleForceSync} className="flex-1 md:flex-none px-6 py-3 bg-slate-900 text-white rounded-lg text-[10px] font-black hover:bg-slate-800 transition-all shadow-xl shadow-slate-200 uppercase tracking-widest">
                <RefreshCw size={14} className="inline mr-2" /> Force Sync
             </button>
          </div>
@@ -170,7 +180,7 @@ const Dashboard = () => {
             </div>
             
             <div className="p-6 bg-slate-50 border-t border-slate-100">
-               <button className="w-full py-3.5 bg-white border border-slate-200 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] shadow-sm hover:shadow-lg hover:border-slate-300 transition-all flex items-center justify-center gap-3">
+               <button onClick={() => navigate('/logs')} className="w-full py-3.5 bg-white border border-slate-200 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] shadow-sm hover:shadow-lg hover:border-slate-300 transition-all flex items-center justify-center gap-3">
                   <ClipboardList size={14} className="text-slate-400" /> Complete Audit Trail
                </button>
             </div>
