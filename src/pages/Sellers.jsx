@@ -6,8 +6,10 @@ import { Link } from "react-router-dom";
 import { toast } from "react-toastify";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "../components/ui/button";
+import { useAuth } from "../contexts/AuthContext";
 
 export default function SellersPage() {
+  const { hub } = useAuth();
   const [sellers, setSellers] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [selectedSellerId, setSelectedSellerId] = useState(null);
@@ -15,18 +17,16 @@ export default function SellersPage() {
   const [loading, setLoading] = useState(true);
 
   const fetchSellers = async () => {
-    const token = localStorage.getItem("token");
+    if (!hub?.id) return;
     setLoading(true);
-
     try {
-      const res = await axiosInstance.get(`/admin/sellers`);
-      // Handle different response formats and ensure sellers is always an array
-      const sellersData = res.data?.data || res.data;
+      const res = await axiosInstance.get(`/delivery/hubs/${hub.id}/sellers`);
+      const sellersData = res.data?.sellers || res.data?.data || res.data;
       setSellers(Array.isArray(sellersData) ? sellersData : []);
     } catch (error) {
       console.error("Error fetching sellers:", error);
-      toast.error("Failed to load sellers");
-      setSellers([]); // Ensure sellers is array even on error
+      toast.error("Failed to load hub sellers");
+      setSellers([]);
     } finally {
       setLoading(false);
     }
@@ -34,7 +34,7 @@ export default function SellersPage() {
 
   useEffect(() => {
     fetchSellers();
-  }, []);
+  }, [hub]);
 
   const handleShowModal = (id) => {
     setShowModal(true);
@@ -46,13 +46,12 @@ export default function SellersPage() {
 
   const handleDelete = async (id) => {
     setLoadingDelete(true);
-    const token = localStorage.getItem("token");
     try {
       await axiosInstance.delete(`/admin/delete-seller-account/${id}`);
       setSellers((prev) => prev.filter((seller) => seller.id !== id));
-      toast.success("Seller deleted successfully.");
+      toast.success("Seller removed successfully.");
     } catch (error) {
-      console.error("Error deleting seller:", error);
+      console.error("Error removing seller:", error);
       toast.error("Failed to delete seller. Please try again later.");
     } finally {
       setLoadingDelete(false);
@@ -73,7 +72,6 @@ export default function SellersPage() {
         return "bg-gray-100 text-gray-800 border-gray-200";
     }
   };
-  console.log("seller", sellers);
   const getApprovalColor = (status) => {
     switch (status) {
       case "approved":
@@ -281,16 +279,16 @@ export default function SellersPage() {
 
                 {/* Store Info */}
                 <div className="space-y-2">
-                  {seller.phone && (
+                  {seller.user?.phone && (
                     <div className="flex items-center gap-2 text-sm text-gray-600">
                       <Phone className="w-4 h-4" />
-                      <span>{seller.phone}</span>
+                      <span>{seller.user.phone}</span>
                     </div>
                   )}
-                  {seller.email && (
+                  {seller.user?.email && (
                     <div className="flex items-center gap-2 text-sm text-gray-600">
                       <Mail className="w-4 h-4" />
-                      <span className="truncate">{seller.email}</span>
+                      <span className="truncate">{seller.user.email}</span>
                     </div>
                   )}
                   {(seller.city || seller.county) && (
@@ -317,8 +315,8 @@ export default function SellersPage() {
                     <p className="text-xs text-gray-500">Rating</p>
                   </div>
                   <div>
-                    <p className="text-2xl font-bold text-gray-900">{seller.numRatings || 0}</p>
-                    <p className="text-xs text-gray-500">Reviews</p>
+                    <p className="text-2xl font-bold text-gray-900">{seller._count?.products || seller.numRatings || 0}</p>
+                    <p className="text-xs text-gray-500">Products</p>
                   </div>
                 </div>
               </div>

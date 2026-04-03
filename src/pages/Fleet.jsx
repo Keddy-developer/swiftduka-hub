@@ -7,8 +7,10 @@ import { toast } from "react-toastify";
 import PendingAssignmentsPanel from "../components/PendingAssignmentsPanel";
 import RiderEarningsModal from "../components/RiderEarningsModal";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../contexts/AuthContext";
 
 export default function RidersManagement() {
+  const { hub } = useAuth();
   const [riders, setRiders] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [showEarningsModal, setShowEarningsModal] = useState(false);
@@ -19,12 +21,13 @@ export default function RidersManagement() {
 
   useEffect(() => {
     fetchRiders();
-  }, []);
+  }, [hub]);
 
   const fetchRiders = async () => {
+    if (!hub?.id) return;
     try {
-      const response = await axiosInstance.get(`/riders`);
-      setRiders(response.data);
+      const response = await axiosInstance.get(`/delivery/hubs/${hub.id}/riders`);
+      setRiders(response.data?.riders || response.data || []);
     } catch (err) {
       console.error("Failed to fetch riders:", err);
       toast.error("Failed to load riders");
@@ -42,12 +45,12 @@ export default function RidersManagement() {
   const handleDelete = async (id) => {
     setLoadingDelete(true);
     try {
-      await axiosInstance.delete(`/riders/${id}`);
+      await axiosInstance.delete(`/delivery/hubs/${hub.id}/riders/${id}`);
       setRiders((prev) => prev.filter((rider) => rider.id !== id));
-      toast.success("Rider deleted successfully.");
+      toast.success("Rider removed from hub.");
     } catch (error) {
-      console.error("Error deleting rider:", error);
-      toast.error("Failed to delete rider. Please try again later.");
+      console.error("Error removing rider:", error);
+      toast.error("Failed to remove rider.");
     } finally {
       setLoadingDelete(false);
       setShowModal(false);
