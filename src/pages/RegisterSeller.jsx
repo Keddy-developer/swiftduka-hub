@@ -63,7 +63,10 @@ export default function RegisterSeller() {
         const fetchLocations = async () => {
             try {
                 const res = await axiosInstance.get("/location/all");
-                setLocations(res.data.data || res.data || []);
+                const data = res.data.data || res.data || [];
+                // Sort counties alphabetically
+                const sorted = Array.isArray(data) ? [...data].sort((a, b) => a.name.localeCompare(b.name)) : [];
+                setLocations(sorted);
             } catch (error) {
                 console.error("Failed to fetch locations:", error);
             }
@@ -240,9 +243,12 @@ export default function RegisterSeller() {
                                     disabled={!form.county}
                                 >
                                     <option value="">{form.county ? "Select Town" : "Choose County First"}</option>
-                                    {locations.find(l => l.name === form.county)?.towns?.map((town, i) => (
-                                        <option key={i} value={town.name}>{town.name}</option>
-                                    ))}
+                                    {(locations.find(l => l.name === form.county)?.towns || [])
+                                        .sort((a, b) => a.name.localeCompare(b.name))
+                                        .map((town, i) => (
+                                            <option key={i} value={town.name}>{town.name}</option>
+                                        ))
+                                    }
                                 </Select>
                             </div>
                             <div className="md:col-span-2 space-y-2">

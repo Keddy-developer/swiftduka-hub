@@ -23,7 +23,7 @@ import RegisterSeller from './pages/RegisterSeller';
 
 const MainLayout = ({ children }) => {
   const { user, hub, logout } = useAuth();
-  const [sidebarOpen, setSidebarOpen] = React.useState(true);
+  const [sidebarOpen, setSidebarOpen] = React.useState(window.innerWidth > 1024);
   const location = useLocation();
 
   const links = [
@@ -38,22 +38,37 @@ const MainLayout = ({ children }) => {
 
   return (
     <div className="flex min-h-screen bg-[#F0F2F5]">
+      {/* 🌑 MOBILE OVERLAY */}
+      {sidebarOpen && (
+        <div 
+          className="fixed inset-0 z-40 bg-slate-900/40 backdrop-blur-sm lg:hidden transition-opacity"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
       {/* 🏙️ SIDEBAR */}
-      <aside className={`fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-slate-200 transition-transform ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0 lg:static`}>
+      <aside className={`fixed inset-y-0 left-0 z-50 w-72 bg-white border-r border-slate-200 transition-all duration-300 transform ${sidebarOpen ? 'translate-x-0 shadow-2xl lg:shadow-none' : '-translate-x-full'} lg:translate-x-0 lg:static lg:block`}>
         <div className="flex flex-col h-full bg-white">
-          <div className="px-6 py-6 flex items-center justify-center border-b border-slate-100">
+          <div className="px-6 py-8 flex items-center justify-between border-b border-slate-100">
              <img src="/logo.svg" alt="ikoSoko" className="h-10 object-contain" />
+             <button 
+               onClick={() => setSidebarOpen(false)}
+               className="p-2 text-slate-400 hover:text-slate-600 lg:hidden rounded-lg hover:bg-slate-50 transition-colors"
+             >
+                <X className="w-6 h-6" />
+             </button>
           </div>
 
-          <nav className="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
+          <nav className="flex-1 px-4 py-8 space-y-1.5 overflow-y-auto scrollbar-hide">
              {links.map((link) => (
                <Link
                  key={link.name}
                  to={link.path}
-                 className={`flex items-center gap-3 px-4 py-3 rounded-md text-sm font-semibold transition-all ${
+                 onClick={() => { if(window.innerWidth < 1024) setSidebarOpen(false); }}
+                 className={`flex items-center gap-3 px-5 py-3.5 rounded-xl text-sm font-bold transition-all ${
                    location.pathname === link.path || location.pathname.startsWith(`${link.path}/`)
-                   ? 'bg-primary text-white shadow-sm' 
-                   : 'text-slate-600 hover:bg-slate-50'
+                   ? 'bg-slate-900 text-white shadow-xl shadow-slate-200' 
+                   : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
                  }`}
                >
                  <link.icon className={`w-5 h-5 ${location.pathname === link.path || location.pathname.startsWith(`${link.path}/`) ? 'text-white' : 'text-slate-400'}`} />
@@ -62,22 +77,22 @@ const MainLayout = ({ children }) => {
              ))}
           </nav>
 
-          <div className="p-4 border-t border-slate-100">
-            <div className="bg-slate-50 rounded-lg p-4 border border-slate-200">
-               <div className="flex items-center gap-3 mb-3">
-                  <div className="w-8 h-8 rounded-full bg-white border border-slate-200 flex items-center justify-center">
-                    <Users className="w-4 h-4 text-slate-500" />
+          <div className="p-5 border-t border-slate-100">
+            <div className="bg-slate-50 rounded-2xl p-5 border border-slate-200">
+               <div className="flex items-center gap-3 mb-4">
+                  <div className="w-10 h-10 rounded-2xl bg-white border border-slate-200 flex items-center justify-center shadow-sm">
+                    <Users className="w-5 h-5 text-slate-500" />
                   </div>
                   <div className="min-w-0">
-                    <p className="font-semibold text-slate-800 text-sm truncate">{user?.firstName} {user?.lastName}</p>
-                    <p className="text-[10px] font-bold text-primary uppercase">Hub Staff</p>
+                    <p className="font-extrabold text-slate-900 text-sm truncate uppercase tracking-tight">{user?.firstName} {user?.lastName}</p>
+                    <p className="text-[10px] font-black text-primary uppercase tracking-widest mt-0.5">Hub Manager</p>
                   </div>
                </div>
                <button 
                 onClick={logout}
-                className="w-full py-2 bg-white hover:bg-rose-50 hover:text-rose-600 hover:border-rose-200 rounded text-slate-600 text-xs font-semibold border border-slate-200 transition-all flex items-center justify-center gap-2"
+                className="w-full py-3 bg-white hover:bg-rose-50 hover:text-rose-600 hover:border-rose-200 rounded-xl text-slate-600 text-xs font-black border border-slate-200 transition-all flex items-center justify-center gap-2 shadow-sm"
                >
-                 <LogOut className="w-4 h-4" /> Secure Disconnect
+                 <LogOut className="w-4 h-4" /> SECURE EXIT
                </button>
             </div>
           </div>
@@ -87,27 +102,37 @@ const MainLayout = ({ children }) => {
       {/* 🚀 MAIN CONTENT */}
       <div className="flex-1 min-w-0 flex flex-col h-screen overflow-hidden">
          {/* Top Header */}
-         <header className="h-16 bg-white border-b border-slate-200 px-6 flex items-center justify-between shrink-0">
-            <div className="flex items-center gap-3">
-               <span className="px-2 py-1 bg-green-50 text-green-700 rounded text-[10px] font-bold uppercase border border-green-200">
-                 Connected
-               </span>
-               <div className="flex items-center gap-2 font-semibold text-slate-800 text-sm">
-                  <Warehouse className="w-4 h-4 text-primary" />
-                  {hub?.name || 'Loading hub...'}
+         <header className="h-20 bg-white border-b border-slate-200 px-6 flex items-center justify-between shrink-0 sticky top-0 z-30">
+            <div className="flex items-center gap-4">
+               <button 
+                 onClick={() => setSidebarOpen(true)}
+                 className="p-2.5 text-slate-600 hover:bg-slate-50 lg:hidden rounded-xl border border-slate-200 transition-all active:scale-95"
+               >
+                  <Menu className="w-6 h-6" />
+               </button>
+               <div className="flex items-center gap-4">
+                 <div className="hidden sm:flex items-center gap-2">
+                    <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">System Live</span>
+                 </div>
+                 <div className="h-6 w-px bg-slate-200 hidden sm:block" />
+                 <div className="flex items-center gap-2 font-black text-slate-900 text-sm uppercase tracking-tighter">
+                    <Warehouse className="text-primary w-5 h-5" />
+                    {hub?.name || 'Loading Architecture...'}
+                 </div>
                </div>
             </div>
 
             <div className="flex items-center gap-4">
-               <div className="hidden md:flex items-center gap-2 group">
+               <div className="hidden lg:flex items-center gap-2">
                   <div className="relative">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                    <input type="text" placeholder="Global Search..." className="pl-9 pr-4 py-1.5 bg-slate-50 border border-slate-200 rounded outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 text-sm transition-all" />
+                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                    <input type="text" placeholder="Global Logistics Search..." className="pl-11 pr-4 py-2.5 bg-slate-100/50 border border-slate-200 rounded-xl outline-none focus:bg-white focus:ring-2 focus:ring-primary/20 text-sm font-bold transition-all w-[300px]" />
                   </div>
                </div>
-               <button className="relative p-2 text-slate-500 hover:bg-slate-50 rounded transition-all">
+               <button className="relative p-2.5 text-slate-500 hover:bg-slate-50 border border-transparent hover:border-slate-200 rounded-xl transition-all">
                   <Bell className="w-5 h-5" />
-                  <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-rose-500 rounded-full border border-white" />
+                  <span className="absolute top-2.5 right-2.5 w-2.5 h-2.5 bg-rose-500 rounded-full border-2 border-white" />
                </button>
             </div>
          </header>
