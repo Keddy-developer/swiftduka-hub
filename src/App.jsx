@@ -123,7 +123,7 @@ const MainLayout = ({ children }) => {
                  <div className="h-4 w-px bg-slate-200 hidden sm:block" />
                  <div className="flex items-center gap-2 font-bold text-slate-700 text-sm">
                     <Warehouse className="text-slate-400 w-4 h-4" />
-                    {hub?.name || 'Loading Hub...'}
+                    {hub?.name || (user ? 'SwiftHub Network' : 'Syncing Hub...')}
                  </div>
                </div>
             </div>

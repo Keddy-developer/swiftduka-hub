@@ -6,7 +6,9 @@ import { toast } from "react-toastify";
 import { useAuth } from "../contexts/AuthContext";
 import { 
   ArrowLeft, User, Phone, Mail, IdCard, Truck, Upload, 
-  Loader2, Save, X, Camera, Info, ShieldCheck
+  Loader2, Save, X, Camera, Info, ShieldCheck, Zap,
+  Navigation, Calendar, Briefcase, Smartphone, Compass,
+  Activity, CheckCircle2, Shield, AlertTriangle
 } from "lucide-react";
 
 export default function RegisterRider() {
@@ -72,160 +74,166 @@ export default function RegisterRider() {
       };
 
       if (id && id !== "new") {
+         // Fix the endpoint to match backend if necessary, but keep original pattern if it works
         await axiosInstance.put(`/delivery/hubs/${hub.id}/riders/${id}`, payload);
-        toast.success("Rider dossier updated");
+        toast.success("Personnel dossier serialized");
       } else {
         await axiosInstance.post(`/delivery/hubs/${hub.id}/riders`, payload);
-        toast.success("Rider registered");
+        toast.success("Agent activation successful");
       }
       navigate("/fleet");
     } catch (error) {
-      toast.error("Registration failure");
+      toast.error("Security credential failure");
     } finally {
       setLoading(false);
     }
   };
 
-  if (fetching) return <div className="p-8 text-slate-400 font-medium italic text-sm text-center">Retrieving agent credentials...</div>;
+  if (fetching) return (
+    <div className="flex flex-col items-center justify-center p-20 opacity-50">
+      <Loader2 className="w-8 h-8 animate-spin mb-3 text-slate-400" />
+      <span className="text-xs font-bold uppercase tracking-widest text-slate-500">Retrieving Agent Credentials...</span>
+    </div>
+  );
 
   return (
-    <div className="space-y-6 md:space-y-8">
-      {/* 🏙️ HEADER */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 pb-4">
-        <div className="space-y-1">
-          <button onClick={() => navigate('/fleet')} className="flex items-center gap-1.5 text-[10px] font-bold text-slate-400 uppercase hover:text-slate-900 transition-colors">
-            <ArrowLeft size={14} /> Back to Fleet
+    <div className="max-w-5xl mx-auto space-y-6 md:space-y-10 animate-in fade-in duration-500 pb-20">
+      {/* 🏙️ ACTION HEADER */}
+      <div className="flex flex-col md:flex-row md:items-end justify-between border-b border-slate-200 pb-6 gap-6">
+        <div>
+          <button onClick={() => navigate('/fleet')} className="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-widest hover:text-slate-900 transition-colors mb-4 group">
+            <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" /> Back to Fleet Registry
           </button>
-          <h2 className="text-xl md:text-2xl font-bold text-slate-900 tracking-tighter uppercase whitespace-nowrap">
-            {id && id !== "new" ? 'Modify Personnel' : 'Onboard Agent'}
-          </h2>
+          <h1 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight">
+            {id && id !== "new" ? 'Personnel Data Modification' : 'Field Agent Deployment'}
+          </h1>
+          <div className="flex items-center gap-3 mt-1">
+             <p className="text-[10px] md:text-[11px] text-slate-500 font-black uppercase tracking-widest flex items-center gap-2">
+                <Navigation size={14} className="text-blue-600 mb-0.5" />
+                Target Node: {hub?.name || 'Central Hub'}
+             </p>
+             <div className="w-1 h-1 rounded-full bg-slate-300" />
+             <span className="text-[10px] font-black text-slate-400 uppercase tracking-tighter">Status: Vetting Pipeline</span>
+          </div>
         </div>
       </div>
 
-      <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-8 items-start">
-        {/* ── LEFT: PERSONNEL INFO ── */}
-        <div className="lg:col-span-7 space-y-6">
-           <section className="bg-white border border-slate-200 rounded shadow-sm overflow-hidden">
-              <div className="px-5 py-3 bg-slate-50 border-b border-slate-200 flex items-center gap-2">
-                 <User size={14} className="text-slate-400" />
-                 <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Personnel Identity</span>
+      <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        {/* ── LEFT: PERSONNEL & ASSET ── */}
+        <div className="lg:col-span-8 space-y-8">
+           {/* SECTION 1: IDENTITY */}
+           <section className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden group">
+              <div className="px-6 py-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+                 <div className="flex items-center gap-3">
+                    <User size={18} className="text-slate-400" />
+                    <h3 className="text-xs font-black text-slate-900 uppercase tracking-widest">Personnel Legal Identity</h3>
+                 </div>
+                 <div className="w-1.5 h-1.5 rounded-full bg-blue-500 shadow-lg shadow-blue-200" />
               </div>
               
-              <div className="p-5 space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                     <div className="space-y-1">
-                        <label className="text-[9px] font-bold text-slate-400 uppercase ml-1">Legal Name</label>
-                        <input type="text" name="name" value={form.name} onChange={handleChange} required
-                          className="w-full bg-white border border-slate-200 rounded px-3 py-2 text-xs font-bold outline-none focus:border-slate-900 shadow-sm" />
-                     </div>
-                     <div className="space-y-1">
-                        <label className="text-[9px] font-bold text-slate-400 uppercase ml-1">Personnel Age</label>
-                        <input type="number" name="age" value={form.age} onChange={handleChange} required min={18}
-                          className="w-full bg-white border border-slate-200 rounded px-3 py-2 text-xs font-bold outline-none focus:border-slate-900 shadow-sm" />
-                     </div>
+              <div className="p-6 md:p-8 space-y-8">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                     <InputUnit label="Full Legal Identity" name="name" value={form.name} onChange={handleChange} required icon={User} />
+                     <InputUnit label="Personnel Age (Years)" name="age" type="number" min={18} value={form.age} onChange={handleChange} required icon={Calendar} />
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                     <div className="space-y-1">
-                        <label className="text-[9px] font-bold text-slate-400 uppercase ml-1">DL Number</label>
-                        <input type="text" name="drivingLicence" value={form.drivingLicence} onChange={handleChange} required
-                          className="w-full bg-white border border-slate-200 rounded px-3 py-2 text-xs font-bold outline-none focus:border-slate-900 shadow-sm uppercase" />
-                     </div>
-                     <div className="space-y-1">
-                        <label className="text-[9px] font-bold text-slate-400 uppercase ml-1">National ID</label>
-                        <input type="text" name="nationalId" value={form.nationalId} onChange={handleChange} required
-                          className="w-full bg-white border border-slate-200 rounded px-3 py-2 text-xs font-bold outline-none focus:border-slate-900 shadow-sm" />
-                     </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                     <InputUnit label="DL Authority Identifier" name="drivingLicence" value={form.drivingLicence} onChange={handleChange} required icon={ShieldCheck} uppercase />
+                     <InputUnit label="National ID Cipher" name="nationalId" value={form.nationalId} onChange={handleChange} required icon={IdCard} />
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                     <div className="space-y-1">
-                        <label className="text-[9px] font-bold text-slate-400 uppercase ml-1">Signal Phone</label>
-                        <input type="text" name="phone" value={form.phone} onChange={handleChange} required
-                          className="w-full bg-white border border-slate-200 rounded px-3 py-2 text-xs font-bold outline-none focus:border-slate-900 shadow-sm" />
-                     </div>
-                     <div className="space-y-1">
-                        <label className="text-[9px] font-bold text-slate-400 uppercase ml-1">Email Authority</label>
-                        <input type="email" name="email" value={form.email} onChange={handleChange} required
-                          className="w-full bg-white border border-slate-200 rounded px-3 py-2 text-xs font-bold outline-none focus:border-slate-900 shadow-sm" />
-                     </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                     <InputUnit label="Encrypted Comm (Phone)" name="phone" value={form.phone} onChange={handleChange} required icon={Smartphone} />
+                     <InputUnit label="Digital Email Identity" name="email" type="email" value={form.email} onChange={handleChange} required icon={Mail} />
                   </div>
               </div>
            </section>
 
-           <section className="bg-white border border-slate-200 rounded shadow-sm overflow-hidden">
-              <div className="px-5 py-3 bg-slate-50 border-b border-slate-200 flex items-center gap-2">
-                 <Truck size={14} className="text-slate-400" />
-                 <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Asset Parameters</span>
+           {/* SECTION 2: ASSET PARAMETERS */}
+           <section className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden group">
+              <div className="px-6 py-4 bg-slate-50 border-b border-slate-200 flex items-center gap-3">
+                 <Truck size={18} className="text-slate-400" />
+                 <h3 className="text-xs font-black text-slate-900 uppercase tracking-widest">Logistics Asset Parameters</h3>
               </div>
-              <div className="p-5 space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                     <div className="space-y-1">
-                        <label className="text-[9px] font-bold text-slate-400 uppercase ml-1">Vehicle Type</label>
+              <div className="p-6 md:p-8 space-y-8">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
+                     <div className="space-y-2">
+                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 flex items-center gap-2">
+                           <Compass size={12} /> Asset Class
+                        </label>
                         <select name="vehicleType" value={form.vehicleType} onChange={handleChange} required
-                          className="w-full bg-white border border-slate-200 rounded px-3 py-2 text-xs font-bold outline-none focus:border-slate-900 shadow-sm uppercase">
+                          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3.5 text-xs font-black outline-none focus:border-slate-900 focus:bg-white shadow-sm transition-all uppercase">
                            <option value="">SELECT</option>
-                           <option value="Motorbike">Motorbike</option>
-                           <option value="Bicycle">Bicycle</option>
-                           <option value="Car">Car</option>
-                           <option value="Van">Van</option>
+                           <option value="Motorbike">Motorbike (Elite)</option>
+                           <option value="Bicycle">Bicycle (Eco)</option>
+                           <option value="Car">Sedan (Urban)</option>
+                           <option value="Van">Van (Consolidated)</option>
                         </select>
                      </div>
-                     <div className="space-y-1">
-                        <label className="text-[9px] font-bold text-slate-400 uppercase ml-1">Number Plate</label>
-                        <input type="text" name="numberPlate" value={form.numberPlate} onChange={handleChange} required
-                          className="w-full bg-white border border-slate-200 rounded px-3 py-2 text-xs font-bold outline-none focus:border-slate-900 shadow-sm uppercase" />
-                     </div>
-                     <div className="space-y-1">
-                        <label className="text-[9px] font-bold text-slate-400 uppercase ml-1">Asset Model</label>
-                        <input type="text" name="vehicleModel" value={form.vehicleModel} onChange={handleChange} required
-                          className="w-full bg-white border border-slate-200 rounded px-3 py-2 text-xs font-bold outline-none focus:border-slate-900 shadow-sm" />
-                     </div>
+                     <InputUnit label="Federal Number Plate" name="numberPlate" value={form.numberPlate} onChange={handleChange} required icon={IdCard} uppercase />
+                     <InputUnit label="Strategic Asset Model" name="vehicleModel" value={form.vehicleModel} onChange={handleChange} required icon={Briefcase} />
                   </div>
-                  <div className="space-y-1">
-                     <label className="text-[9px] font-bold text-slate-400 uppercase ml-1">Asset Visual Color</label>
-                     <input type="text" name="vehicleColor" value={form.vehicleColor} onChange={handleChange} required
-                       className="w-full bg-white border border-slate-200 rounded px-3 py-2 text-xs font-bold outline-none focus:border-slate-900 shadow-sm" />
-                  </div>
+                  <InputUnit label="Asset Visual Identity (Color)" name="vehicleColor" value={form.vehicleColor} onChange={handleChange} required icon={Camera} />
               </div>
            </section>
         </div>
 
-        {/* ── RIGHT: MEDIA & SUBMIT ── */}
-        <div className="lg:col-span-5 space-y-6">
-           <section className="bg-white border border-slate-200 rounded shadow-sm overflow-hidden">
-              <div className="px-5 py-3 bg-slate-50 border-b border-slate-200 flex items-center gap-2">
-                 <Camera size={14} className="text-slate-400" />
-                 <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Asset Documentation</span>
+        {/* ── RIGHT: MEDIA & AUTHORIZATION ── */}
+        <div className="lg:col-span-4 space-y-8">
+           {/* ASSET VISUAL DOCUMENTATION */}
+           <section className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden group shadow-xl shadow-slate-200/20">
+              <div className="px-6 py-4 bg-slate-50 border-b border-slate-200 flex items-center gap-3">
+                 <Camera size={18} className="text-slate-400" />
+                 <h3 className="text-xs font-black text-slate-900 uppercase tracking-widest">Visual Asset Certification</h3>
               </div>
-              <div className="p-5">
-                 <label className="cursor-pointer group">
-                    <div className="border-2 border-dashed border-slate-200 rounded p-6 text-center hover:border-slate-900 transition-all bg-slate-50 group-hover:bg-white relative overflow-hidden aspect-video flex flex-col items-center justify-center">
+              <div className="p-6 space-y-6">
+                 <label className="cursor-pointer group block">
+                    <div className="border-4 border-dashed border-slate-100 rounded-2xl p-2 text-center hover:border-slate-300 transition-all bg-slate-50 group-hover:bg-white relative overflow-hidden aspect-video flex flex-col items-center justify-center shadow-inner">
                        {form.vehicleImage || existingImage ? (
-                          <img src={form.vehicleImage ? URL.createObjectURL(form.vehicleImage) : existingImage} className="absolute inset-0 w-full h-full object-cover" />
+                          <img 
+                            src={form.vehicleImage ? URL.createObjectURL(form.vehicleImage) : existingImage} 
+                            className="absolute inset-0 w-full h-full object-cover rounded-xl transition-transform duration-700 group-hover:scale-110" 
+                            alt="Asset Preview"
+                          />
                        ) : (
-                          <div className="space-y-2 opacity-30 group-hover:opacity-100 transition-all">
-                             <Upload size={32} className="mx-auto" />
-                             <p className="text-[10px] font-bold uppercase tracking-widest">Upload Asset Photo</p>
+                          <div className="space-y-3 opacity-20 group-hover:opacity-100 transition-all transform group-hover:scale-110 duration-500">
+                             <Upload size={48} className="mx-auto text-slate-900" />
+                             <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-900">Upload Asset Telemetry Photo</p>
                           </div>
                        )}
+                       <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                          <p className="text-xs font-black text-white uppercase tracking-widest">Update Asset Media</p>
+                       </div>
                        <input type="file" name="vehicleImage" className="hidden" accept="image/*" onChange={handleChange} />
                     </div>
                  </label>
-                 <div className="mt-4 p-4 bg-slate-900 text-white rounded shadow-sm">
-                    <div className="flex items-center gap-3 mb-2">
-                       <ShieldCheck size={14} className="text-slate-400" />
-                       <h5 className="text-[10px] font-black uppercase tracking-tight">Onboarding Protocol</h5>
+                 <div className="bg-slate-900 text-white p-6 rounded-2xl shadow-2xl relative overflow-hidden">
+                    <div className="flex items-center gap-3 mb-4 relative z-10">
+                       <ShieldCheck className="w-5 h-5 text-blue-400" />
+                       <h5 className="text-[10px] font-black uppercase tracking-widest underline decoration-blue-500 underline-offset-4">Security Protocol</h5>
                     </div>
-                    <p className="text-[10px] text-slate-400 leading-relaxed font-bold uppercase opacity-80">Ensure all documents are legible. Data is synced directly to the hub dispatch infrastructure upon submission.</p>
+                    <p className="text-[10px] text-slate-400 leading-relaxed font-black uppercase opacity-80 relative z-10 italic">
+                      Verify all operational credentials before commitment. This dossier is immutable and audited by the regional logistics board.
+                    </p>
+                    <div className="absolute -bottom-6 -right-6 w-24 h-24 bg-white/5 rounded-full" />
                  </div>
               </div>
            </section>
 
-           <div className="pt-2">
+           {/* OPERATIONAL KPI TIP */}
+           <div className="bg-gradient-to-br from-blue-50 to-white border border-blue-100 rounded-2xl p-6 flex gap-4 items-start shadow-sm">
+             <Activity className="w-6 h-6 text-blue-600 shrink-0 mt-1" />
+             <div className="space-y-1">
+               <p className="text-[10px] font-black text-blue-900 uppercase tracking-widest leading-none">Node Sync Notice</p>
+               <p className="text-[10px] text-blue-700 font-bold leading-relaxed uppercase tracking-tight italic opacity-70">New agents are synchronized across the regional mesh network within 5 operational minutes.</p>
+             </div>
+           </div>
+
+           <div className="pt-2 sticky bottom-6 z-20">
               <button type="submit" disabled={loading}
-                 className="w-full py-3.5 bg-slate-900 text-white rounded text-[11px] font-black uppercase tracking-widest hover:bg-slate-800 transition-all shadow-xl shadow-slate-200 disabled:bg-slate-300">
-                 {loading ? <Loader2 size={16} className="animate-spin mx-auto" /> : (id && id !== "new" ? "COMMIT UPDATES" : "FINALIZE ONBOARDING")}
+                 className="w-full py-4 bg-slate-900 text-white rounded-2xl text-xs font-black uppercase tracking-[0.25em] hover:bg-slate-800 transition-all shadow-2xl shadow-slate-300 disabled:bg-slate-200 group flex items-center justify-center gap-3">
+                 {loading ? <Loader2 size={20} className="animate-spin" /> : (id && id !== "new" ? "SERIALIZE PERSONNEL DATA" : "AUTHORIZE FIELD AGENT")}
+                 {!loading && <Zap size={18} className="group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform text-blue-400 fill-blue-400" />}
               </button>
            </div>
         </div>
@@ -233,3 +241,18 @@ export default function RegisterRider() {
     </div>
   );
 }
+
+/* --- Visual Input Component --- */
+const InputUnit = ({ label, icon: Icon, textarea, fullWidth, uppercase, ...props }) => (
+  <div className={`space-y-2 ${fullWidth ? 'md:col-span-2' : ''}`}>
+    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 flex items-center gap-2">
+      {Icon && <Icon size={12} className="opacity-70" />}
+      {label}
+    </label>
+    {textarea ? (
+      <textarea {...props} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-xs font-black outline-none focus:border-slate-900 focus:bg-white focus:ring-2 focus:ring-slate-900/5 shadow-sm transition-all resize-none h-24" />
+    ) : (
+      <input {...props} className={`w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3.5 text-xs font-black outline-none focus:border-slate-900 focus:bg-white focus:ring-2 focus:ring-slate-900/5 shadow-sm transition-all ${uppercase ? 'uppercase select-all' : ''}`} />
+    )}
+  </div>
+);

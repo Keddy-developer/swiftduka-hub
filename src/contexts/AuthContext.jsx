@@ -22,8 +22,15 @@ export const AuthProvider = ({ children }) => {
                     
                     // Fetch associated hub details
                     if (data.user.fulfillmentHubId) {
-                       const hubRes = await axiosInstance.get(`/delivery/hubs/${data.user.fulfillmentHubId}`);
-                       setHub(hubRes.data.hub || null);
+                       try {
+                          const hubRes = await axiosInstance.get(`/delivery/hubs/${data.user.fulfillmentHubId}`);
+                          setHub(hubRes.data.hub || null);
+                       } catch (hubErr) {
+                          console.error("Critical: Failed to sync hub identity context", hubErr);
+                          setHub(null);
+                       }
+                    } else {
+                       console.warn("Auth sync: No fulfillmentHubId found for user", data.user.id);
                     }
                 }
             } catch (err) {
@@ -44,8 +51,12 @@ export const AuthProvider = ({ children }) => {
                 setUser(data.user);
                 
                 if (data.user.fulfillmentHubId) {
-                   const hubRes = await axiosInstance.get(`/delivery/hubs/${data.user.fulfillmentHubId}`);
-                   setHub(hubRes.data.hub || null);
+                   try {
+                      const hubRes = await axiosInstance.get(`/delivery/hubs/${data.user.fulfillmentHubId}`);
+                      setHub(hubRes.data.hub || null);
+                   } catch (hubErr) {
+                      console.error("Login sync: Hub data fetch failed", hubErr);
+                   }
                 }
                 return { success: true };
             }

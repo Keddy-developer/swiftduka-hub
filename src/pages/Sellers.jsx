@@ -1,7 +1,12 @@
+import React, { useEffect, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import axiosInstance from "../services/axiosConfig";
-import { Eye, Trash2, UserRound, Store, Star, Calendar, Mail, MapPin, Shield, TrendingUp, Plus, Edit, AlertTriangle } from "lucide-react";
-import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { 
+  Eye, Trash2, UserRound, Store, Star, Calendar, Mail, MapPin, Shield, 
+  TrendingUp, Plus, Edit, AlertTriangle, Search, Filter, RefreshCw, 
+  ChevronRight, Globe, Zap, MoreVertical, Package, ShieldCheck,
+  Smartphone, Building
+} from "lucide-react";
 import { toast } from "react-toastify";
 import { useAuth } from "../contexts/AuthContext";
 
@@ -12,11 +17,17 @@ export default function SellersPage() {
   const [selectedSellerId, setSelectedSellerId] = useState(null);
   const [loadingDelete, setLoadingDelete] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const navigate = useNavigate();
 
-  const fetchSellers = async () => {
-    setLoading(true);
+  const fetchSellers = async (silent = false) => {
+    if (!silent) setLoading(true);
+    else setRefreshing(true);
+    
     if (!hub?.id) {
        setLoading(false);
+       setRefreshing(false);
        return;
     }
     try {
@@ -25,10 +36,11 @@ export default function SellersPage() {
       setSellers(Array.isArray(sellersData) ? sellersData : []);
     } catch (error) {
       console.error("Error fetching sellers:", error);
-      toast.error("Failed to load hub sellers");
+      toast.error("Failed to load hub merchants");
       setSellers([]);
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   };
 
@@ -36,20 +48,15 @@ export default function SellersPage() {
     fetchSellers();
   }, [hub]);
 
-  const handleShowModal = (id) => {
-    setShowModal(true);
-    setSelectedSellerId(id);
-  };
-
   const handleDelete = async (id) => {
     setLoadingDelete(true);
     try {
       await axiosInstance.delete(`/admin/delete-seller-account/${id}`);
       setSellers((prev) => prev.filter((seller) => seller.id !== id));
-      toast.success("Seller removed successfully.");
+      toast.success("Merchant profile decoupled from hub");
     } catch (error) {
       console.error("Error removing seller:", error);
-      toast.error("Failed to delete seller. Please try again later.");
+      toast.error("Failed to revoke merchant authority.");
     } finally {
       setLoadingDelete(false);
       setShowModal(false);
@@ -57,161 +64,198 @@ export default function SellersPage() {
     }
   };
 
-  if (loading) {
-    return <div className="p-8 text-slate-400 font-medium">Loading seller network...</div>;
-  }
+  const filteredSellers = sellers.filter(s => 
+    s.storeName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    s.user?.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    s.phone?.includes(searchQuery)
+  );
+
+  if (loading) return (
+    <div className="flex flex-col items-center justify-center p-20 opacity-50">
+      <RefreshCw className="w-8 h-8 animate-spin mb-3 text-slate-400" />
+      <span className="text-xs font-bold uppercase tracking-widest text-slate-500">Synchronizing merchant network...</span>
+    </div>
+  );
 
   return (
-    <div className="space-y-6">
-      {/* 🏙️ HEADER */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div className="max-w-7xl mx-auto space-y-6 md:space-y-10 animate-in fade-in duration-500 pb-20">
+      {/* 🏙️ TACTICAL HEADER */}
+      <div className="flex flex-col md:flex-row md:items-end justify-between border-b border-slate-200 pb-6 gap-6">
         <div>
-          <h2 className="text-xl md:text-2xl font-bold text-slate-900 tracking-tight">Seller Network</h2>
-          <p className="text-[12px] md:text-sm text-slate-500 font-medium">Manage merchant accounts assigned to {hub?.name || 'hub'}.</p>
+          <h1 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight">Merchant Command</h1>
+          <p className="text-[10px] md:text-xs text-slate-500 font-black uppercase tracking-widest mt-1 flex items-center gap-2">
+            <Building size={14} className="text-blue-600 mb-0.5" />
+            Node: {hub?.name} · Global Partner Inventory
+          </p>
         </div>
-        <Link to="/register-seller">
-          <button className="w-full md:w-auto px-4 py-2 bg-slate-900 text-white rounded text-[10px] md:text-xs font-bold hover:bg-slate-800 transition-all flex items-center justify-center gap-2 shadow-sm">
-            <Plus size={14} /> REGISTER NEW MERCHANT
-          </button>
-        </Link>
+        <div className="flex gap-2 w-full md:w-auto">
+            <button onClick={() => fetchSellers(true)} className="flex-1 md:flex-none px-6 py-3 bg-white border border-slate-200 rounded-lg text-[10px] font-black text-slate-600 hover:bg-slate-50 transition-all uppercase tracking-widest shadow-sm flex items-center justify-center gap-2">
+                <RefreshCw size={14} className={refreshing ? 'animate-spin' : ''} /> Sync Mesh
+            </button>
+            <button onClick={() => navigate("/register-seller")} className="flex-1 md:flex-none px-6 py-3 bg-slate-900 text-white rounded-lg text-[10px] font-black hover:bg-slate-800 transition-all shadow-xl shadow-slate-200 uppercase tracking-widest flex items-center justify-center gap-2">
+                <Plus size={14} /> Onboard Merchant
+            </button>
+        </div>
       </div>
 
-      {/* 📊 SUMMARY TILES */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
-        {[
-          { label: 'Total Merchants', value: sellers.length, icon: UserRound },
-          { label: 'Approved', value: sellers.filter(s => s.approvalStatus === 'approved').length, icon: Shield },
-          { label: 'Awaiting Action', value: sellers.filter(s => s.approvalStatus === 'pending').length, icon: Calendar },
-          { label: 'Inactive Units', value: sellers.filter(s => s.deleted).length, icon: Trash2 },
-        ].map((stat) => (
-          <div key={stat.label} className="bg-white border border-slate-200 p-4 md:p-5 rounded shadow-sm">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded bg-slate-50 flex items-center justify-center border border-slate-100 flex-shrink-0">
-                <stat.icon className="w-4 h-4 text-slate-500" />
-              </div>
-              <div className="min-w-0">
-                <p className="text-[9px] md:text-[10px] font-bold text-slate-400 uppercase tracking-wider">{stat.label}</p>
-                <p className="text-base md:text-lg font-bold text-slate-900 mt-0.5">{stat.value}</p>
-              </div>
-            </div>
-          </div>
-        ))}
+      {/* 📊 KPI SUMMARY HUD */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
+          <KPICard label="Active Merchants" value={sellers.length} icon={UserRound} color="blue" />
+          <KPICard label="Security Compliance" value={sellers.filter(s => s.approvalStatus === 'approved').length} icon={ShieldCheck} color="green" />
+          <KPICard label="Global SKUs" value={sellers.reduce((acc, s) => acc + (s._count?.products || 0), 0)} icon={Package} color="slate" />
+          <KPICard label="Pending vetting" value={sellers.filter(s => s.approvalStatus === 'pending').length} icon={Zap} color="amber" />
       </div>
 
-      {/* 🗄️ DATA TABLE (Responsive) */}
-      <div className="bg-white border border-slate-200 rounded shadow-sm overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse min-w-[700px]">
-            <thead>
-              <tr className="bg-slate-50 border-b border-slate-200">
-                <th className="px-6 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider">Merchant Detail</th>
-                <th className="px-6 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider">Contact & Scope</th>
-                <th className="px-6 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider text-center">Metrics</th>
-                <th className="px-6 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider">Status</th>
-                <th className="px-6 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider text-right">Action</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {sellers.map((seller) => (
-                <tr key={seller.id} className="hover:bg-slate-50/50 transition-colors group">
-                  <td className="px-6 py-4">
-                    <div className="flex items-center gap-3">
-                      <div className="w-9 h-9 rounded bg-slate-100 flex items-center justify-center border border-slate-200 text-slate-400 overflow-hidden flex-shrink-0">
-                        {seller.profilePicture ? (
-                           <img src={seller.profilePicture} className="w-full h-full object-cover" />
-                        ) : (
-                           <Store size={16} />
-                        )}
-                      </div>
-                      <div className="min-w-0">
-                        <p className="font-bold text-slate-900 text-sm truncate">{seller.storeName || 'Unnamed'}</p>
-                        <p className="text-[10px] text-slate-400 font-mono">#{seller.id.slice(0, 8)}</p>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-2 text-xs text-slate-600">
-                        <Mail className="w-3 h-3 text-slate-400" />
-                        <span className="truncate max-w-[150px]">{seller.user?.email || 'N/A'}</span>
-                      </div>
-                      <div className="flex items-center gap-2 text-[10px] text-slate-400 uppercase font-medium">
-                        <MapPin className="w-3 h-3" />
-                        <span>{seller.county || 'Unset'}</span>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="flex items-center justify-center gap-4 text-center">
-                       <div>
-                          <p className="text-xs font-bold text-slate-900">{seller.sales || 0}</p>
-                          <p className="text-[9px] text-slate-400 uppercase font-medium">Sales</p>
-                       </div>
-                       <div>
-                          <p className="text-xs font-bold text-slate-900">{seller._count?.products || 0}</p>
-                          <p className="text-[9px] text-slate-400 uppercase font-medium">SKUs</p>
-                       </div>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="flex flex-col gap-1">
-                      <span className={`px-2 py-0.5 rounded text-[9px] font-bold uppercase inline-block border ${
-                         seller.approvalStatus === 'approved' ? 'bg-green-50 text-green-700 border-green-100' :
-                         seller.approvalStatus === 'pending' ? 'bg-amber-50 text-amber-700 border-amber-100' :
-                         'bg-red-50 text-red-700 border-red-100'
-                      }`}>
-                         {seller.approvalStatus}
-                      </span>
-                      {seller.deleted && (
-                        <span className="text-[8px] font-bold text-red-500 uppercase italic">DEACTIVATED</span>
-                      )}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 text-right">
-                    <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <Link to={`/sellers/${seller.id}`} className="p-1.5 text-slate-400 hover:text-slate-900 hover:bg-slate-100 rounded transition-colors">
-                        <Eye size={14} />
-                      </Link>
-                      <Link to={`/register-seller?edit=${seller.id}`} className="p-1.5 text-slate-400 hover:text-slate-900 hover:bg-slate-100 rounded transition-colors">
-                        <Edit size={14} />
-                      </Link>
-                      <button onClick={() => handleShowModal(seller.id)} className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors">
-                        <Trash2 size={14} />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
+      <div className="space-y-6">
+        {/* 🔍 SEARCH & FILTER STRIP */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+           <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+              <input 
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search by Store, Email or Phone..." 
+                className="w-full bg-slate-50 border border-slate-100 rounded-xl pl-10 pr-4 py-2.5 text-xs font-bold outline-none focus:bg-white focus:border-slate-400 transition-all uppercase tracking-tight"
+              />
+           </div>
+           <div className="flex items-center gap-2 overflow-x-auto no-scrollbar">
+              {['Vetted', 'Internal', 'External', 'Flagged'].map(t => (
+                <button key={t} className="px-4 py-2 bg-white border border-slate-200 rounded-full text-[9px] font-black uppercase tracking-widest text-slate-500 hover:bg-slate-50 whitespace-nowrap">{t}</button>
               ))}
-            </tbody>
-          </table>
+           </div>
         </div>
-        {sellers.length === 0 && (
-           <div className="p-12 text-center text-slate-400 font-medium italic border-t border-slate-50 text-sm">No linked merchants detected in this logistical scope.</div>
-        )}
+
+        {/* 🗄️ MERCHANT CARDS / GRID */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+           {filteredSellers.map(seller => (
+             <MerchantCard key={seller.id} seller={seller} onDetails={() => navigate(`/sellers/${seller.id}`)} onEdit={() => navigate(`/register-seller?edit=${seller.id}`)} onDelete={() => { setSelectedSellerId(seller.id); setShowModal(true); }} />
+           ))}
+           {filteredSellers.length === 0 && (
+              <div className="col-span-full py-24 text-center bg-white border border-slate-200 border-dashed rounded-3xl opacity-40">
+                 <Globe size={48} className="mx-auto mb-4 text-slate-300 animate-pulse" />
+                 <p className="text-xs font-black uppercase tracking-[0.2em] text-slate-400">Isolated Scope: Zero Merchants Detected</p>
+                 <p className="text-[10px] font-bold text-slate-400 mt-2 italic">Refine search parameters or initiate global onboarding.</p>
+              </div>
+           )}
+        </div>
       </div>
 
-      {/* Delete Confirmation Modal */}
+      {/* ⚠️ MODAL: DECOUPLING SECURITY PROTOCOL */}
       {showModal && (
-        <div className="fixed inset-0 bg-black/30 flex justify-center items-center z-50 p-4 backdrop-blur-[1px]">
-          <div className="bg-white rounded border border-slate-200 p-6 w-full max-w-sm shadow-xl animate-in fade-in zoom-in duration-200">
-             <div className="flex items-center gap-3 mb-4">
-               <AlertTriangle className="text-amber-500 w-5 h-5" />
-               <h3 className="text-base font-bold text-slate-900 uppercase tracking-tight">Security Protocol</h3>
+        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center z-[100] p-4 animate-in fade-in duration-300">
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-sm p-8 space-y-6 animate-in zoom-in-95 duration-200 overflow-hidden relative">
+             <div className="flex items-center gap-4 relative z-10">
+                <div className="w-12 h-12 bg-rose-50 rounded-2xl flex items-center justify-center border border-rose-100 shrink-0">
+                  <AlertTriangle className="text-rose-600 w-6 h-6" />
+                </div>
+                <div>
+                  <h3 className="text-base font-black text-slate-900 uppercase tracking-tight">Security notice</h3>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Asset Decoupling Protocol</p>
+                </div>
              </div>
-             <p className="text-[11px] text-slate-500 mb-6 leading-relaxed">System will initiate decoupling of this merchant from hub logistics. Active inventory status will be suspended. Verify this action before proceeding.</p>
-             <div className="flex gap-2 justify-end">
-                <button className="px-4 py-2 text-slate-600 bg-slate-50 border border-slate-200 rounded text-[10px] font-bold uppercase" onClick={() => setShowModal(false)}>Abort</button>
+             <p className="text-xs font-bold text-slate-500 leading-relaxed uppercase tracking-tight italic relative z-10">
+               System will initiate decoupling of this merchant from hub logistics. Active inventory status will be suspended. Verify this action before proceeding.
+             </p>
+             <div className="flex gap-3 relative z-10">
+                <button className="flex-1 py-3.5 bg-slate-50 border border-slate-200 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-100 transition-all font-black" onClick={() => setShowModal(false)}>Abort</button>
                 <button 
-                  className="px-4 py-2 bg-slate-900 text-white rounded text-[10px] font-bold uppercase hover:bg-slate-800 transition-colors"
+                  className="flex-1 py-3.5 bg-rose-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-rose-700 transition-all shadow-xl shadow-rose-200"
                   onClick={() => selectedSellerId && handleDelete(selectedSellerId)}
                   disabled={loadingDelete}
                 >
                   {loadingDelete ? 'SYCHRONIZING...' : 'CONFIRM REVOKE'}
                 </button>
              </div>
+             <div className="absolute top-0 right-0 w-32 h-32 bg-slate-50 rounded-full -mr-16 -mt-16 -z-10"></div>
           </div>
         </div>
       )}
     </div>
   );
 }
+
+/* --- Components --- */
+
+const KPICard = ({ label, value, icon: Icon, color }) => {
+  const styles = {
+     blue: "border-blue-500 bg-blue-50/20 text-blue-600",
+     slate: "border-slate-400 bg-slate-50 text-slate-900",
+     amber: "border-amber-500 bg-amber-50/20 text-amber-600",
+     green: "border-green-500 bg-green-50/20 text-green-600"
+  };
+  
+  return (
+     <div className={`bg-white border-l-4 p-5 rounded-2xl shadow-sm border transition-all hover:shadow-xl hover:-translate-y-1 group relative overflow-hidden ${styles[color]}`}>
+        <div className="flex justify-between items-start mb-4">
+           <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center border border-slate-100 shadow-sm transition-transform group-hover:scale-110">
+              <Icon size={20} className="opacity-80" />
+           </div>
+        </div>
+        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{label}</p>
+        <p className="text-2xl font-black text-slate-900 tracking-tighter leading-none">{value}</p>
+        <div className="absolute -bottom-4 -right-4 w-16 h-16 bg-slate-50 rounded-full opacity-0 group-hover:opacity-100 transition-all -z-10"></div>
+     </div>
+  );
+};
+
+const MerchantCard = ({ seller, onDetails, onEdit, onDelete }) => (
+  <div className="bg-white border border-slate-200 rounded-3xl p-6 space-y-6 hover:shadow-2xl transition-all group relative overflow-hidden flex flex-col justify-between">
+    <div>
+      <div className="flex items-center gap-4 mb-6">
+        <div className="w-14 h-14 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-center overflow-hidden flex-shrink-0 group-hover:scale-105 transition-transform shadow-inner">
+          {seller.profilePicture ? <img src={seller.profilePicture} className="w-full h-full object-cover" /> : <Store size={24} className="text-slate-300" />}
+        </div>
+        <div className="min-w-0 flex-1">
+          <h3 className="font-black text-slate-900 text-base truncate uppercase tracking-tight leading-none mb-1.5">{seller.storeName || 'Unnamed Entity'}</h3>
+          <div className="flex items-center gap-2">
+             <span className={`px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-widest border ${
+                seller.approvalStatus === 'approved' ? 'bg-green-50 text-green-700 border-green-100' : 'bg-amber-50 text-amber-700 border-amber-100'
+             }`}>
+                {seller.approvalStatus}
+             </span>
+             {seller.deleted && <span className="text-[8px] font-black text-rose-500 uppercase italic">OFFLINE</span>}
+          </div>
+        </div>
+      </div>
+
+      <div className="space-y-3">
+         <div className="flex items-center gap-3 p-3 bg-slate-50 border border-slate-100 rounded-xl group/info hover:bg-white transition-colors">
+            <Mail size={14} className="text-slate-300 group-hover/info:text-blue-500" />
+            <span className="text-[10px] font-black text-slate-600 truncate">{seller.user?.email || 'N/A'}</span>
+         </div>
+         <div className="flex items-center gap-3 p-3 bg-slate-50 border border-slate-100 rounded-xl group/info hover:bg-white transition-colors">
+            <MapPin size={14} className="text-slate-300 group-hover/info:text-rose-500" />
+            <span className="text-[10px] font-black text-slate-600 uppercase tracking-widest">{seller.county || 'Unassigned Zone'}</span>
+         </div>
+      </div>
+    </div>
+
+    <div>
+       <div className="grid grid-cols-2 gap-4 border-t border-slate-100 pt-6 mt-2">
+          <div className="text-center bg-slate-50 p-2.5 rounded-xl border border-slate-100">
+             <p className="text-sm font-black text-slate-900 tracking-tighter leading-none">{seller.sales || 0}</p>
+             <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest mt-1">Net Sales</p>
+          </div>
+          <div className="text-center bg-slate-50 p-2.5 rounded-xl border border-slate-100">
+             <p className="text-sm font-black text-slate-900 tracking-tighter leading-none">{seller._count?.products || 0}</p>
+             <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest mt-1">Active SKUs</p>
+          </div>
+       </div>
+
+       <div className="flex gap-2 pt-6">
+          <button onClick={onDetails} className="flex-1 py-3 bg-slate-900 text-white rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-blue-600 transition-all shadow-lg flex items-center justify-center gap-2">
+             <Eye size={12} /> Dossier
+          </button>
+          <div className="flex gap-1">
+             <button onClick={onEdit} className="p-3 bg-slate-50 text-slate-400 rounded-xl hover:text-slate-900 transition-colors">
+                <Edit size={14} />
+             </button>
+             <button onClick={onDelete} className="p-3 bg-rose-50 text-rose-400 rounded-xl hover:text-rose-600 transition-colors">
+                <Trash2 size={14} />
+             </button>
+          </div>
+       </div>
+    </div>
+    <div className="absolute top-0 right-0 w-32 h-32 bg-slate-50 rounded-full -mr-16 -mt-16 opacity-0 group-hover:opacity-100 transition-opacity -z-10"></div>
+  </div>
+);
