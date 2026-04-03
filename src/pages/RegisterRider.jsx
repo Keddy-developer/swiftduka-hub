@@ -1,34 +1,27 @@
-import { useState, useEffect } from "react";
-import { motion } from "framer-motion";
+import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axiosInstance from "../services/axiosConfig";
 import uploadToCloudinary from "../utils/uploadToCloudinary";
 import { toast } from "react-toastify";
 import { useAuth } from "../contexts/AuthContext";
-import { ArrowLeft, User, Phone, Mail, IdCard, Truck, Upload, Loader2, Save } from "lucide-react";
+import { 
+  ArrowLeft, User, Phone, Mail, IdCard, Truck, Upload, 
+  Loader2, Save, X, Camera, Info, ShieldCheck
+} from "lucide-react";
 
 export default function RegisterRider() {
-  const { id } = useParams(); // if id exists → edit mode
+  const { id } = useParams();
   const { hub } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(false);
   const [form, setForm] = useState({
-    name: "",
-    age: "",
-    drivingLicence: "",
-    nationalId: "",
-    numberPlate: "",
-    phone: "",
-    email: "",
-    vehicleType: "",
-    vehicleModel: "",
-    vehicleColor: "",
-    vehicleImage: null,
+    name: "", age: "", drivingLicence: "", nationalId: "",
+    numberPlate: "", phone: "", email: "", vehicleType: "",
+    vehicleModel: "", vehicleColor: "", vehicleImage: null,
   });
   const [existingImage, setExistingImage] = useState(null);
 
-  // 🔄 Fetch existing rider if editing
   useEffect(() => {
     if (id && id !== "new") {
       setFetching(true);
@@ -36,51 +29,36 @@ export default function RegisterRider() {
         .then((res) => {
           const rider = res.data;
           setForm({
-            name: rider.name || "",
-            age: rider.age?.toString() || "",
-            drivingLicence: rider.drivingLicence || "",
-            nationalId: rider.nationalId || "",
-            numberPlate: rider.numberPlate || "",
-            phone: rider.phone || "",
-            email: rider.email || "",
-            vehicleType: rider.vehicleType || "",
-            vehicleModel: rider.vehicleModel || "",
-            vehicleColor: rider.vehicleColor || "",
+            name: rider.name || "", age: rider.age?.toString() || "",
+            drivingLicence: rider.drivingLicence || "", nationalId: rider.nationalId || "",
+            numberPlate: rider.numberPlate || "", phone: rider.phone || "",
+            email: rider.email || "", vehicleType: rider.vehicleType || "",
+            vehicleModel: rider.vehicleModel || "", vehicleColor: rider.vehicleColor || "",
             vehicleImage: null,
           });
           setExistingImage(rider.vehicleImage || null);
         })
         .catch(err => {
-          console.error("Failed to fetch rider:", err);
-          toast.error("Rider not found.");
+          toast.error("Manifest retrieval failure");
           navigate("/fleet");
         })
         .finally(() => setFetching(false));
     }
   }, [id, navigate]);
 
-  // 📌 Handle input changes
   const handleChange = (e) => {
     const { name, value, files } = e.target;
-    if (name === "vehicleImage") {
-      setForm({ ...form, vehicleImage: files[0] });
-    } else {
-      setForm({ ...form, [name]: value });
-    }
+    if (name === "vehicleImage") setForm({ ...form, vehicleImage: files[0] });
+    else setForm({ ...form, [name]: value });
   };
 
-  // 📌 Submit
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!hub?.id) {
-      toast.error("Hub session lost. Please login again.");
-      return;
-    }
+    if (!hub?.id) return toast.error("Hub session expired");
     setLoading(true);
 
     try {
       let uploadedImageUrl = existingImage;
-
       if (form.vehicleImage) {
         const uploadResult = await uploadToCloudinary(form.vehicleImage);
         uploadedImageUrl = uploadResult.imageUrl;
@@ -90,213 +68,168 @@ export default function RegisterRider() {
         ...form,
         age: parseInt(form.age, 10),
         vehicleImage: uploadedImageUrl || existingImage,
-        fulfillmentHubId: hub.id // Automatically link to current hub
+        fulfillmentHubId: hub.id 
       };
 
       if (id && id !== "new") {
-        // 🔄 Update
         await axiosInstance.put(`/delivery/hubs/${hub.id}/riders/${id}`, payload);
-        toast.success("Rider updated successfully!");
+        toast.success("Rider dossier updated");
       } else {
-        // ➕ Create
         await axiosInstance.post(`/delivery/hubs/${hub.id}/riders`, payload);
-        toast.success("Rider registered successfully!");
+        toast.success("Rider registered");
       }
       navigate("/fleet");
     } catch (error) {
-      toast.error(error.response?.data?.error || error.response?.data?.message || "Failed to submit rider. Please try again.");
-      console.error("❌ Failed to submit rider:", error);
+      toast.error("Registration failure");
     } finally {
       setLoading(false);
     }
   };
 
-  if (fetching) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <Loader2 className="w-10 h-10 text-primary animate-spin" />
-      </div>
-    );
-  }
+  if (fetching) return <div className="p-8 text-slate-400 font-medium italic text-sm text-center">Retrieving agent credentials...</div>;
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] p-4 md:p-8">
-      <div className="max-w-4xl mx-auto">
-        {/* Back Button */}
-        <button
-          onClick={() => navigate(-1)}
-          className="flex items-center gap-2 text-slate-500 hover:text-slate-800 transition-colors mb-8 group"
-        >
-          <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
-          <span className="font-bold uppercase tracking-widest text-xs">Back to Fleet</span>
-        </button>
+    <div className="space-y-6 md:space-y-8">
+      {/* 🏙️ HEADER */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 pb-4">
+        <div className="space-y-1">
+          <button onClick={() => navigate('/fleet')} className="flex items-center gap-1.5 text-[10px] font-bold text-slate-400 uppercase hover:text-slate-900 transition-colors">
+            <ArrowLeft size={14} /> Back to Fleet
+          </button>
+          <h2 className="text-xl md:text-2xl font-bold text-slate-900 tracking-tighter uppercase whitespace-nowrap">
+            {id && id !== "new" ? 'Modify Personnel' : 'Onboard Agent'}
+          </h2>
+        </div>
+      </div>
 
-        <motion.div
-           initial={{ opacity: 0, y: 20 }}
-           animate={{ opacity: 1, y: 0 }}
-           className="bg-white rounded-[2rem] shadow-xl shadow-slate-200/50 border border-slate-100 overflow-hidden"
-        >
-          {/* Header */}
-          <div className="bg-slate-900 px-8 py-10 text-white relative overflow-hidden">
-            <div className="relative z-10">
-              <h1 className="text-3xl font-black uppercase tracking-tight mb-2">
-                {id && id !== "new" ? "Modify Personnel" : "Onboard New Rider"}
-              </h1>
-              <p className="text-slate-400 font-bold text-sm tracking-widest uppercase">
-                {id && id !== "new" ? "Update existing credentials" : "Registration for logistics & delivery services"}
-              </p>
-            </div>
-            <div className="absolute top-0 right-0 p-8 opacity-10">
-              <Truck className="w-32 h-32 rotate-12" />
-            </div>
-          </div>
-
-          <form onSubmit={handleSubmit} className="p-8 md:p-12 space-y-12">
-            {/* 👤 Section 1: Identity */}
-            <section>
-              <div className="flex items-center gap-3 mb-8">
-                <div className="w-10 h-10 rounded-2xl bg-primary/10 flex items-center justify-center">
-                  <User className="text-primary w-5 h-5" />
-                </div>
-                <h3 className="text-xl font-black text-slate-900 uppercase tracking-tighter">Identity Details</h3>
+      <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-8 items-start">
+        {/* ── LEFT: PERSONNEL INFO ── */}
+        <div className="lg:col-span-7 space-y-6">
+           <section className="bg-white border border-slate-200 rounded shadow-sm overflow-hidden">
+              <div className="px-5 py-3 bg-slate-50 border-b border-slate-200 flex items-center gap-2">
+                 <User size={14} className="text-slate-400" />
+                 <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Personnel Identity</span>
               </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <InputGroup icon={User} label="Full Official Name" name="name" value={form.name} onChange={handleChange} placeholder="e.g. John Doe" required />
-                <InputGroup icon={IdCard} label="Age" type="number" name="age" value={form.age} onChange={handleChange} placeholder="25" min={18} max={65} required />
-                <InputGroup icon={IdCard} label="Driving Licence No." name="drivingLicence" value={form.drivingLicence} onChange={handleChange} placeholder="DL-XXXX" required />
-                <InputGroup icon={IdCard} label="National ID Number" name="nationalId" value={form.nationalId} onChange={handleChange} placeholder="35XXXXXX" required />
-              </div>
-            </section>
-
-            {/* 📞 Section 2: Communication */}
-            <section>
-              <div className="flex items-center gap-3 mb-8">
-                <div className="w-10 h-10 rounded-2xl bg-primary/10 flex items-center justify-center">
-                  <Phone className="text-primary w-5 h-5" />
-                </div>
-                <h3 className="text-xl font-black text-slate-900 uppercase tracking-tighter">Communication</h3>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <InputGroup icon={Phone} label="Primary Phone Number" name="phone" value={form.phone} onChange={handleChange} placeholder="+254 7XX..." required />
-                <InputGroup icon={Mail} label="Email Address" type="email" name="email" value={form.email} onChange={handleChange} placeholder="john@example.com" required />
-              </div>
-            </section>
-
-            {/* 🏍️ Section 3: Asset Details */}
-            <section>
-              <div className="flex items-center gap-3 mb-8">
-                <div className="w-10 h-10 rounded-2xl bg-primary/10 flex items-center justify-center">
-                  <Truck className="text-primary w-5 h-5" />
-                </div>
-                <h3 className="text-xl font-black text-slate-900 uppercase tracking-tighter">Logistics Asset</h3>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                <div className="space-y-2">
-                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Vehicle Type</label>
-                  <div className="relative group">
-                    <Truck className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-primary transition-colors" />
-                    <select
-                      name="vehicleType"
-                      value={form.vehicleType}
-                      onChange={handleChange}
-                      className="w-full pl-11 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all text-sm font-bold appearance-none"
-                      required
-                    >
-                      <option value="">Select Type</option>
-                      <option value="Motorbike">Motorbike</option>
-                      <option value="Bicycle">Bicycle</option>
-                      <option value="Car">Car</option>
-                      <option value="Van">Van</option>
-                      <option value="Pickup">Pickup</option>
-                    </select>
+              
+              <div className="p-5 space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                     <div className="space-y-1">
+                        <label className="text-[9px] font-bold text-slate-400 uppercase ml-1">Legal Name</label>
+                        <input type="text" name="name" value={form.name} onChange={handleChange} required
+                          className="w-full bg-white border border-slate-200 rounded px-3 py-2 text-xs font-bold outline-none focus:border-slate-900 shadow-sm" />
+                     </div>
+                     <div className="space-y-1">
+                        <label className="text-[9px] font-bold text-slate-400 uppercase ml-1">Personnel Age</label>
+                        <input type="number" name="age" value={form.age} onChange={handleChange} required min={18}
+                          className="w-full bg-white border border-slate-200 rounded px-3 py-2 text-xs font-bold outline-none focus:border-slate-900 shadow-sm" />
+                     </div>
                   </div>
-                </div>
-                <InputGroup icon={Truck} label="Number Plate" name="numberPlate" value={form.numberPlate} onChange={handleChange} placeholder="KAA XXXX" required />
-                <InputGroup icon={Truck} label="Asset Model" name="vehicleModel" value={form.vehicleModel} onChange={handleChange} placeholder="TVS/Boxer" required />
-              </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                 <InputGroup icon={Truck} label="Asset Color" name="vehicleColor" value={form.vehicleColor} onChange={handleChange} placeholder="Red/Black" required />
-                 
-                 <div className="space-y-2">
-                   <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Asset Verification Photo</label>
-                   <div className="relative">
-                      <label className={`w-full flex flex-col items-center justify-center px-4 py-8 border-2 border-dashed rounded-[2rem] cursor-pointer transition-all ${form.vehicleImage ? 'bg-green-50 border-green-200' : 'bg-slate-50 border-slate-200 hover:border-primary hover:bg-primary/5'}`}>
-                        {form.vehicleImage || existingImage ? (
-                          <div className="relative w-full aspect-video rounded-2xl overflow-hidden group">
-                            <img 
-                              src={form.vehicleImage ? URL.createObjectURL(form.vehicleImage) : existingImage} 
-                              alt="Vehicle Preview" 
-                              className="w-full h-full object-cover"
-                            />
-                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                              <Upload className="text-white w-8 h-8" />
-                            </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                     <div className="space-y-1">
+                        <label className="text-[9px] font-bold text-slate-400 uppercase ml-1">DL Number</label>
+                        <input type="text" name="drivingLicence" value={form.drivingLicence} onChange={handleChange} required
+                          className="w-full bg-white border border-slate-200 rounded px-3 py-2 text-xs font-bold outline-none focus:border-slate-900 shadow-sm uppercase" />
+                     </div>
+                     <div className="space-y-1">
+                        <label className="text-[9px] font-bold text-slate-400 uppercase ml-1">National ID</label>
+                        <input type="text" name="nationalId" value={form.nationalId} onChange={handleChange} required
+                          className="w-full bg-white border border-slate-200 rounded px-3 py-2 text-xs font-bold outline-none focus:border-slate-900 shadow-sm" />
+                     </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                     <div className="space-y-1">
+                        <label className="text-[9px] font-bold text-slate-400 uppercase ml-1">Signal Phone</label>
+                        <input type="text" name="phone" value={form.phone} onChange={handleChange} required
+                          className="w-full bg-white border border-slate-200 rounded px-3 py-2 text-xs font-bold outline-none focus:border-slate-900 shadow-sm" />
+                     </div>
+                     <div className="space-y-1">
+                        <label className="text-[9px] font-bold text-slate-400 uppercase ml-1">Email Authority</label>
+                        <input type="email" name="email" value={form.email} onChange={handleChange} required
+                          className="w-full bg-white border border-slate-200 rounded px-3 py-2 text-xs font-bold outline-none focus:border-slate-900 shadow-sm" />
+                     </div>
+                  </div>
+              </div>
+           </section>
+
+           <section className="bg-white border border-slate-200 rounded shadow-sm overflow-hidden">
+              <div className="px-5 py-3 bg-slate-50 border-b border-slate-200 flex items-center gap-2">
+                 <Truck size={14} className="text-slate-400" />
+                 <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Asset Parameters</span>
+              </div>
+              <div className="p-5 space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                     <div className="space-y-1">
+                        <label className="text-[9px] font-bold text-slate-400 uppercase ml-1">Vehicle Type</label>
+                        <select name="vehicleType" value={form.vehicleType} onChange={handleChange} required
+                          className="w-full bg-white border border-slate-200 rounded px-3 py-2 text-xs font-bold outline-none focus:border-slate-900 shadow-sm uppercase">
+                           <option value="">SELECT</option>
+                           <option value="Motorbike">Motorbike</option>
+                           <option value="Bicycle">Bicycle</option>
+                           <option value="Car">Car</option>
+                           <option value="Van">Van</option>
+                        </select>
+                     </div>
+                     <div className="space-y-1">
+                        <label className="text-[9px] font-bold text-slate-400 uppercase ml-1">Number Plate</label>
+                        <input type="text" name="numberPlate" value={form.numberPlate} onChange={handleChange} required
+                          className="w-full bg-white border border-slate-200 rounded px-3 py-2 text-xs font-bold outline-none focus:border-slate-900 shadow-sm uppercase" />
+                     </div>
+                     <div className="space-y-1">
+                        <label className="text-[9px] font-bold text-slate-400 uppercase ml-1">Asset Model</label>
+                        <input type="text" name="vehicleModel" value={form.vehicleModel} onChange={handleChange} required
+                          className="w-full bg-white border border-slate-200 rounded px-3 py-2 text-xs font-bold outline-none focus:border-slate-900 shadow-sm" />
+                     </div>
+                  </div>
+                  <div className="space-y-1">
+                     <label className="text-[9px] font-bold text-slate-400 uppercase ml-1">Asset Visual Color</label>
+                     <input type="text" name="vehicleColor" value={form.vehicleColor} onChange={handleChange} required
+                       className="w-full bg-white border border-slate-200 rounded px-3 py-2 text-xs font-bold outline-none focus:border-slate-900 shadow-sm" />
+                  </div>
+              </div>
+           </section>
+        </div>
+
+        {/* ── RIGHT: MEDIA & SUBMIT ── */}
+        <div className="lg:col-span-5 space-y-6">
+           <section className="bg-white border border-slate-200 rounded shadow-sm overflow-hidden">
+              <div className="px-5 py-3 bg-slate-50 border-b border-slate-200 flex items-center gap-2">
+                 <Camera size={14} className="text-slate-400" />
+                 <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Asset Documentation</span>
+              </div>
+              <div className="p-5">
+                 <label className="cursor-pointer group">
+                    <div className="border-2 border-dashed border-slate-200 rounded p-6 text-center hover:border-slate-900 transition-all bg-slate-50 group-hover:bg-white relative overflow-hidden aspect-video flex flex-col items-center justify-center">
+                       {form.vehicleImage || existingImage ? (
+                          <img src={form.vehicleImage ? URL.createObjectURL(form.vehicleImage) : existingImage} className="absolute inset-0 w-full h-full object-cover" />
+                       ) : (
+                          <div className="space-y-2 opacity-30 group-hover:opacity-100 transition-all">
+                             <Upload size={32} className="mx-auto" />
+                             <p className="text-[10px] font-bold uppercase tracking-widest">Upload Asset Photo</p>
                           </div>
-                        ) : (
-                          <div className="flex flex-col items-center text-center">
-                            <Upload className="w-8 h-8 text-slate-300 mb-2" />
-                            <p className="text-xs font-bold text-slate-500 uppercase tracking-tighter">Click to upload photo</p>
-                            <p className="text-[10px] text-slate-400 font-medium">PNG, JPG or JPEG (Max 5MB)</p>
-                          </div>
-                        )}
-                        <input type="file" name="vehicleImage" className="hidden" accept="image/*" onChange={handleChange} />
-                      </label>
-                   </div>
+                       )}
+                       <input type="file" name="vehicleImage" className="hidden" accept="image/*" onChange={handleChange} />
+                    </div>
+                 </label>
+                 <div className="mt-4 p-4 bg-slate-900 text-white rounded shadow-sm">
+                    <div className="flex items-center gap-3 mb-2">
+                       <ShieldCheck size={14} className="text-slate-400" />
+                       <h5 className="text-[10px] font-black uppercase tracking-tight">Onboarding Protocol</h5>
+                    </div>
+                    <p className="text-[10px] text-slate-400 leading-relaxed font-bold uppercase opacity-80">Ensure all documents are legible. Data is synced directly to the hub dispatch infrastructure upon submission.</p>
                  </div>
               </div>
-            </section>
+           </section>
 
-            {/* 🏁 Action */}
-            <div className="pt-8 border-t border-slate-100 flex gap-4">
-              <button
-                type="submit"
-                disabled={loading}
-                className="flex-1 bg-slate-900 hover:bg-slate-800 disabled:bg-slate-400 text-white py-4 rounded-2xl font-black uppercase tracking-widest text-sm flex items-center justify-center gap-3 transition-all transform active:scale-95 shadow-xl shadow-slate-200 disabled:shadow-none"
-              >
-                {loading ? (
-                  <Loader2 className="w-5 h-5 animate-spin" />
-                ) : (
-                  <>
-                    <Save className="w-5 h-5" />
-                    {id && id !== "new" ? "Confirm Updates" : "Finalize Registration"}
-                  </>
-                )}
+           <div className="pt-2">
+              <button type="submit" disabled={loading}
+                 className="w-full py-3.5 bg-slate-900 text-white rounded text-[11px] font-black uppercase tracking-widest hover:bg-slate-800 transition-all shadow-xl shadow-slate-200 disabled:bg-slate-300">
+                 {loading ? <Loader2 size={16} className="animate-spin mx-auto" /> : (id && id !== "new" ? "COMMIT UPDATES" : "FINALIZE ONBOARDING")}
               </button>
-            </div>
-          </form>
-        </motion.div>
-      </div>
-    </div>
-  );
-}
-
-// 🧱 Reusable Component
-function InputGroup({ icon: Icon, label, name, value, onChange, placeholder, type = "text", required = false, min, max }) {
-  return (
-    <div className="space-y-2">
-      <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">
-        {label} {required && <span className="text-rose-500">*</span>}
-      </label>
-      <div className="relative group">
-        <div className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none transition-colors">
-          <Icon className="w-4 h-4 text-slate-400 group-focus-within:text-primary" />
+           </div>
         </div>
-        <input
-          type={type}
-          name={name}
-          value={value}
-          onChange={onChange}
-          placeholder={placeholder}
-          required={required}
-          min={min}
-          max={max}
-          className="w-full pl-11 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:bg-white focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all text-sm font-bold placeholder:text-slate-300"
-        />
-      </div>
+      </form>
     </div>
   );
 }
