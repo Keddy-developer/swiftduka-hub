@@ -24,7 +24,11 @@ export default function RidersManagement() {
   }, [hub]);
 
   const fetchRiders = async () => {
-    if (!hub?.id) return;
+    setLoading(true);
+    if (!hub?.id) {
+       setLoading(false);
+       return;
+    }
     try {
       const response = await axiosInstance.get(`/delivery/hubs/${hub.id}/riders`);
       setRiders(response.data?.riders || response.data || []);

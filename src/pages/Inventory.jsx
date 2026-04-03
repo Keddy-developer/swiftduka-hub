@@ -289,7 +289,11 @@ const Inventory = () => {
   const [refreshing, setRefreshing] = useState(false);
 
   const fetchData = useCallback(async (silent = false) => {
-    if (!hub?.id) return;
+    setLoading(true);
+    if (!hub?.id) {
+       setLoading(false);
+       return;
+    }
     if (!silent) setLoading(true);
     else setRefreshing(true);
     try {

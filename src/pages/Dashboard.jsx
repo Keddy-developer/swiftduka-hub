@@ -19,7 +19,11 @@ const Dashboard = () => {
 
   useEffect(() => {
     const fetchStats = async () => {
-      if (!hub?.id) return;
+      setLoading(true);
+      if (!hub?.id) {
+         setLoading(false);
+         return;
+      }
       try {
         const { data } = await axiosInstance.get(`/delivery/hubs/${hub.id}/stats`);
         setStats(data.stats);

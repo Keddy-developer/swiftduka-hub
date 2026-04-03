@@ -17,8 +17,11 @@ export default function SellersPage() {
   const [loading, setLoading] = useState(true);
 
   const fetchSellers = async () => {
-    if (!hub?.id) return;
     setLoading(true);
+    if (!hub?.id) {
+       setLoading(false);
+       return;
+    }
     try {
       const res = await axiosInstance.get(`/delivery/hubs/${hub.id}/sellers`);
       const sellersData = res.data?.sellers || res.data?.data || res.data;
