@@ -18,6 +18,19 @@ const InfoRow = ({ label, value, verified }) => (
     </div>
 );
 
+const StatusBadge = ({ status }) => {
+    const colors = {
+        ACTIVE: "bg-blue-100 text-blue-700 border-blue-200",
+        BASIC: "bg-slate-100 text-slate-700 border-slate-200",
+        PENDING: "bg-amber-100 text-amber-700 border-amber-200",
+    };
+    return (
+        <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-tight border ${colors[status] || colors.BASIC}`}>
+            {status}
+        </span>
+    );
+};
+
 const AdminSellerDetails = () => {
     const { id } = useParams();
     const navigate = useNavigate();

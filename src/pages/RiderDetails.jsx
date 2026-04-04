@@ -50,7 +50,7 @@ export default function RiderDetails() {
                         <ArrowLeft size={14} /> Back to Fleet
                     </button>
                     <h2 className="text-xl md:text-2xl font-bold text-slate-900 tracking-tighter flex items-center gap-3 uppercase">
-                        {rider.user?.firstName} {rider.user?.lastName}
+                        {rider.user?.firstName ? `${rider.user.firstName} ${rider.user.lastName}` : (rider.name || 'Anonymous Agent')}
                         <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-tight border ${rider.status === 'AVAILABLE' ? 'bg-green-50 text-green-700 border-green-100' : 'bg-slate-50 text-slate-700 border-slate-100'}`}>
                             {rider.status || 'OFFLINE'}
                         </span>
@@ -85,8 +85,8 @@ export default function RiderDetails() {
                      <div className="w-24 h-24 rounded-full bg-white/10 p-1.5 mx-auto mb-4 border border-white/20 shadow-xl overflow-hidden">
                         <img src={rider.user?.avatar || 'https://images.unsplash.com/photo-1633332755192-727a05c4013d?w=400&h=400&fit=crop'} className="w-full h-full object-cover rounded-full" />
                      </div>
-                     <h3 className="text-lg font-black tracking-tight">{rider.user?.firstName} {rider.user?.lastName}</h3>
-                     <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Personnel ID: {rider.id.slice(0,8)}</p>
+                     <h3 className="text-lg font-black tracking-tight">{rider.user?.firstName ? `${rider.user.firstName} ${rider.user.lastName}` : (rider.name || 'Personnel Manifest')}</h3>
+                     <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Personnel ID: {rider.id?.slice(0,8)}</p>
                      
                      <div className="mt-6 flex flex-wrap gap-2 justify-center">
                         <span className="px-2 py-0.5 bg-white/10 border border-white/20 rounded text-[9px] font-bold uppercase tracking-widest text-slate-300">Rider Class-A</span>
@@ -101,11 +101,11 @@ export default function RiderDetails() {
                      </div>
                      <div className="p-5 space-y-3">
                          <div className="flex justify-between items-center border-b border-slate-50 pb-2">
-                            <span className="text-[10px] font-bold text-slate-400 uppercase">License Plate</span>
-                            <span className="text-sm font-black text-slate-900 uppercase tracking-tighter">{rider.licensePlate || 'N/A'}</span>
+                            <span className="text-[10px] font-black text-slate-400 uppercase">License Plate</span>
+                            <span className="text-sm font-black text-slate-900 uppercase tracking-tighter">{rider.numberPlate || 'N/A'}</span>
                          </div>
                          <div className="flex justify-between items-center border-b border-slate-50 pb-2">
-                            <span className="text-[10px] font-bold text-slate-400 uppercase">Vehicle Type</span>
+                            <span className="text-[10px] font-black text-slate-400 uppercase">Vehicle Type</span>
                             <span className="text-sm font-bold text-slate-700 uppercase tracking-tight">{rider.vehicleType || 'Motorbike'}</span>
                          </div>
                          <div className="flex justify-between items-center pt-1">
@@ -126,10 +126,10 @@ export default function RiderDetails() {
                      
                      <div className="p-6">
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <InfoTile label="Primary Signal" value={rider.user.phone} icon={Phone} />
-                            <InfoTile label="Digital Authority" value={rider.user.email} icon={Mail} />
+                            <InfoTile label="Primary Signal" value={rider.user?.phone || rider.phone} icon={Phone} />
+                            <InfoTile label="Digital Authority" value={rider.user?.email || rider.email} icon={Mail} />
                             <InfoTile label="Deployment Hub" value={rider.fulfillmentHub?.town || 'Central Command'} icon={Warehouse} />
-                            <InfoTile label="Sector Zone" value={rider.coverageArea} icon={MapPin} />
+                            <InfoTile label="Sector Zone" value={rider.coverageArea || 'General Ops'} icon={MapPin} />
                         </div>
 
                         <div className="mt-8 border-t border-slate-100 pt-8">
