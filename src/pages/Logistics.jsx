@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { 
   Plus, Search, MapPin, Truck, Box, Edit2, 
   Trash2, Globe, ArrowRight, Save, X, Navigation,
-  Home, Phone, Mail, Clock, Layout, List
+  Home, Phone, Mail, Clock, Layout, List, Shield
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import axiosInstance from '../services/axiosConfig';
