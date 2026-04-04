@@ -39,13 +39,26 @@ export default function RegisterRider() {
       axiosInstance.get(`/riders/${id}`)
         .then((res) => {
           const rider = res.data;
+          // Determine the best name to show (handle "undefined undefined" string from previous bugs)
+          let displayName = rider.name || "";
+          if (!displayName || displayName === "undefined undefined") {
+            if (rider.user?.firstName) {
+              displayName = `${rider.user.firstName} ${rider.user.lastName || ""}`.trim();
+            }
+          }
+
           setForm(prev => ({
             ...prev,
-            name: rider.name || "", age: rider.age?.toString() || "",
-            drivingLicence: rider.drivingLicence || "", nationalId: rider.nationalId || "",
-            numberPlate: rider.numberPlate || "", phone: rider.phone || "",
-            email: rider.email || "", vehicleType: rider.vehicleType || "",
-            vehicleModel: rider.vehicleModel || "", vehicleColor: rider.vehicleColor || "",
+            name: displayName, 
+            age: rider.age?.toString() || "",
+            drivingLicence: rider.drivingLicence || "", 
+            nationalId: rider.nationalId || "",
+            numberPlate: rider.numberPlate || "", 
+            phone: rider.phone || rider.user?.phone || "",
+            email: rider.email || rider.user?.email || "", 
+            vehicleType: rider.vehicleType || "",
+            vehicleModel: rider.vehicleModel || "", 
+            vehicleColor: rider.vehicleColor || "",
             vehicleImage: null,
             selectedHubId: rider.fulfillmentHubId || ""
           }));
