@@ -10,6 +10,7 @@ const axiosInstance = axios.create({
 });
 
 let accessToken = localStorage.getItem('fulfillment_token') || '';
+let csrfToken = '';
 
 export const setAccessToken = (token) => {
     accessToken = token;
@@ -20,10 +21,17 @@ export const setAccessToken = (token) => {
     }
 };
 
+export const setCsrfToken = (token) => {
+    csrfToken = token;
+};
+
 axiosInstance.interceptors.request.use(
     (config) => {
         if (accessToken) {
             config.headers['Authorization'] = `Bearer ${accessToken}`;
+        }
+        if (csrfToken && ['post', 'put', 'delete', 'patch'].includes(config.method?.toLowerCase())) {
+            config.headers['x-csrf-token'] = csrfToken;
         }
         return config;
     },

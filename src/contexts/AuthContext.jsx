@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import axiosInstance, { setAccessToken } from '../services/axiosConfig';
+import axiosInstance, { setAccessToken, setCsrfToken } from '../services/axiosConfig';
 
 const AuthContext = createContext();
 
@@ -22,6 +22,14 @@ export const AuthProvider = ({ children }) => {
         const fetchMe = async () => {
             const token = localStorage.getItem('fulfillment_token');
             const cachedHub = localStorage.getItem('active_fulfillment_hub');
+
+            // 🛡️ Always fetch CSRF token first for secure mutations
+            try {
+               const { data: csrfData } = await axiosInstance.get('/csrf-token');
+               setCsrfToken(csrfData.csrfToken);
+            } catch (err) {
+               console.error("CSRF Bootstrap Failure:", err);
+            }
 
             if (!token) {
                 setLoading(false);
@@ -68,6 +76,14 @@ export const AuthProvider = ({ children }) => {
             if (data.success && !data.twoFactorRequired) {
                 setAccessToken(data.accessToken);
                 setUser(data.user);
+
+                // 🛡️ Fetch fresh CSRF token after auth state change
+                try {
+                    const { data: csrfData } = await axiosInstance.get('/csrf-token');
+                    setCsrfToken(csrfData.csrfToken);
+                } catch (e) {
+                    console.error("Post-login CSRF Refresh Failure", e);
+                }
                 
                 if (data.user.fulfillmentHubId) {
                    try {
