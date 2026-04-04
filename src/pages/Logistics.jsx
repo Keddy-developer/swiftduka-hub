@@ -104,13 +104,10 @@ const Logistics = () => {
              Manage decentralized logistics infrastructure for {hub?.name}
           </p>
         </div>
-        <button 
-          onClick={() => handleOpenModal()}
-          className="px-6 py-3 bg-slate-900 text-white rounded-xl text-xs font-black uppercase tracking-widest shadow-xl shadow-slate-200 hover:bg-slate-800 transition-all flex items-center justify-center gap-2"
-        >
-          <Plus size={16} strokeWidth={3} />
-          {activeTab === 'stations' ? 'Establish New Station' : 'Define Delivery Sector'}
-        </button>
+        <div className="flex items-center gap-3 bg-blue-50 px-4 py-2 rounded-xl border border-blue-100">
+           <Shield className="text-blue-600" size={16} />
+           <span className="text-[10px] font-black text-blue-900 uppercase tracking-tight">System Managed Infrastructure</span>
+        </div>
       </div>
 
       {/* 🧭 NAVIGATION TABS */}
@@ -170,10 +167,10 @@ const Logistics = () => {
               <div className="p-8 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
                  <div>
                    <h2 className="text-xl font-black text-slate-900 uppercase tracking-tight">
-                     {editingItem ? 'Update Configuration' : 'Establish Logistics Asset'}
+                     {editingItem ? 'Update Configuration' : 'Infrastructure View'}
                    </h2>
                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">
-                     Binding to Hub Zone: {hub?.zoneId || 'AUTO_ASSIGN'}
+                     Node Zone: {hub?.zoneId || 'AUTO_ASSIGN'}
                    </p>
                  </div>
                  <button onClick={() => setIsModalOpen(false)} className="p-3 bg-white border border-slate-200 rounded-xl text-slate-400 hover:text-slate-900 transition-all shadow-sm">

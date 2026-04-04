@@ -4,10 +4,11 @@ import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { 
   BarChart3, Package, Truck, Users, Settings, LogOut, 
   Menu, X, Bell, Globe, Search, Warehouse, ClipboardList,
-  Navigation
+  Navigation, ChevronDown, Check, RotateCw
 } from 'lucide-react';
-import { ToastContainer } from 'react-toastify';
+import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import axiosInstance from './services/axiosConfig';
 
 // PAGES
 import Dashboard from './pages/Dashboard';
@@ -112,25 +113,23 @@ const MainLayout = ({ children }) => {
 
       {/* 🚀 MAIN CONTENT */}
       <div className="flex-1 min-w-0 flex flex-col h-screen overflow-hidden">
-         {/* Top Header */}
          <header className="h-16 bg-white border-b border-slate-200 px-6 flex items-center justify-between shrink-0 sticky top-0 z-30 shadow-sm shadow-slate-50">
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-4 flex-1">
                <button 
                  onClick={() => setSidebarOpen(true)}
                  className="p-2 text-slate-600 hover:bg-slate-100 lg:hidden rounded border border-slate-200"
                >
                   <Menu className="w-5 h-5" />
                </button>
-               <div className="flex items-center gap-3">
+               <div className="flex items-center gap-3 flex-1">
                  <div className="flex items-center gap-2 px-3 py-1 bg-green-50 border border-green-100 rounded">
                     <div className="w-1.5 h-1.5 rounded-full bg-green-500" />
                     <span className="text-[10px] font-bold text-green-700 uppercase tracking-tight">Active</span>
                  </div>
                  <div className="h-4 w-px bg-slate-200 hidden sm:block" />
-                 <div className="flex items-center gap-2 font-bold text-slate-700 text-sm">
-                    <Warehouse className="text-slate-400 w-4 h-4" />
-                    {hub?.name || (user ? 'SwiftHub Network' : 'Syncing Hub...')}
-                 </div>
+                 
+                 {/* 🏙️ HUB SELECTOR COMPONENT */}
+                 <HubSelector />
                </div>
             </div>
 
@@ -157,6 +156,95 @@ const MainLayout = ({ children }) => {
       </div>
     </div>
   );
+};
+
+const HubSelector = () => {
+   const { user, hub, setHub } = useAuth();
+   const [open, setOpen] = useState(false);
+   const [hubs, setHubs] = useState([]);
+   const [loading, setLoading] = useState(false);
+
+   const fetchHubs = async () => {
+      if (!user) return;
+      setLoading(true);
+      try {
+         const { data } = await axiosInstance.get('/delivery/hubs');
+         setHubs(data.hubs || []);
+      } catch (err) {
+         console.error("Hub Discovery Failed", err);
+      } finally {
+         setLoading(false);
+      }
+   };
+
+   useEffect(() => {
+     if (open && hubs.length === 0) fetchHubs();
+   }, [open]);
+
+   // If the user is locked to a single hub, just show the name
+   if (user?.fulfillmentHubId) {
+      return (
+         <div className="flex items-center gap-2 font-bold text-slate-900 text-sm">
+            <Warehouse className="text-blue-600 w-4 h-4" strokeWidth={3} />
+            {hub?.name || 'Assigned Logistics Node'}
+         </div>
+      );
+   }
+
+   return (
+      <div className="relative">
+         <button 
+           onClick={() => setOpen(!open)}
+           className="flex items-center gap-2 px-3 py-1.5 hover:bg-slate-50 rounded-lg transition-all border border-transparent hover:border-slate-200 group"
+         >
+            <Warehouse className={`w-4 h-4 ${hub ? 'text-blue-600' : 'text-slate-400'} group-hover:scale-110 transition-transform`} />
+            <div className="text-left hidden sm:block">
+               <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-0.5">Tactical Node</p>
+               <p className="text-xs font-black text-slate-900 flex items-center gap-1.5 uppercase">
+                  {hub?.name || 'Select Active Hub'}
+                  <ChevronDown size={12} className={`transition-transform duration-300 ${open ? 'rotate-180 text-blue-600' : 'text-slate-400'}`} />
+               </p>
+            </div>
+         </button>
+
+         {open && (
+            <div className="absolute top-full left-0 mt-2 w-64 bg-white border border-slate-200 rounded-xl shadow-2xl z-[100] overflow-hidden animate-in zoom-in-95 duration-200">
+               <div className="p-3 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+                  <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Available Nodes</span>
+                  <button onClick={fetchHubs} className="p-1 hover:bg-slate-200 rounded transition-colors">
+                     <RotateCw size={10} className={`${loading ? 'animate-spin' : ''}`} />
+                  </button>
+               </div>
+               <div className="max-h-64 overflow-y-auto no-scrollbar py-1">
+                  {hubs.map(h => (
+                     <button
+                        key={h.id}
+                        onClick={() => {
+                           setHub(h);
+                           setOpen(false);
+                           toast.success(`Node Identity Bound: ${h.name}`);
+                           window.location.reload(); // Refresh stats on dashboard
+                        }}
+                        className={`w-full text-left px-4 py-3 flex items-center justify-between hover:bg-slate-50 transition-colors ${hub?.id === h.id ? 'bg-blue-50/50' : ''}`}
+                     >
+                        <div>
+                           <p className="text-xs font-black text-slate-900 uppercase tracking-tight">{h.name}</p>
+                           <p className="text-[10px] font-bold text-slate-400 uppercase">{h.town}, {h.county}</p>
+                        </div>
+                        {hub?.id === h.id && <Check size={14} className="text-blue-600" strokeWidth={4} />}
+                     </button>
+                  ))}
+                  {hubs.length === 0 && !loading && (
+                     <div className="p-8 text-center opacity-30">
+                        <Warehouse size={24} className="mx-auto mb-2" />
+                        <p className="text-[10px] font-black uppercase tracking-widest">No nodes found</p>
+                     </div>
+                  )}
+               </div>
+            </div>
+         )}
+      </div>
+   );
 };
 
 const PrivateRoute = ({ children }) => {

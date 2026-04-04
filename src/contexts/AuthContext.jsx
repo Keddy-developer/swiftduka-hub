@@ -6,36 +6,55 @@ const AuthContext = createContext();
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
-    const [hub, setHub] = useState(null);
+    const [hub, setHubState] = useState(null);
+
+    // Dynamic hub setter that persists to storage
+    const setHub = (hubData) => {
+        if (hubData) {
+            localStorage.setItem('active_fulfillment_hub', JSON.stringify(hubData));
+        } else {
+            localStorage.removeItem('active_fulfillment_hub');
+        }
+        setHubState(hubData);
+    };
 
     useEffect(() => {
         const fetchMe = async () => {
             const token = localStorage.getItem('fulfillment_token');
+            const cachedHub = localStorage.getItem('active_fulfillment_hub');
+
             if (!token) {
                 setLoading(false);
                 return;
             }
+
+            // Restore hub from cache immediately for UX
+            if (cachedHub) {
+                try { setHubState(JSON.parse(cachedHub)); } catch (e) { console.error("Cache corrupted"); }
+            }
+
             try {
                 const { data } = await axiosInstance.get('/auth/me');
                 if (data.success) {
                     setUser(data.user);
                     
-                    // Fetch associated hub details
-                    if (data.user.fulfillmentHubId) {
+                    // Priority: Assigned Hub > Cached Hub
+                    const targetHubId = data.user.fulfillmentHubId || (cachedHub ? JSON.parse(cachedHub).id : null);
+
+                    if (targetHubId) {
                        try {
-                          const hubRes = await axiosInstance.get(`/delivery/hubs/${data.user.fulfillmentHubId}`);
+                          const hubRes = await axiosInstance.get(`/delivery/hubs/${targetHubId}`);
                           setHub(hubRes.data.hub || null);
                        } catch (hubErr) {
                           console.error("Critical: Failed to sync hub identity context", hubErr);
-                          setHub(null);
+                          if (!data.user.fulfillmentHubId) setHub(null); // Clear cache if fetch fails and no assignment
                        }
-                    } else {
-                       console.warn("Auth sync: No fulfillmentHubId found for user", data.user.id);
-                    }
+                    } 
                 }
             } catch (err) {
                 console.error("Auth check failed", err);
                 localStorage.removeItem('fulfillment_token');
+                localStorage.removeItem('active_fulfillment_hub');
             } finally {
                 setLoading(false);
             }
@@ -74,7 +93,7 @@ export const AuthProvider = ({ children }) => {
     };
 
     return (
-        <AuthContext.Provider value={{ user, hub, loading, login, logout }}>
+        <AuthContext.Provider value={{ user, hub, loading, login, logout, setHub }}>
             {children}
         </AuthContext.Provider>
     );
