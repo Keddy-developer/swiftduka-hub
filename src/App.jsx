@@ -27,6 +27,8 @@ import SettingsPage from './pages/Settings';
 import LogsPage from './pages/Logs';
 import ZoneInfo from './pages/ZoneInfo';
 import Logistics from './pages/Logistics';
+import NotificationsPage from './pages/Notifications';
+import NotificationDropdown from './components/ui/NotificationDropdown';
 
 const MainLayout = ({ children }) => {
   const { user, hub, logout } = useAuth();
@@ -140,10 +142,7 @@ const MainLayout = ({ children }) => {
                     <input type="text" placeholder="Global search..." className="pl-9 pr-4 py-1.5 bg-slate-50 border border-slate-200 rounded text-sm outline-none focus:bg-white focus:border-slate-400 transition-all w-[240px]" />
                   </div>
                </div>
-               <button className="relative p-2 text-slate-400 hover:text-slate-600 transition-colors">
-                  <Bell className="w-5 h-5" />
-                  <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-rose-500 rounded-full border-2 border-white" />
-               </button>
+                <NotificationDropdown />
             </div>
          </header>
 
@@ -274,6 +273,7 @@ function App() {
           <Route path="/logs" element={<PrivateRoute><LogsPage /></PrivateRoute>} />
           <Route path="/zone-info" element={<PrivateRoute><ZoneInfo /></PrivateRoute>} />
           <Route path="/logistics" element={<PrivateRoute><Logistics /></PrivateRoute>} />
+          <Route path="/notifications" element={<PrivateRoute><NotificationsPage /></PrivateRoute>} />
           {/* Redirect all unknown routes to dashboard */}
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>
