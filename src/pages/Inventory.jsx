@@ -160,7 +160,7 @@ const ReceiveShipmentModal = ({ hub, onClose, onSuccess }) => {
             <button type="submit" disabled={submitting || !selected}
               className="flex-1 py-3 bg-slate-900 text-white rounded text-[11px] font-black uppercase tracking-widest hover:bg-slate-800 transition-all shadow-xl disabled:opacity-50"
             >
-               {submitting ? 'Authenticating...' : 'Confirm Inbound'}
+               {submitting ? 'Syncing...' : 'Confirm Inbound'}
             </button>
           </div>
         </form>
@@ -192,7 +192,7 @@ const AdjustModal = ({ item, hub, onClose, onSuccess }) => {
       onSuccess();
       onClose();
     } catch (err) {
-      toast.error('Adjustment failed');
+      toast.error(err?.response?.data?.message || 'Adjustment failed');
     } finally {
       setLoading(false);
     }
