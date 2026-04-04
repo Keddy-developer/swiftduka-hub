@@ -9,6 +9,7 @@ import {
 import { toast } from "react-toastify";
 import axiosInstance from "../services/axiosConfig";
 import { useAuth } from "../contexts/AuthContext";
+import LogisticsAuditTrail from "../components/LogisticsAuditTrail";
 
 const StatusBadge = ({ status }) => {
   const configs = {
@@ -147,6 +148,15 @@ const Orders = () => {
              <p className="text-[10px] font-bold text-slate-400 mt-2 italic">No operational orders detected in current logistics scope.</p>
           </div>
         )}
+      </div>
+
+      {/* ── AUDIT TRAIL ── */}
+      <div className="pt-10 border-t border-slate-200">
+         <div className="mb-6">
+            <h3 className="text-xl font-black text-slate-900 tracking-tight uppercase">Outbound Traffic Audit</h3>
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1 italic">Recent order lifecycle status updates</p>
+         </div>
+         <LogisticsAuditTrail hubId={hub.id} filterType="ORDER" />
       </div>
 
       <div className="md:hidden h-20" />

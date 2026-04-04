@@ -8,6 +8,7 @@ import {
   Edit2, Trash2, ExternalLink
 } from 'lucide-react';
 import { toast } from 'react-toastify';
+import LogisticsAuditTrail from '../components/LogisticsAuditTrail';
 
 // ─── Shared Components ──────────────────────────────────────────────────
 const StatTile = ({ label, value, icon: Icon, color }) => {
@@ -361,6 +362,15 @@ const Inventory = () => {
              <p className="text-[10px] font-bold text-slate-400 mt-2">No assets matching current logistics parameters.</p>
           </div>
         )}
+      </div>
+
+      {/* ── AUDIT TRAIL ── */}
+      <div className="pt-10 border-t border-slate-200">
+         <div className="mb-6">
+            <h3 className="text-xl font-black text-slate-900 tracking-tight uppercase">Inbound & Internal Audit</h3>
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Recent physical inventory reconciliations</p>
+         </div>
+         <LogisticsAuditTrail hubId={hub.id} filterType="INVENTORY" />
       </div>
 
       <div className="md:hidden h-20" /> {/* Mobile bottom spacer */}
