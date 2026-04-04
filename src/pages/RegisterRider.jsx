@@ -17,27 +17,38 @@ export default function RegisterRider() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(false);
+  const [hubs, setHubs] = useState([]);
   const [form, setForm] = useState({
     name: "", age: "", drivingLicence: "", nationalId: "",
     numberPlate: "", phone: "", email: "", vehicleType: "",
     vehicleModel: "", vehicleColor: "", vehicleImage: null,
+    selectedHubId: "" // Stores admin's manually selected hub
   });
   const [existingImage, setExistingImage] = useState(null);
 
   useEffect(() => {
+    // If Admin doesn't have a hub, fetch all hubs so they can assign the rider
+    if (!hub?.id) {
+      axiosInstance.get('/delivery/hubs')
+        .then(res => setHubs(res.data.hubs || []))
+        .catch(() => console.error("Could not fetch hubs for admin assignment"));
+    }
+
     if (id && id !== "new") {
       setFetching(true);
       axiosInstance.get(`/delivery/riders/${id}`)
         .then((res) => {
           const rider = res.data;
-          setForm({
+          setForm(prev => ({
+            ...prev,
             name: rider.name || "", age: rider.age?.toString() || "",
             drivingLicence: rider.drivingLicence || "", nationalId: rider.nationalId || "",
             numberPlate: rider.numberPlate || "", phone: rider.phone || "",
             email: rider.email || "", vehicleType: rider.vehicleType || "",
             vehicleModel: rider.vehicleModel || "", vehicleColor: rider.vehicleColor || "",
             vehicleImage: null,
-          });
+            selectedHubId: rider.fulfillmentHubId || ""
+          }));
           setExistingImage(rider.vehicleImage || null);
         })
         .catch(err => {
@@ -46,7 +57,7 @@ export default function RegisterRider() {
         })
         .finally(() => setFetching(false));
     }
-  }, [id, navigate]);
+  }, [id, navigate, hub?.id]);
 
   const handleChange = (e) => {
     const { name, value, files } = e.target;
@@ -56,7 +67,9 @@ export default function RegisterRider() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!hub?.id) return toast.error("Hub session expired");
+    const targetHubId = hub?.id || form.selectedHubId;
+    
+    if (!targetHubId) return toast.error("Deployment Hub is required.");
     setLoading(true);
 
     try {
@@ -70,15 +83,15 @@ export default function RegisterRider() {
         ...form,
         age: parseInt(form.age, 10),
         vehicleImage: uploadedImageUrl || existingImage,
-        fulfillmentHubId: hub.id 
+        fulfillmentHubId: targetHubId 
       };
 
       if (id && id !== "new") {
          // Fix the endpoint to match backend if necessary, but keep original pattern if it works
-        await axiosInstance.put(`/delivery/hubs/${hub.id}/riders/${id}`, payload);
+        await axiosInstance.put(`/delivery/hubs/${targetHubId}/riders/${id}`, payload);
         toast.success("Personnel dossier serialized");
       } else {
-        await axiosInstance.post(`/delivery/hubs/${hub.id}/riders`, payload);
+        await axiosInstance.post(`/delivery/hubs/${targetHubId}/riders`, payload);
         toast.success("Agent activation successful");
       }
       navigate("/fleet");
@@ -146,6 +159,24 @@ export default function RegisterRider() {
                      <InputUnit label="Encrypted Comm (Phone)" name="phone" value={form.phone} onChange={handleChange} required icon={Smartphone} />
                      <InputUnit label="Digital Email Identity" name="email" type="email" value={form.email} onChange={handleChange} required icon={Mail} />
                   </div>
+
+                  {!hub?.id && (
+                     <div className="grid grid-cols-1 gap-8 pt-4 border-t border-slate-100">
+                        <div className="space-y-2">
+                           <label className="text-[10px] font-black text-rose-500 uppercase tracking-widest ml-1 flex items-center gap-2">
+                              <AlertTriangle size={12} className="opacity-70" />
+                              Global Setup: Select Logistics Hub Node
+                           </label>
+                           <select name="selectedHubId" value={form.selectedHubId} onChange={handleChange} required
+                              className="w-full bg-rose-50 border border-rose-200 text-rose-900 rounded-xl px-4 py-3.5 text-xs font-black outline-none focus:border-rose-900 focus:bg-white shadow-sm transition-all">
+                              <option value="">-- ASSIGN TARGET HUB --</option>
+                              {hubs.map(h => (
+                                 <option key={h.id} value={h.id}>{h.name} ({h.town})</option>
+                              ))}
+                           </select>
+                        </div>
+                     </div>
+                  )}
               </div>
            </section>
 
