@@ -36,7 +36,7 @@ export default function RegisterRider() {
 
     if (id && id !== "new") {
       setFetching(true);
-      axiosInstance.get(`/delivery/riders/${id}`)
+      axiosInstance.get(`/riders/${id}`)
         .then((res) => {
           const rider = res.data;
           setForm(prev => ({

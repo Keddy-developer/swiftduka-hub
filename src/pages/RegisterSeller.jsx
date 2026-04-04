@@ -47,7 +47,7 @@ export default function RegisterSeller() {
             if (!editId) return;
             try {
                 setFetching(true);
-                const res = await axiosInstance.get(`/seller/${editId}`);
+                const res = await axiosInstance.get(`/seller/seller/${editId}`);
                 const s = res.data.data || res.data;
                 setForm({
                     userIdentifier: s.email, email: s.email || "",
@@ -84,10 +84,10 @@ export default function RegisterSeller() {
         try {
             const payload = { userIdentifier: form.userIdentifier, profile: { ...form, agreeToTerms: true } };
             if (editId) {
-                await axiosInstance.patch(`/sellers/${editId}/update`, payload);
+                await axiosInstance.patch(`/seller/sellers/${editId}/update`, payload);
                 toast.success("Merchant dossier serialized");
             } else {
-                await axiosInstance.post('/become-a-seller', payload);
+                await axiosInstance.post('/seller/become-a-seller', payload);
                 toast.success("Merchant node activated");
             }
             navigate("/sellers");

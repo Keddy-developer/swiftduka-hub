@@ -286,6 +286,7 @@ const RiderCard = ({ rider, onDelete, onConfig }) => (
       </div>
 
       <div className="flex gap-2 pt-2 relative z-10">
+         <button onClick={() => navigate(`/rider-details/${rider.id}`)} className="flex-1 py-3 bg-slate-100 text-slate-700 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-200 transition-all border border-slate-200">VIEW MANIFEST</button>
          <button onClick={onConfig} className="flex-1 py-3 bg-slate-900 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-blue-600 transition-all shadow-lg shadow-slate-100"> PERSONNEL CONFIG</button>
          <button onClick={onDelete} className="px-3 py-3 bg-rose-50 text-rose-600 border border-rose-100 rounded-xl text-[10px] font-black uppercase hover:bg-rose-600 hover:text-white transition-all">REVOKE</button>
       </div>

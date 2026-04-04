@@ -25,9 +25,9 @@ export default function RiderDetails() {
 
     const fetchRider = async () => {
         try {
-            const { data } = await axiosInstance.get(`/logistics/riders/${id}`);
-            if (data.success) {
-                setRider(data.rider);
+            const { data } = await axiosInstance.get(`/riders/${id}`);
+            if (data) {
+                setRider(data);
             }
         } catch (err) {
             toast.error("Rider manifest retrieval failure");
@@ -50,14 +50,29 @@ export default function RiderDetails() {
                         <ArrowLeft size={14} /> Back to Fleet
                     </button>
                     <h2 className="text-xl md:text-2xl font-bold text-slate-900 tracking-tighter flex items-center gap-3 uppercase">
-                        {rider.user.firstName} {rider.user.lastName}
-                        <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-tight border ${rider.isActive ? 'bg-green-50 text-green-700 border-green-100' : 'bg-slate-50 text-slate-700 border-slate-100'}`}>
-                            {rider.isActive ? 'Active Status' : 'Offline'}
+                        {rider.user?.firstName} {rider.user?.lastName}
+                        <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-tight border ${rider.status === 'AVAILABLE' ? 'bg-green-50 text-green-700 border-green-100' : 'bg-slate-50 text-slate-700 border-slate-100'}`}>
+                            {rider.status || 'OFFLINE'}
                         </span>
                     </h2>
                 </div>
                 <div className="flex gap-2">
-                    <button className="px-4 py-2 bg-white border border-slate-200 rounded text-[10px] font-bold text-red-600 hover:bg-red-50 flex items-center justify-center gap-2 shadow-sm uppercase">DEACTIVATE</button>
+                    <button 
+                        onClick={async () => {
+                            if (window.confirm("Are you sure you want to decouple this agent from the hub framework?")) {
+                                try {
+                                    await axiosInstance.delete(`/riders/${id}`);
+                                    toast.success("Rider personnel record revoked");
+                                    navigate('/fleet');
+                                } catch (err) {
+                                    toast.error("Revocation failure");
+                                }
+                            }
+                        }}
+                        className="px-4 py-2 bg-white border border-slate-200 rounded text-[10px] font-bold text-red-600 hover:bg-red-50 flex items-center justify-center gap-2 shadow-sm uppercase"
+                    >
+                        DEACTIVATE
+                    </button>
                     <button onClick={fetchRider} className="px-4 py-2 bg-slate-900 text-white rounded text-[10px] font-bold hover:bg-slate-800 flex items-center justify-center gap-2 shadow-sm uppercase animate-none">SYNC DOSSIER</button>
                 </div>
             </div>
@@ -68,9 +83,9 @@ export default function RiderDetails() {
                   <section className="bg-slate-900 rounded border border-slate-800 p-6 text-white shadow-lg relative overflow-hidden group text-center">
                      <ShieldCheck size={100} className="absolute -right-8 -top-8 text-white/5 rotate-12 group-hover:text-white/10 transition-colors" />
                      <div className="w-24 h-24 rounded-full bg-white/10 p-1.5 mx-auto mb-4 border border-white/20 shadow-xl overflow-hidden">
-                        <img src={rider.user.avatar || 'https://images.unsplash.com/photo-1633332755192-727a05c4013d?w=400&h=400&fit=crop'} className="w-full h-full object-cover rounded-full" />
+                        <img src={rider.user?.avatar || 'https://images.unsplash.com/photo-1633332755192-727a05c4013d?w=400&h=400&fit=crop'} className="w-full h-full object-cover rounded-full" />
                      </div>
-                     <h3 className="text-lg font-black tracking-tight">{rider.user.firstName} {rider.user.lastName}</h3>
+                     <h3 className="text-lg font-black tracking-tight">{rider.user?.firstName} {rider.user?.lastName}</h3>
                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Personnel ID: {rider.id.slice(0,8)}</p>
                      
                      <div className="mt-6 flex flex-wrap gap-2 justify-center">
