@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import axios from "axios";
+import axiosInstance from "../services/axiosConfig";
 import { formatDistanceToNow, addMinutes, differenceInSeconds } from "date-fns";
 import { Clock, AlertCircle, RefreshCw, Bike, MapPin, Package } from "lucide-react";
 import { toast } from "react-toastify";
@@ -38,13 +38,7 @@ export default function PendingAssignmentsPanel() {
 
     const fetchPendingAssignments = async () => {
         try {
-            const token = localStorage.getItem("token");
-            const response = await axios.get(
-                `${import.meta.env.VITE_APP_API_URL}/riders/pending-assignments`,
-                {
-                    headers: { Authorization: `Bearer ${token}` },
-                }
-            );
+            const response = await axiosInstance.get('/riders/pending-assignments');
             if (response.data.success) {
                 setAssignments(response.data.data);
             }

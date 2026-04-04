@@ -23,6 +23,8 @@ import RegisterSeller from './pages/RegisterSeller';
 import RegisterRider from './pages/RegisterRider';
 import SettingsPage from './pages/Settings';
 import LogsPage from './pages/Logs';
+import ZoneInfo from './pages/ZoneInfo';
+import Logistics from './pages/Logistics';
 
 const MainLayout = ({ children }) => {
   const { user, hub, logout } = useAuth();
@@ -36,6 +38,8 @@ const MainLayout = ({ children }) => {
     { name: 'Order Fulfillment', icon: ClipboardList, path: '/orders' },
     { name: 'Returns Management', icon: Warehouse, path: '/returns' },
     { name: 'Last-Mile Fleet', icon: Truck, path: '/fleet' },
+    { name: 'Hub Logistics', icon: Navigation, path: '/logistics' },
+    { name: 'Zone Logistics', icon: Globe, path: '/zone-info' },
     { name: 'Hub Settings', icon: Settings, path: '/settings' },
   ];
 
@@ -179,6 +183,8 @@ function App() {
           <Route path="/register-a-rider/:id" element={<PrivateRoute><RegisterRider /></PrivateRoute>} />
           <Route path="/settings" element={<PrivateRoute><SettingsPage /></PrivateRoute>} />
           <Route path="/logs" element={<PrivateRoute><LogsPage /></PrivateRoute>} />
+          <Route path="/zone-info" element={<PrivateRoute><ZoneInfo /></PrivateRoute>} />
+          <Route path="/logistics" element={<PrivateRoute><Logistics /></PrivateRoute>} />
           {/* Redirect all unknown routes to dashboard */}
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>
