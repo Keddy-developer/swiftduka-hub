@@ -138,7 +138,13 @@ export default function RidersManagement() {
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                      {filteredRiders.map(rider => (
-                        <RiderCard key={rider.id} rider={rider} onDelete={() => { setSelectedRiderId(rider.id); setShowDeleteModal(true); }} onConfig={() => navigate(`/register-a-rider/${rider.id}`)} />
+                        <RiderCard 
+                          key={rider.id} 
+                          rider={rider} 
+                          navigate={navigate} 
+                          onDelete={() => { setSelectedRiderId(rider.id); setShowDeleteModal(true); }} 
+                          onConfig={() => navigate(`/register-a-rider/${rider.id}`)} 
+                        />
                      ))}
                      {filteredRiders.length === 0 && (
                         <div className="col-span-full py-24 text-center bg-white border border-slate-200 border-dashed rounded-3xl opacity-40">
@@ -245,14 +251,14 @@ const KPICard = ({ label, value, icon: Icon, color }) => {
    );
 };
 
-const RiderCard = ({ rider, onDelete, onConfig }) => (
+const RiderCard = ({ rider, onDelete, onConfig, navigate }) => (
    <div className="bg-white border border-slate-200 rounded-2xl p-5 space-y-4 hover:border-slate-400 hover:shadow-xl transition-all group relative overflow-hidden">
       <div className="flex items-center gap-4 relative z-10">
          <div className="w-12 h-12 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-center overflow-hidden flex-shrink-0 group-hover:scale-105 transition-transform shadow-sm">
-            {rider.vehicleImage ? <img src={rider.vehicleImage} className="w-full h-full object-cover" alt="" /> : <Truck size={24} className="text-slate-300" />}
+            {rider.user?.avatar ? <img src={rider.user.avatar} className="w-full h-full object-cover" alt="" /> : <Truck size={24} className="text-slate-300" />}
          </div>
          <div className="min-w-0 flex-1">
-            <h3 className="font-black text-slate-900 text-sm truncate uppercase tracking-tight leading-none mb-1.5">{rider.name}</h3>
+            <h3 className="font-black text-slate-900 text-sm truncate uppercase tracking-tight leading-none mb-1.5">{rider.user?.firstName ? `${rider.user.firstName} ${rider.user.lastName}` : (rider.name || 'UNNAMED AGENT')}</h3>
             <div className="flex items-center gap-2">
                <div className={`w-1.5 h-1.5 rounded-full ${rider.status === 'AVAILABLE' ? 'bg-green-500 shadow-lg shadow-green-200' : 'bg-amber-500 shadow-lg shadow-amber-200'}`} />
                <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest">{rider.status || 'OFFLINE'}</span>
@@ -279,7 +285,7 @@ const RiderCard = ({ rider, onDelete, onConfig }) => (
       <div className="space-y-2 pt-1 relative z-10">
          <div className="flex items-center gap-3 p-2.5 bg-slate-50 border border-slate-100 rounded-xl group/info hover:bg-white transition-colors">
             <Smartphone size={14} className="text-slate-300 group-hover/info:text-blue-500" />
-            <span className="text-[10px] font-black text-slate-600 tracking-wider">{rider.phone}</span>
+            <span className="text-[10px] font-black text-slate-600 tracking-wider">{rider.user?.phone || rider.phone || 'PHONE N/A'}</span>
          </div>
          <div className="flex items-center gap-3 p-2.5 bg-slate-50 border border-slate-100 rounded-xl group/info hover:bg-white transition-colors">
             <Smartphone size={14} className="text-slate-300 group-hover/info:text-indigo-500 select-all" />
