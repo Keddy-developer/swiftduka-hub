@@ -3,7 +3,8 @@ import { BrowserRouter, Routes, Route, Navigate, Link, useLocation } from 'react
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { 
   BarChart3, Package, Truck, Users, Settings, LogOut, 
-  Menu, X, Bell, Globe, Search, Warehouse, ClipboardList
+  Menu, X, Bell, Globe, Search, Warehouse, ClipboardList,
+  Navigation
 } from 'lucide-react';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
