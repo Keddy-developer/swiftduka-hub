@@ -11,6 +11,7 @@ import { toast } from 'react-toastify';
 
 const SettingsPage = () => {
   const { hub, user } = useAuth();
+  const isAdmin = user?.role?.some(r => ['admin', 'super_admin', 'moderator', 'customer_support'].includes(r.toLowerCase())) || false;
   const [activeTab, setActiveTab] = useState('hub');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -225,9 +226,11 @@ const SettingsPage = () => {
                      <h3 className="text-lg font-black text-slate-900 uppercase tracking-tight">Active Delivery Zones</h3>
                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Authorized Node Logistics lanes</p>
                   </div>
-                  <button onClick={() => setShowRouteModal(true)} className="px-4 py-2 bg-slate-900 text-white rounded text-[10px] font-black uppercase tracking-widest hover:bg-slate-800 transition-all flex items-center gap-2 shadow-lg">
-                     <Plus size={14} /> Add Zone
-                  </button>
+                   {isAdmin && (
+                     <button onClick={() => setShowRouteModal(true)} className="px-4 py-2 bg-slate-900 text-white rounded text-[10px] font-black uppercase tracking-widest hover:bg-slate-800 transition-all flex items-center gap-2 shadow-lg">
+                        <Plus size={14} /> Add Zone
+                     </button>
+                   )}
                </div>
 
                <div className="p-6 md:p-8 grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-6">
@@ -247,9 +250,11 @@ const SettingsPage = () => {
                                 </span>
                              </div>
                           </div>
-                          <button onClick={() => handleDeleteRoute(route.id)} className="p-1.5 text-slate-300 hover:text-rose-600 hover:bg-rose-50 rounded transition-all opacity-0 group-hover:opacity-100">
-                             <Trash2 size={16} />
-                          </button>
+                          {isAdmin && (
+                             <button onClick={() => handleDeleteRoute(route.id)} className="p-1.5 text-slate-300 hover:text-rose-600 hover:bg-rose-50 rounded transition-all opacity-0 group-hover:opacity-100">
+                                <Trash2 size={16} />
+                             </button>
+                          )}
                        </div>
                        <div className="grid grid-cols-3 gap-4 border-t border-slate-100 pt-4 mt-2">
                           <DataUnit label="Base Fee" value={`Ksh ${route.fee}`} />
