@@ -3,7 +3,8 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import axiosInstance from '../services/axiosConfig';
 import { 
   ArrowLeft, User, Truck, ShieldCheck, Navigation, 
-  Phone, Mail, Activity, Calendar, IdCard, Star, MapPin, X, Info
+  Phone, Mail, Activity, Calendar, IdCard, Star, MapPin, X, Info,
+  AlertTriangle
 } from 'lucide-react';
 import { toast } from 'react-toastify';
 
