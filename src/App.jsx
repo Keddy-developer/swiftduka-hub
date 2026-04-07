@@ -28,6 +28,7 @@ import LogsPage from './pages/Logs';
 import ZoneInfo from './pages/ZoneInfo';
 import Logistics from './pages/Logistics';
 import NotificationsPage from './pages/Notifications';
+import TrackingPage from './pages/TrackingPage';
 import NotificationDropdown from './components/ui/NotificationDropdown';
 
 const MainLayout = ({ children }) => {
@@ -40,6 +41,7 @@ const MainLayout = ({ children }) => {
     { name: 'Seller Network', icon: Users, path: '/sellers' },
     { name: 'Inbound & Stocks', icon: Package, path: '/inventory' },
     { name: 'Order Fulfillment', icon: ClipboardList, path: '/orders' },
+    { name: 'Track Order', icon: Search, path: '/tracking' },
     { name: 'Returns Management', icon: Warehouse, path: '/returns' },
     { name: 'Last-Mile Fleet', icon: Truck, path: '/fleet' },
     { name: 'Hub Logistics', icon: Navigation, path: '/logistics' },
@@ -262,6 +264,7 @@ function App() {
           <Route path="/inventory" element={<PrivateRoute><Inventory /></PrivateRoute>} />
           <Route path="/orders" element={<PrivateRoute><Orders /></PrivateRoute>} />
           <Route path="/orders/:id" element={<PrivateRoute><OrderDetails /></PrivateRoute>} />
+          <Route path="/tracking" element={<PrivateRoute><TrackingPage /></PrivateRoute>} />
           <Route path="/returns" element={<PrivateRoute><Returns /></PrivateRoute>} />
           <Route path="/sellers" element={<PrivateRoute><Sellers /></PrivateRoute>} />
           <Route path="/sellers/:id" element={<PrivateRoute><SellerDetails /></PrivateRoute>} />
