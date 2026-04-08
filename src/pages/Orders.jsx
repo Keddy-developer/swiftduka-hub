@@ -293,7 +293,7 @@ const OrderTacticalCard = ({ order: sellerOrder }) => {
                 Ksh {(mainOrder?.totalCost || 0).toLocaleString()}
               </p>
             </div>
-            <Link to={`/orders/${mainOrder?.id}`} className="px-5 py-2 bg-slate-900 text-white rounded text-[10px] font-black tracking-[0.2em] hover:bg-blue-600 transition-all shadow-xl shadow-slate-200">
+            <Link to={`/orders/${mainOrder?.trackingNumber}`} className="px-5 py-2 bg-slate-900 text-white rounded text-[10px] font-black tracking-[0.2em] hover:bg-blue-600 transition-all shadow-xl shadow-slate-200">
               Manage
             </Link>
           </div>
