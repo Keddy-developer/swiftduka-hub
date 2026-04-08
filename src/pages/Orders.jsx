@@ -45,16 +45,22 @@ const Orders = () => {
     if (!silent) setLoading(true);
     else setRefreshing(true);
     try {
-      const res = await axiosInstance.get(`/hubs/${hub.id}/seller-orders?period=${period}&page=${page}&limit=${limit}`);
+      const url = `/hubs/${hub.id}/seller-orders?period=${period}&page=${page}&limit=${limit}`;
+      console.log(`[Orders] Fetching from: ${url}`);
+      
+      const res = await axiosInstance.get(url);
+      console.log(`[Orders] Response:`, res.data);
       
       const ordersData = res.data.orders || [];
       const paginationData = res.data.pagination || { total: 0, totalPages: 1, hasNextPage: false, hasPrevPage: false };
 
-      // Map backend sellerOrder fields to the flat order structure expected by the UI if needed
-      // Currently the UI seems to expect the sellerOrder structure directly or uses optional chaining
       setOrders(ordersData);
       setPagination(paginationData);
     } catch (error) {
+      console.error("[Orders] Fetch error:", error);
+      if (error.response) {
+        console.error("[Orders] Data:", error.response.data);
+      }
       toast.error("Logistics sync failure");
     } finally {
       setLoading(false);
