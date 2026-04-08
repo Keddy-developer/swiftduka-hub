@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axiosInstance from "../services/axiosConfig";
-import { 
-  Eye, Trash2, UserRound, Store, Star, Calendar, Mail, MapPin, Shield, 
-  TrendingUp, Plus, Edit, AlertTriangle, Search, Filter, RefreshCw, 
+import {
+  Eye, Trash2, UserRound, Store, Star, Calendar, Mail, MapPin, Shield,
+  TrendingUp, Plus, Edit, AlertTriangle, Search, Filter, RefreshCw,
   ChevronRight, Globe, Zap, MoreVertical, Package, ShieldCheck,
   Smartphone, Building
 } from "lucide-react";
@@ -24,11 +24,11 @@ export default function SellersPage() {
   const fetchSellers = async (silent = false) => {
     if (!silent) setLoading(true);
     else setRefreshing(true);
-    
+
     if (!hub?.id) {
-       setLoading(false);
-       setRefreshing(false);
-       return;
+      setLoading(false);
+      setRefreshing(false);
+      return;
     }
     try {
       const res = await axiosInstance.get(`/delivery/hubs/${hub.id}/sellers`);
@@ -64,7 +64,7 @@ export default function SellersPage() {
     }
   };
 
-  const filteredSellers = sellers.filter(s => 
+  const filteredSellers = sellers.filter(s =>
     s.storeName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
     s.user?.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
     s.phone?.includes(searchQuery)
@@ -73,7 +73,7 @@ export default function SellersPage() {
   if (loading) return (
     <div className="flex flex-col items-center justify-center p-20 opacity-50">
       <RefreshCw className="w-8 h-8 animate-spin mb-3 text-slate-400" />
-      <span className="text-xs font-bold uppercase tracking-widest text-slate-500">Synchronizing merchant network...</span>
+      <span className="text-xs font-bold  tracking-widest text-slate-500">Synchronizing merchant network...</span>
     </div>
   );
 
@@ -83,60 +83,60 @@ export default function SellersPage() {
       <div className="flex flex-col md:flex-row md:items-end justify-between border-b border-slate-200 pb-6 gap-6">
         <div>
           <h1 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight">Merchant Command</h1>
-          <p className="text-[10px] md:text-xs text-slate-500 font-black uppercase tracking-widest mt-1 flex items-center gap-2">
+          <p className="text-[10px] md:text-xs text-slate-500 font-black  tracking-widest mt-1 flex items-center gap-2">
             <Building size={14} className="text-blue-600 mb-0.5" />
             Node: {hub?.name} · Global Partner Inventory
           </p>
         </div>
         <div className="flex gap-2 w-full md:w-auto">
-            <button onClick={() => fetchSellers(true)} className="flex-1 md:flex-none px-6 py-3 bg-white border border-slate-200 rounded-lg text-[10px] font-black text-slate-600 hover:bg-slate-50 transition-all uppercase tracking-widest shadow-sm flex items-center justify-center gap-2">
-                <RefreshCw size={14} className={refreshing ? 'animate-spin' : ''} /> Sync Mesh
-            </button>
-            <button onClick={() => navigate("/register-seller")} className="flex-1 md:flex-none px-6 py-3 bg-slate-900 text-white rounded-lg text-[10px] font-black hover:bg-slate-800 transition-all shadow-xl shadow-slate-200 uppercase tracking-widest flex items-center justify-center gap-2">
-                <Plus size={14} /> Onboard Merchant
-            </button>
+          <button onClick={() => fetchSellers(true)} className="flex-1 md:flex-none px-6 py-3 bg-white border border-slate-200 rounded-lg text-[10px] font-black text-slate-600 hover:bg-slate-50 transition-all  tracking-widest shadow-sm flex items-center justify-center gap-2">
+            <RefreshCw size={14} className={refreshing ? 'animate-spin' : ''} /> Sync Mesh
+          </button>
+          <button onClick={() => navigate("/register-seller")} className="flex-1 md:flex-none px-6 py-3 bg-slate-900 text-white rounded-lg text-[10px] font-black hover:bg-slate-800 transition-all shadow-xl shadow-slate-200  tracking-widest flex items-center justify-center gap-2">
+            <Plus size={14} /> Onboard Merchant
+          </button>
         </div>
       </div>
 
       {/* 📊 KPI SUMMARY HUD */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
-          <KPICard label="Active Merchants" value={sellers.length} icon={UserRound} color="blue" />
-          <KPICard label="Security Compliance" value={sellers.filter(s => s.approvalStatus === 'approved').length} icon={ShieldCheck} color="green" />
-          <KPICard label="Global SKUs" value={sellers.reduce((acc, s) => acc + (s._count?.products || 0), 0)} icon={Package} color="slate" />
-          <KPICard label="Pending vetting" value={sellers.filter(s => s.approvalStatus === 'pending').length} icon={Zap} color="amber" />
+        <KPICard label="Active Merchants" value={sellers.length} icon={UserRound} color="blue" />
+        <KPICard label="Security Compliance" value={sellers.filter(s => s.approvalStatus === 'approved').length} icon={ShieldCheck} color="green" />
+        <KPICard label="Global SKUs" value={sellers.reduce((acc, s) => acc + (s._count?.products || 0), 0)} icon={Package} color="slate" />
+        <KPICard label="Pending vetting" value={sellers.filter(s => s.approvalStatus === 'pending').length} icon={Zap} color="amber" />
       </div>
 
       <div className="space-y-6">
         {/* 🔍 SEARCH & FILTER STRIP */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
-           <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
-              <input 
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search by Store, Email or Phone..." 
-                className="w-full bg-slate-50 border border-slate-100 rounded-xl pl-10 pr-4 py-2.5 text-xs font-bold outline-none focus:bg-white focus:border-slate-400 transition-all uppercase tracking-tight"
-              />
-           </div>
-           <div className="flex items-center gap-2 overflow-x-auto no-scrollbar">
-              {['Vetted', 'Internal', 'External', 'Flagged'].map(t => (
-                <button key={t} className="px-4 py-2 bg-white border border-slate-200 rounded-full text-[9px] font-black uppercase tracking-widest text-slate-500 hover:bg-slate-50 whitespace-nowrap">{t}</button>
-              ))}
-           </div>
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+            <input
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search by Store, Email or Phone..."
+              className="w-full bg-slate-50 border border-slate-100 rounded-xl pl-10 pr-4 py-2.5 text-xs font-bold outline-none focus:bg-white focus:border-slate-400 transition-all  tracking-tight"
+            />
+          </div>
+          <div className="flex items-center gap-2 overflow-x-auto no-scrollbar">
+            {['Vetted', 'Internal', 'External', 'Flagged'].map(t => (
+              <button key={t} className="px-4 py-2 bg-white border border-slate-200 rounded-full text-[9px] font-black  tracking-widest text-slate-500 hover:bg-slate-50 whitespace-nowrap">{t}</button>
+            ))}
+          </div>
         </div>
 
         {/* 🗄️ MERCHANT CARDS / GRID */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-           {filteredSellers.map(seller => (
-             <MerchantCard key={seller.id} seller={seller} onDetails={() => navigate(`/sellers/${seller.id}`)} onEdit={() => navigate(`/register-seller?edit=${seller.id}`)} onDelete={() => { setSelectedSellerId(seller.id); setShowModal(true); }} />
-           ))}
-           {filteredSellers.length === 0 && (
-              <div className="col-span-full py-24 text-center bg-white border border-slate-200 border-dashed rounded-3xl opacity-40">
-                 <Globe size={48} className="mx-auto mb-4 text-slate-300 animate-pulse" />
-                 <p className="text-xs font-black uppercase tracking-[0.2em] text-slate-400">Isolated Scope: Zero Merchants Detected</p>
-                 <p className="text-[10px] font-bold text-slate-400 mt-2 italic">Refine search parameters or initiate global onboarding.</p>
-              </div>
-           )}
+          {filteredSellers.map(seller => (
+            <MerchantCard key={seller.id} seller={seller} onDetails={() => navigate(`/sellers/${seller.id}`)} onEdit={() => navigate(`/register-seller?edit=${seller.id}`)} onDelete={() => { setSelectedSellerId(seller.id); setShowModal(true); }} />
+          ))}
+          {filteredSellers.length === 0 && (
+            <div className="col-span-full py-24 text-center bg-white border border-slate-200 border-dashed rounded-3xl opacity-40">
+              <Globe size={48} className="mx-auto mb-4 text-slate-300 animate-pulse" />
+              <p className="text-xs font-black  tracking-[0.2em] text-slate-400">Isolated Scope: Zero Merchants Detected</p>
+              <p className="text-[10px] font-bold text-slate-400 mt-2 italic">Refine search parameters or initiate global onboarding.</p>
+            </div>
+          )}
         </div>
       </div>
 
@@ -144,29 +144,29 @@ export default function SellersPage() {
       {showModal && (
         <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center z-[100] p-4 animate-in fade-in duration-300">
           <div className="bg-white rounded-3xl shadow-2xl w-full max-w-sm p-8 space-y-6 animate-in zoom-in-95 duration-200 overflow-hidden relative">
-             <div className="flex items-center gap-4 relative z-10">
-                <div className="w-12 h-12 bg-rose-50 rounded-2xl flex items-center justify-center border border-rose-100 shrink-0">
-                  <AlertTriangle className="text-rose-600 w-6 h-6" />
-                </div>
-                <div>
-                  <h3 className="text-base font-black text-slate-900 uppercase tracking-tight">Security notice</h3>
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Asset Decoupling Protocol</p>
-                </div>
-             </div>
-             <p className="text-xs font-bold text-slate-500 leading-relaxed uppercase tracking-tight italic relative z-10">
-               System will initiate decoupling of this merchant from hub logistics. Active inventory status will be suspended. Verify this action before proceeding.
-             </p>
-             <div className="flex gap-3 relative z-10">
-                <button className="flex-1 py-3.5 bg-slate-50 border border-slate-200 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-100 transition-all font-black" onClick={() => setShowModal(false)}>Abort</button>
-                <button 
-                  className="flex-1 py-3.5 bg-rose-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-rose-700 transition-all shadow-xl shadow-rose-200"
-                  onClick={() => selectedSellerId && handleDelete(selectedSellerId)}
-                  disabled={loadingDelete}
-                >
-                  {loadingDelete ? 'SYCHRONIZING...' : 'CONFIRM REVOKE'}
-                </button>
-             </div>
-             <div className="absolute top-0 right-0 w-32 h-32 bg-slate-50 rounded-full -mr-16 -mt-16 -z-10"></div>
+            <div className="flex items-center gap-4 relative z-10">
+              <div className="w-12 h-12 bg-rose-50 rounded-2xl flex items-center justify-center border border-rose-100 shrink-0">
+                <AlertTriangle className="text-rose-600 w-6 h-6" />
+              </div>
+              <div>
+                <h3 className="text-base font-black text-slate-900  tracking-tight">Security notice</h3>
+                <p className="text-[10px] font-bold text-slate-400  tracking-widest mt-0.5">Asset Decoupling Protocol</p>
+              </div>
+            </div>
+            <p className="text-xs font-bold text-slate-500 leading-relaxed  tracking-tight italic relative z-10">
+              System will initiate decoupling of this merchant from hub logistics. Active inventory status will be suspended. Verify this action before proceeding.
+            </p>
+            <div className="flex gap-3 relative z-10">
+              <button className="flex-1 py-3.5 bg-slate-50 border border-slate-200 rounded-xl text-[10px] font-black  tracking-widest hover:bg-slate-100 transition-all font-black" onClick={() => setShowModal(false)}>Abort</button>
+              <button
+                className="flex-1 py-3.5 bg-rose-600 text-white rounded-xl text-[10px] font-black  tracking-widest hover:bg-rose-700 transition-all shadow-xl shadow-rose-200"
+                onClick={() => selectedSellerId && handleDelete(selectedSellerId)}
+                disabled={loadingDelete}
+              >
+                {loadingDelete ? 'SYCHRONIZING...' : 'CONFIRM REVOKE'}
+              </button>
+            </div>
+            <div className="absolute top-0 right-0 w-32 h-32 bg-slate-50 rounded-full -mr-16 -mt-16 -z-10"></div>
           </div>
         </div>
       )}
@@ -178,23 +178,23 @@ export default function SellersPage() {
 
 const KPICard = ({ label, value, icon: Icon, color }) => {
   const styles = {
-     blue: "border-blue-500 bg-blue-50/20 text-blue-600",
-     slate: "border-slate-400 bg-slate-50 text-slate-900",
-     amber: "border-amber-500 bg-amber-50/20 text-amber-600",
-     green: "border-green-500 bg-green-50/20 text-green-600"
+    blue: "border-blue-500 bg-blue-50/20 text-blue-600",
+    slate: "border-slate-400 bg-slate-50 text-slate-900",
+    amber: "border-amber-500 bg-amber-50/20 text-amber-600",
+    green: "border-green-500 bg-green-50/20 text-green-600"
   };
-  
+
   return (
-     <div className={`bg-white border-l-4 p-5 rounded-2xl shadow-sm border transition-all hover:shadow-xl hover:-translate-y-1 group relative overflow-hidden ${styles[color]}`}>
-        <div className="flex justify-between items-start mb-4">
-           <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center border border-slate-100 shadow-sm transition-transform group-hover:scale-110">
-              <Icon size={20} className="opacity-80" />
-           </div>
+    <div className={`bg-white border-l-4 p-5 rounded-2xl shadow-sm border transition-all hover:shadow-xl hover:-translate-y-1 group relative overflow-hidden ${styles[color]}`}>
+      <div className="flex justify-between items-start mb-4">
+        <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center border border-slate-100 shadow-sm transition-transform group-hover:scale-110">
+          <Icon size={20} className="opacity-80" />
         </div>
-        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{label}</p>
-        <p className="text-2xl font-black text-slate-900 tracking-tighter leading-none">{value}</p>
-        <div className="absolute -bottom-4 -right-4 w-16 h-16 bg-slate-50 rounded-full opacity-0 group-hover:opacity-100 transition-all -z-10"></div>
-     </div>
+      </div>
+      <p className="text-[10px] font-black text-slate-400  tracking-widest mb-1">{label}</p>
+      <p className="text-2xl font-black text-slate-900 tracking-tighter leading-none">{value}</p>
+      <div className="absolute -bottom-4 -right-4 w-16 h-16 bg-slate-50 rounded-full opacity-0 group-hover:opacity-100 transition-all -z-10"></div>
+    </div>
   );
 };
 
@@ -206,55 +206,54 @@ const MerchantCard = ({ seller, onDetails, onEdit, onDelete }) => (
           {seller.profilePicture ? <img src={seller.profilePicture} className="w-full h-full object-cover" /> : <Store size={24} className="text-slate-300" />}
         </div>
         <div className="min-w-0 flex-1">
-          <h3 className="font-black text-slate-900 text-base truncate uppercase tracking-tight leading-none mb-1.5">{seller.storeName || 'Unnamed Entity'}</h3>
+          <h3 className="font-black text-slate-900 text-base truncate  tracking-tight leading-none mb-1.5">{seller.storeName || 'Unnamed Entity'}</h3>
           <div className="flex items-center gap-2">
-             <span className={`px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-widest border ${
-                seller.approvalStatus === 'approved' ? 'bg-green-50 text-green-700 border-green-100' : 'bg-amber-50 text-amber-700 border-amber-100'
-             }`}>
-                {seller.approvalStatus}
-             </span>
-             {seller.deleted && <span className="text-[8px] font-black text-rose-500 uppercase italic">OFFLINE</span>}
+            <span className={`px-2 py-0.5 rounded text-[8px] font-black  tracking-widest border ${seller.approvalStatus === 'approved' ? 'bg-green-50 text-green-700 border-green-100' : 'bg-amber-50 text-amber-700 border-amber-100'
+              }`}>
+              {seller.approvalStatus}
+            </span>
+            {seller.deleted && <span className="text-[8px] font-black text-rose-500  italic">OFFLINE</span>}
           </div>
         </div>
       </div>
 
       <div className="space-y-3">
-         <div className="flex items-center gap-3 p-3 bg-slate-50 border border-slate-100 rounded-xl group/info hover:bg-white transition-colors">
-            <Mail size={14} className="text-slate-300 group-hover/info:text-blue-500" />
-            <span className="text-[10px] font-black text-slate-600 truncate">{seller.user?.email || 'N/A'}</span>
-         </div>
-         <div className="flex items-center gap-3 p-3 bg-slate-50 border border-slate-100 rounded-xl group/info hover:bg-white transition-colors">
-            <MapPin size={14} className="text-slate-300 group-hover/info:text-rose-500" />
-            <span className="text-[10px] font-black text-slate-600 uppercase tracking-widest">{seller.county || 'Unassigned Zone'}</span>
-         </div>
+        <div className="flex items-center gap-3 p-3 bg-slate-50 border border-slate-100 rounded-xl group/info hover:bg-white transition-colors">
+          <Mail size={14} className="text-slate-300 group-hover/info:text-blue-500" />
+          <span className="text-[10px] font-black text-slate-600 truncate">{seller.user?.email || 'N/A'}</span>
+        </div>
+        <div className="flex items-center gap-3 p-3 bg-slate-50 border border-slate-100 rounded-xl group/info hover:bg-white transition-colors">
+          <MapPin size={14} className="text-slate-300 group-hover/info:text-rose-500" />
+          <span className="text-[10px] font-black text-slate-600  tracking-widest">{seller.county || 'Unassigned Zone'}</span>
+        </div>
       </div>
     </div>
 
     <div>
-       <div className="grid grid-cols-2 gap-4 border-t border-slate-100 pt-6 mt-2">
-          <div className="text-center bg-slate-50 p-2.5 rounded-xl border border-slate-100">
-             <p className="text-sm font-black text-slate-900 tracking-tighter leading-none">{seller.sales || 0}</p>
-             <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest mt-1">Net Sales</p>
-          </div>
-          <div className="text-center bg-slate-50 p-2.5 rounded-xl border border-slate-100">
-             <p className="text-sm font-black text-slate-900 tracking-tighter leading-none">{seller._count?.products || 0}</p>
-             <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest mt-1">Active SKUs</p>
-          </div>
-       </div>
+      <div className="grid grid-cols-2 gap-4 border-t border-slate-100 pt-6 mt-2">
+        <div className="text-center bg-slate-50 p-2.5 rounded-xl border border-slate-100">
+          <p className="text-sm font-black text-slate-900 tracking-tighter leading-none">{seller.sales || 0}</p>
+          <p className="text-[8px] font-black text-slate-400  tracking-widest mt-1">Net Sales</p>
+        </div>
+        <div className="text-center bg-slate-50 p-2.5 rounded-xl border border-slate-100">
+          <p className="text-sm font-black text-slate-900 tracking-tighter leading-none">{seller._count?.products || 0}</p>
+          <p className="text-[8px] font-black text-slate-400  tracking-widest mt-1">Active SKUs</p>
+        </div>
+      </div>
 
-       <div className="flex gap-2 pt-6">
-          <button onClick={onDetails} className="flex-1 py-3 bg-slate-900 text-white rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-blue-600 transition-all shadow-lg flex items-center justify-center gap-2">
-             <Eye size={12} /> Dossier
+      <div className="flex gap-2 pt-6">
+        <button onClick={onDetails} className="flex-1 py-3 bg-slate-900 text-white rounded-xl text-[9px] font-black  tracking-widest hover:bg-blue-600 transition-all shadow-lg flex items-center justify-center gap-2">
+          <Eye size={12} /> Dossier
+        </button>
+        <div className="flex gap-1">
+          <button onClick={onEdit} className="p-3 bg-slate-50 text-slate-400 rounded-xl hover:text-slate-900 transition-colors">
+            <Edit size={14} />
           </button>
-          <div className="flex gap-1">
-             <button onClick={onEdit} className="p-3 bg-slate-50 text-slate-400 rounded-xl hover:text-slate-900 transition-colors">
-                <Edit size={14} />
-             </button>
-             <button onClick={onDelete} className="p-3 bg-rose-50 text-rose-400 rounded-xl hover:text-rose-600 transition-colors">
-                <Trash2 size={14} />
-             </button>
-          </div>
-       </div>
+          <button onClick={onDelete} className="p-3 bg-rose-50 text-rose-400 rounded-xl hover:text-rose-600 transition-colors">
+            <Trash2 size={14} />
+          </button>
+        </div>
+      </div>
     </div>
     <div className="absolute top-0 right-0 w-32 h-32 bg-slate-50 rounded-full -mr-16 -mt-16 opacity-0 group-hover:opacity-100 transition-opacity -z-10"></div>
   </div>

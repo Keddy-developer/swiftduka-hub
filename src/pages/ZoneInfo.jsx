@@ -161,7 +161,7 @@ const ZoneInfoPage = () => {
           {/* Other hubs in zone */}
           {zone.hubs && zone.hubs.filter(h => h.id !== hub?.id).length > 0 && (
             <div className="mt-4">
-              <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Other Hubs in Zone</p>
+              <p className="text-xs font-bold text-slate-400  tracking-widest mb-2">Other Hubs in Zone</p>
               <div className="flex flex-wrap gap-2">
                 {zone.hubs.filter(h => h.id !== hub?.id).map(h => (
                   <span key={h.id} className="flex items-center gap-1.5 px-3 py-1 bg-slate-50 border border-slate-200 rounded-full text-xs text-slate-600 font-medium">
@@ -197,10 +197,10 @@ const ZoneInfoPage = () => {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="bg-slate-50 border border-slate-100 rounded-lg">
-                    <th className="px-4 py-2.5 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Route</th>
-                    <th className="px-4 py-2.5 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Weight Range</th>
-                    <th className="px-4 py-2.5 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Rate (KES)</th>
-                    <th className="px-4 py-2.5 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Status</th>
+                    <th className="px-4 py-2.5 text-left text-xs font-bold text-slate-500  tracking-wider">Route</th>
+                    <th className="px-4 py-2.5 text-left text-xs font-bold text-slate-500  tracking-wider">Weight Range</th>
+                    <th className="px-4 py-2.5 text-left text-xs font-bold text-slate-500  tracking-wider">Rate (KES)</th>
+                    <th className="px-4 py-2.5 text-left text-xs font-bold text-slate-500  tracking-wider">Status</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-50">
@@ -260,8 +260,8 @@ const ZoneInfoPage = () => {
                   <table className="w-full text-sm">
                     <thead>
                       <tr className="border-b border-slate-100">
-                        <th className="px-3 py-2 text-left text-xs text-slate-400 font-bold uppercase">Weight</th>
-                        <th className="px-3 py-2 text-left text-xs text-slate-400 font-bold uppercase">Price (KES)</th>
+                        <th className="px-3 py-2 text-left text-xs text-slate-400 font-bold ">Weight</th>
+                        <th className="px-3 py-2 text-left text-xs text-slate-400 font-bold ">Price (KES)</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-50">

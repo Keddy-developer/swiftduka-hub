@@ -66,7 +66,7 @@ export default function RidersManagement() {
    if (loading) return (
       <div className="flex flex-col items-center justify-center p-20 opacity-50">
          <RefreshCw className="w-8 h-8 animate-spin mb-3 text-slate-400" />
-         <span className="text-xs font-bold uppercase tracking-widest text-slate-500">Synchronizing Fleet Manifests...</span>
+         <span className="text-xs font-bold  tracking-widest text-slate-500">Synchronizing Fleet Manifests...</span>
       </div>
    );
 
@@ -77,18 +77,18 @@ export default function RidersManagement() {
             <div>
                <h1 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight flex items-center gap-3">
                   Fleet Command Center
-                  <span className="text-[10px] font-black bg-blue-600 text-white px-2 py-0.5 rounded-full uppercase tracking-tighter">Live</span>
+                  <span className="text-[10px] font-black bg-blue-600 text-white px-2 py-0.5 rounded-full  tracking-tighter">Live</span>
                </h1>
-               <p className="text-[10px] md:text-xs text-slate-500 font-black uppercase tracking-widest mt-1 flex items-center gap-2">
+               <p className="text-[10px] md:text-xs text-slate-500 font-black  tracking-widest mt-1 flex items-center gap-2">
                   <Truck size={14} className="text-blue-600 mb-0.5" />
                   Node: {hub?.name} · Active Fleet Status
                </p>
             </div>
             <div className="flex gap-2 w-full md:w-auto">
-               <button onClick={() => fetchRiders(true)} className="flex-1 md:flex-none px-6 py-3 bg-white border border-slate-200 rounded-lg text-[10px] font-black text-slate-600 hover:bg-slate-50 transition-all uppercase tracking-widest shadow-sm flex items-center justify-center gap-2">
+               <button onClick={() => fetchRiders(true)} className="flex-1 md:flex-none px-6 py-3 bg-white border border-slate-200 rounded-lg text-[10px] font-black text-slate-600 hover:bg-slate-50 transition-all  tracking-widest shadow-sm flex items-center justify-center gap-2">
                   <RefreshCw size={14} className={refreshing ? 'animate-spin' : ''} /> Sync Fleet
                </button>
-               <button onClick={() => navigate("/register-a-rider/new")} className="flex-1 md:flex-none px-6 py-3 bg-slate-900 text-white rounded-lg text-[10px] font-black hover:bg-slate-800 transition-all shadow-xl shadow-slate-200 uppercase tracking-widest flex items-center justify-center gap-2">
+               <button onClick={() => navigate("/register-a-rider/new")} className="flex-1 md:flex-none px-6 py-3 bg-slate-900 text-white rounded-lg text-[10px] font-black hover:bg-slate-800 transition-all shadow-xl shadow-slate-200  tracking-widest flex items-center justify-center gap-2">
                   <Plus size={14} /> Register Rider
                </button>
             </div>
@@ -109,9 +109,9 @@ export default function RidersManagement() {
                   <div className="px-6 py-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
                      <div className="flex items-center gap-3">
                         <Zap size={18} className="text-amber-500 fill-amber-500" />
-                        <h3 className="text-xs font-black text-slate-900 uppercase tracking-widest">Urgent Assignments</h3>
+                        <h3 className="text-xs font-black text-slate-900  tracking-widest">Urgent Assignments</h3>
                      </div>
-                     <span className="text-[10px] font-black text-slate-400 uppercase tracking-tighter">Real-time Flux</span>
+                     <span className="text-[10px] font-black text-slate-400  tracking-tighter">Real-time Flux</span>
                   </div>
                   <PendingAssignmentsPanel />
                </div>
@@ -125,31 +125,31 @@ export default function RidersManagement() {
                            value={searchQuery}
                            onChange={(e) => setSearchQuery(e.target.value)}
                            placeholder="Search by Name, Phone or Plate Number..."
-                           className="w-full bg-slate-50 border border-slate-100 rounded-lg pl-10 pr-4 py-2 text-xs font-bold outline-none focus:bg-white focus:border-slate-300 transition-all uppercase tracking-tight"
+                           className="w-full bg-slate-50 border border-slate-100 rounded-lg pl-10 pr-4 py-2 text-xs font-bold outline-none focus:bg-white focus:border-slate-300 transition-all  tracking-tight"
                         />
                      </div>
                      <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1 md:pb-0">
-                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest shrink-0">Filter:</span>
+                        <span className="text-[10px] font-black text-slate-400  tracking-widest shrink-0">Filter:</span>
                         {['All', 'Available', 'Busy', 'Offline'].map(tag => (
-                           <button key={tag} className="px-3 py-1 bg-white border border-slate-200 rounded-full text-[9px] font-black uppercase tracking-tighter text-slate-500 hover:bg-slate-50 whitespace-nowrap">{tag}</button>
+                           <button key={tag} className="px-3 py-1 bg-white border border-slate-200 rounded-full text-[9px] font-black  tracking-tighter text-slate-500 hover:bg-slate-50 whitespace-nowrap">{tag}</button>
                         ))}
                      </div>
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                      {filteredRiders.map(rider => (
-                        <RiderCard 
-                          key={rider.id} 
-                          rider={rider} 
-                          navigate={navigate} 
-                          onDelete={() => { setSelectedRiderId(rider.id); setShowDeleteModal(true); }} 
-                          onConfig={() => navigate(`/register-a-rider/${rider.id}`)} 
+                        <RiderCard
+                           key={rider.id}
+                           rider={rider}
+                           navigate={navigate}
+                           onDelete={() => { setSelectedRiderId(rider.id); setShowDeleteModal(true); }}
+                           onConfig={() => navigate(`/register-a-rider/${rider.id}`)}
                         />
                      ))}
                      {filteredRiders.length === 0 && (
                         <div className="col-span-full py-24 text-center bg-white border border-slate-200 border-dashed rounded-3xl opacity-40">
                            <Compass size={48} className="mx-auto mb-4 text-slate-300 animate-pulse" />
-                           <p className="text-xs font-black uppercase tracking-[0.2em] text-slate-400 font-black">Zero Deployment Authority Matches</p>
+                           <p className="text-xs font-black  tracking-[0.2em] text-slate-400 font-black">Zero Deployment Authority Matches</p>
                            <p className="text-[10px] font-bold text-slate-400 mt-2 italic">Refine search parameters or onboard new personnel.</p>
                         </div>
                      )}
@@ -163,7 +163,7 @@ export default function RidersManagement() {
                   <div className="px-6 py-4 bg-slate-900 text-white flex items-center justify-between border-b border-slate-800">
                      <div className="flex items-center gap-3">
                         <Shield size={18} className="text-blue-400" />
-                        <h3 className="text-xs font-black uppercase tracking-widest">Fleet Security</h3>
+                        <h3 className="text-xs font-black  tracking-widest">Fleet Security</h3>
                      </div>
                      <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
                   </div>
@@ -176,7 +176,7 @@ export default function RidersManagement() {
                      </div>
 
                      <div className="pt-6 border-t border-slate-100">
-                        <button className="w-full py-3 bg-slate-50 border border-slate-200 rounded-xl text-[10px] font-black uppercase tracking-widest text-slate-500 hover:bg-slate-100 transition-all flex items-center justify-center gap-2">
+                        <button className="w-full py-3 bg-slate-50 border border-slate-200 rounded-xl text-[10px] font-black  tracking-widest text-slate-500 hover:bg-slate-100 transition-all flex items-center justify-center gap-2">
                            <Activity size={14} /> Full Fleet Audit Trail
                         </button>
                      </div>
@@ -185,9 +185,9 @@ export default function RidersManagement() {
 
                <div className="p-6 bg-gradient-to-br from-blue-600 to-blue-800 rounded-2xl text-white shadow-xl relative overflow-hidden group">
                   <div className="relative z-10">
-                     <h4 className="text-xs font-black uppercase tracking-widest mb-1 opacity-80">Network Intelligence</h4>
+                     <h4 className="text-xs font-black  tracking-widest mb-1 opacity-80">Network Intelligence</h4>
                      <p className="text-lg font-black tracking-tight leading-tight mb-4">Onboard new personnel to expand your delivery catchment area.</p>
-                     <button onClick={() => navigate("/register-a-rider/new")} className="py-2.5 px-6 bg-white text-blue-900 rounded-lg text-[10px] font-black uppercase tracking-widest shadow-lg hover:scale-105 transition-transform">
+                     <button onClick={() => navigate("/register-a-rider/new")} className="py-2.5 px-6 bg-white text-blue-900 rounded-lg text-[10px] font-black  tracking-widest shadow-lg hover:scale-105 transition-transform">
                         Expand Fleet Now
                      </button>
                   </div>
@@ -205,16 +205,16 @@ export default function RidersManagement() {
                         <AlertTriangle className="text-rose-600 w-6 h-6" />
                      </div>
                      <div>
-                        <h3 className="text-base font-black text-slate-900 uppercase tracking-tight">Security Notice</h3>
-                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Fleet Authority Revocation</p>
+                        <h3 className="text-base font-black text-slate-900  tracking-tight">Security Notice</h3>
+                        <p className="text-[10px] font-bold text-slate-400  tracking-widest mt-0.5">Fleet Authority Revocation</p>
                      </div>
                   </div>
-                  <p className="text-xs font-bold text-slate-500 leading-relaxed uppercase tracking-tight italic relative z-10">
+                  <p className="text-xs font-bold text-slate-500 leading-relaxed  tracking-tight italic relative z-10">
                      You are about to decouple this agent from the hub logistical framework. All active permissions and routing capabilities for this personnel will be terminated immediately.
                   </p>
                   <div className="flex gap-3 relative z-10">
-                     <button onClick={() => setShowDeleteModal(false)} className="flex-1 py-3.5 bg-slate-50 border border-slate-200 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-100 transition-all">Cancel</button>
-                     <button onClick={() => handleDelete(selectedRiderId)} disabled={loadingDelete} className="flex-1 py-3.5 bg-rose-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-rose-700 transition-all shadow-xl shadow-rose-200">
+                     <button onClick={() => setShowDeleteModal(false)} className="flex-1 py-3.5 bg-slate-50 border border-slate-200 rounded-xl text-[10px] font-black  tracking-widest hover:bg-slate-100 transition-all">Cancel</button>
+                     <button onClick={() => handleDelete(selectedRiderId)} disabled={loadingDelete} className="flex-1 py-3.5 bg-rose-600 text-white rounded-xl text-[10px] font-black  tracking-widest hover:bg-rose-700 transition-all shadow-xl shadow-rose-200">
                         {loadingDelete ? 'SYNCING...' : 'Confirm Revocation'}
                      </button>
                   </div>
@@ -244,7 +244,7 @@ const KPICard = ({ label, value, icon: Icon, color }) => {
             </div>
             <ArrowRight size={14} className="opacity-0 group-hover:opacity-100 transition-opacity translate-x-2 group-hover:translate-x-0" />
          </div>
-         <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{label}</p>
+         <p className="text-[10px] font-black text-slate-400  tracking-widest mb-1">{label}</p>
          <p className="text-2xl font-black text-slate-900 tracking-tighter leading-none">{value}</p>
          <div className="absolute -bottom-4 -right-4 w-16 h-16 bg-slate-50 rounded-full opacity-0 group-hover:opacity-100 transition-all -z-10"></div>
       </div>
@@ -258,10 +258,10 @@ const RiderCard = ({ rider, onDelete, onConfig, navigate }) => (
             {rider.user?.avatar ? <img src={rider.user.avatar} className="w-full h-full object-cover" alt="" /> : <Truck size={24} className="text-slate-300" />}
          </div>
          <div className="min-w-0 flex-1">
-            <h3 className="font-black text-slate-900 text-sm truncate uppercase tracking-tight leading-none mb-1.5">{rider.user?.firstName ? `${rider.user.firstName} ${rider.user.lastName}` : (rider.name || 'UNNAMED AGENT')}</h3>
+            <h3 className="font-black text-slate-900 text-sm truncate  tracking-tight leading-none mb-1.5">{rider.user?.firstName ? `${rider.user.firstName} ${rider.user.lastName}` : (rider.name || 'UNNAMED AGENT')}</h3>
             <div className="flex items-center gap-2">
                <div className={`w-1.5 h-1.5 rounded-full ${rider.status === 'AVAILABLE' ? 'bg-green-500 shadow-lg shadow-green-200' : 'bg-amber-500 shadow-lg shadow-amber-200'}`} />
-               <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest">{rider.status || 'OFFLINE'}</span>
+               <span className="text-[9px] font-black text-slate-500  tracking-widest">{rider.status || 'OFFLINE'}</span>
             </div>
          </div>
          <div className="relative">
@@ -273,11 +273,11 @@ const RiderCard = ({ rider, onDelete, onConfig, navigate }) => (
 
       <div className="grid grid-cols-2 gap-4 border-t border-slate-100 pt-4 relative z-10">
          <div className="space-y-1">
-            <p className="text-[8px] font-black text-slate-400 uppercase tracking-[0.15em] leading-none">Net Settlement</p>
+            <p className="text-[8px] font-black text-slate-400  tracking-[0.15em] leading-none">Net Settlement</p>
             <p className="text-sm font-black text-slate-900 tracking-tighter leading-none">Ksh {(rider.totalEarnings || 0).toLocaleString()}</p>
          </div>
          <div className="text-right space-y-1">
-            <p className="text-[8px] font-black text-slate-400 uppercase tracking-[0.15em] leading-none">Quality Index</p>
+            <p className="text-[8px] font-black text-slate-400  tracking-[0.15em] leading-none">Quality Index</p>
             <p className="text-sm font-black text-slate-900 tracking-tighter leading-none flex items-center justify-end gap-1.5">{rider.rating || '5.0'} <Star size={12} className="text-amber-400 fill-amber-400" /></p>
          </div>
       </div>
@@ -289,14 +289,14 @@ const RiderCard = ({ rider, onDelete, onConfig, navigate }) => (
          </div>
          <div className="flex items-center gap-3 p-2.5 bg-slate-50 border border-slate-100 rounded-xl group/info hover:bg-white transition-colors">
             <Smartphone size={14} className="text-slate-300 group-hover/info:text-indigo-500 select-all" />
-            <span className="text-[10px] font-black text-slate-600 uppercase tracking-widest">{rider.numberPlate || 'NO PLATE RECORDED'}</span>
+            <span className="text-[10px] font-black text-slate-600  tracking-widest">{rider.numberPlate || 'NO PLATE RECORDED'}</span>
          </div>
       </div>
 
       <div className="flex gap-2 pt-2 relative z-10">
-         <button onClick={() => navigate(`/fleet/${rider.id}`)} className="flex-1 py-3 bg-slate-100 text-slate-700 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-200 transition-all border border-slate-200">VIEW MANIFEST</button>
-         <button onClick={() => navigate(`/register-a-rider/${rider.id}`)} className="flex-1 py-3 bg-slate-900 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-blue-600 transition-all shadow-lg shadow-slate-100"> PERSONNEL CONFIG</button>
-         <button onClick={onDelete} className="px-3 py-3 bg-rose-50 text-rose-600 border border-rose-100 rounded-xl text-[10px] font-black uppercase hover:bg-rose-600 hover:text-white transition-all">REVOKE</button>
+         <button onClick={() => navigate(`/fleet/${rider.id}`)} className="flex-1 py-3 bg-slate-100 text-slate-700 rounded-xl text-[10px] font-black  tracking-widest hover:bg-slate-200 transition-all border border-slate-200">VIEW MANIFEST</button>
+         <button onClick={() => navigate(`/register-a-rider/${rider.id}`)} className="flex-1 py-3 bg-slate-900 text-white rounded-xl text-[10px] font-black  tracking-widest hover:bg-blue-600 transition-all shadow-lg shadow-slate-100"> PERSONNEL CONFIG</button>
+         <button onClick={onDelete} className="px-3 py-3 bg-rose-50 text-rose-600 border border-rose-100 rounded-xl text-[10px] font-black  hover:bg-rose-600 hover:text-white transition-all">REVOKE</button>
       </div>
       <div className="absolute top-0 right-0 w-24 h-24 bg-slate-50 rounded-full -mr-12 -mt-12 opacity-0 group-hover:opacity-100 transition-opacity -z-10"></div>
    </div>
@@ -305,8 +305,8 @@ const RiderCard = ({ rider, onDelete, onConfig, navigate }) => (
 const TelemetryItem = ({ label, value, status }) => (
    <div className="flex items-center justify-between p-3.5 bg-slate-50 border border-slate-100 rounded-xl hover:bg-white transition-colors">
       <div>
-         <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-0.5">{label}</p>
-         <p className="text-[11px] font-black text-slate-900 uppercase tracking-tight">{value}</p>
+         <p className="text-[9px] font-black text-slate-400  tracking-widest mb-0.5">{label}</p>
+         <p className="text-[11px] font-black text-slate-900  tracking-tight">{value}</p>
       </div>
       <div className={`w-2 h-2 rounded-full ${status === 'nominal' ? 'bg-green-500 shadow-lg shadow-green-100' : 'bg-amber-500 shadow-lg shadow-amber-100'}`} />
    </div>

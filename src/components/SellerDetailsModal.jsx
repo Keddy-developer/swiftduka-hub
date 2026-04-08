@@ -971,7 +971,7 @@ const StatCard = ({ label, value, suffix }) => (
     <div className="text-2xl font-bold text-gray-800 mb-1">
       {value}{suffix}
     </div>
-    <div className="text-xs text-gray-600 uppercase tracking-wide">
+    <div className="text-xs text-gray-600 tracking-wide">
       {label}
     </div>
   </div>

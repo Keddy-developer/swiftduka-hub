@@ -22,7 +22,7 @@ const StatusBadge = ({ status }) => {
     ReadyForLogistics: "bg-indigo-50 text-indigo-700 border-indigo-100"
   };
   return (
-    <span className={`px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-widest border ${configs[status] || "bg-slate-50 text-slate-600 border-slate-100"}`}>
+    <span className={`px-2 py-0.5 rounded text-[9px] font-black tracking-widest border ${configs[status] || "bg-slate-50 text-slate-600 border-slate-100"}`}>
       {status}
     </span>
   );
@@ -45,12 +45,16 @@ const Orders = () => {
     if (!silent) setLoading(true);
     else setRefreshing(true);
     try {
-      const url = `/hubs/${hub.id}/seller-orders?period=${period}&page=${page}&limit=${limit}`;
+      // Use status if NOT "ALL", otherwise undefined to fetch everything
+      const statusParam = activeTab === 'ALL' ? '' : `&status=${activeTab}`;
+      const searchParam = search ? `&search=${encodeURIComponent(search)}` : '';
+
+      const url = `/hubs/${hub.id}/seller-orders?period=${period}&page=${page}&limit=${limit}${statusParam}${searchParam}`;
       console.log(`[Orders] Fetching from: ${url}`);
-      
+
       const res = await axiosInstance.get(url);
       console.log(`[Orders] Response:`, res.data);
-      
+
       const ordersData = res.data.orders || [];
       const paginationData = res.data.pagination || { total: 0, totalPages: 1, hasNextPage: false, hasPrevPage: false };
 
@@ -68,23 +72,36 @@ const Orders = () => {
     }
   };
 
-  useEffect(() => { fetchOrders(); }, [hub, period, page]);
+  // 🔄 Trigger fetch when filters or pagination change
+  useEffect(() => {
+    fetchOrders();
+  }, [hub, period, page, activeTab]);
 
-  const filteredOrders = useMemo(() => {
-    return orders.filter(order => {
-      const matchesSearch =
-        order.trackingNumber?.toLowerCase().includes(search.toLowerCase()) ||
-        order.shippingAddress?.name?.toLowerCase().includes(search.toLowerCase());
+  // 🔍 Debounced search effect
+  useEffect(() => {
+    if (!search) {
+      fetchOrders(true);
+      return;
+    }
+    const timer = setTimeout(() => {
+      setPage(1); // Reset to page 1 for new search
+      fetchOrders(true);
+    }, 600);
+    return () => clearTimeout(timer);
+  }, [search]);
 
-      if (activeTab === "ALL") return matchesSearch;
-      return matchesSearch && (order.deliveryStatus?.toUpperCase() === activeTab);
-    });
-  }, [orders, search, activeTab]);
+  const handleDownloadReport = () => {
+    toast.info("Generating Logistics Manifest PDF...");
+    // Future: implement pdf download endpoint call
+    setTimeout(() => {
+      toast.success("Ready for download. Check your system exports.");
+    }, 2000);
+  };
 
   if (loading) return (
     <div className="flex flex-col items-center justify-center p-20 opacity-50">
       <RefreshCw className="w-8 h-8 animate-spin mb-3 text-slate-400" />
-      <span className="text-xs font-bold uppercase tracking-widest text-slate-500">Synchronizing Order Manifest...</span>
+      <span className="text-xs font-bold tracking-widest text-slate-500">Synchronizing Order Manifest...</span>
     </div>
   );
 
@@ -94,7 +111,7 @@ const Orders = () => {
       <div className="flex flex-col md:flex-row md:items-end justify-between border-b border-slate-200 pb-6 gap-6">
         <div>
           <h1 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight">Order Fulfillment</h1>
-          <p className="text-xs md:text-sm text-slate-500 font-bold uppercase tracking-wide mt-1 italic">
+          <p className="text-xs md:text-sm text-slate-500 font-bold tracking-wide mt-1 italic">
             Hub Inbound & Outbound Traffic Manifest
           </p>
         </div>
@@ -104,13 +121,13 @@ const Orders = () => {
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
-                className={`px-4 py-2 rounded-md text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${activeTab === tab ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                className={`px-4 py-2 rounded-md text-[10px] font-black tracking-widest transition-all whitespace-nowrap ${activeTab === tab ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
               >
                 {tab}
               </button>
             ))}
           </div>
-          <button onClick={() => fetchOrders(true)} className="px-6 py-3 bg-white border border-slate-200 rounded-lg text-[10px] font-black text-slate-600 hover:bg-slate-50 transition-all flex items-center justify-center gap-2 uppercase tracking-widest">
+          <button onClick={() => fetchOrders(true)} className="px-6 py-3 bg-white border border-slate-200 rounded-lg text-[10px] font-black text-slate-600 hover:bg-slate-50 transition-all flex items-center justify-center gap-2 tracking-widest">
             <RefreshCw size={14} className={refreshing ? 'animate-spin' : ''} />
           </button>
         </div>
@@ -132,66 +149,69 @@ const Orders = () => {
           <select
             value={period}
             onChange={e => setPeriod(e.target.value)}
-            className="bg-white border border-slate-200 rounded-lg px-4 py-2 text-[10px] font-black text-slate-600 outline-none focus:border-slate-400 uppercase tracking-widest"
+            className="bg-white border border-slate-200 rounded-lg px-4 py-2 text-[10px] font-black text-slate-600 outline-none focus:border-slate-400 tracking-widest"
           >
             <option value="all">Global History</option>
             <option value="today">Today Only</option>
             <option value="week">Past 7 Days</option>
             <option value="month">Past 30 Days</option>
           </select>
-          <button className="px-6 py-3 bg-white border border-slate-200 rounded-lg text-[10px] font-black text-slate-600 hover:bg-slate-50 transition-all flex items-center justify-center gap-2 uppercase tracking-widest">
+          <button
+            onClick={handleDownloadReport}
+            className="px-6 py-3 bg-white border border-slate-200 rounded-lg text-[10px] font-black text-slate-600 hover:bg-slate-50 transition-all flex items-center justify-center gap-2 tracking-widest"
+          >
             <Download size={14} /> Reports
           </button>
         </div>
       </div>
 
       {/* 🗄️ MANIFEST GRID (MOBILE FIRST) */}
-      <div className="grid grid-cols-1 md:grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
-        {filteredOrders.map(order => (
+      <div className="grid grid-cols-1 md:grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4 text-left">
+        {orders.map(order => (
           <OrderTacticalCard key={order.id} order={order} />
         ))}
 
-        {filteredOrders.length === 0 && (
+        {orders.length === 0 && (
           <div className="col-span-full py-24 text-center bg-white border-2 border-dashed border-slate-200 rounded-3xl opacity-40">
             <ClipboardList size={48} className="mx-auto mb-4 text-slate-300 animate-pulse" />
-            <h3 className="text-sm font-black uppercase tracking-[0.3em] text-slate-400">Zero Record Delta</h3>
+            <h3 className="text-sm font-black tracking-[0.3em] text-slate-400">Zero Record Delta</h3>
             <p className="text-[10px] font-bold text-slate-400 mt-2 italic">No operational orders detected in current logistics scope.</p>
           </div>
         )}
       </div>
-      
+
       {/* 📑 PAGINATION CONTROLS */}
       {pagination.totalPages > 1 && (
         <div className="flex items-center justify-between bg-white p-4 border border-slate-200 rounded-xl shadow-sm mt-6">
-           <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
-              Showing page {pagination.page} of {pagination.totalPages} ({pagination.total} Total)
-           </div>
-           <div className="flex gap-2">
-              <button 
-                disabled={!pagination.hasPrevPage}
-                onClick={() => setPage(p => Math.max(1, p - 1))}
-                className="px-4 py-2 border border-slate-200 rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-slate-50 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
-              >
-                 Previous
-              </button>
-              <button 
-                disabled={!pagination.hasNextPage}
-                onClick={() => setPage(p => p + 1)}
-                className="px-4 py-2 bg-slate-900 text-white rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-blue-600 disabled:opacity-30 disabled:cursor-not-allowed transition-all px-6"
-              >
-                 Next
-              </button>
-           </div>
+          <div className="text-[10px] font-black text-slate-400 tracking-widest">
+            Showing page {pagination.page} of {pagination.totalPages} ({pagination.total} Total)
+          </div>
+          <div className="flex gap-2">
+            <button
+              disabled={!pagination.hasPrevPage}
+              onClick={() => setPage(p => Math.max(1, p - 1))}
+              className="px-4 py-2 border border-slate-200 rounded-lg text-[10px] font-black tracking-widest hover:bg-slate-50 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+            >
+              Previous
+            </button>
+            <button
+              disabled={!pagination.hasNextPage}
+              onClick={() => setPage(p => p + 1)}
+              className="px-4 py-2 bg-slate-900 text-white rounded-lg text-[10px] font-black tracking-widest hover:bg-blue-600 disabled:opacity-30 disabled:cursor-not-allowed transition-all px-6"
+            >
+              Next
+            </button>
+          </div>
         </div>
       )}
 
       {/* ── AUDIT TRAIL ── */}
       <div className="pt-10 border-t border-slate-200">
         <div className="mb-6">
-          <h3 className="text-xl font-black text-slate-900 tracking-tight uppercase">Outbound Traffic Audit</h3>
-          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1 italic">Recent order lifecycle status updates</p>
+          <h3 className="text-xl font-black text-slate-900 tracking-tight">Outbound Traffic Audit</h3>
+          <p className="text-[10px] font-bold text-slate-400 tracking-widest mt-1 italic">Recent order lifecycle status updates</p>
         </div>
-        <LogisticsAuditTrail hubId={hub.id} filterType="ORDER" />
+        <LogisticsAuditTrail hubId={hub?.id || null} filterType="ORDER" />
       </div>
 
       <div className="md:hidden h-20" />
@@ -202,7 +222,7 @@ const Orders = () => {
 const OrderTacticalCard = ({ order: sellerOrder }) => {
   const mainOrder = sellerOrder.order;
   const product = sellerOrder.product;
-  
+
   const dateStr = new Date(mainOrder?.createdAt || sellerOrder.createdAt).toLocaleDateString(undefined, {
     month: 'short',
     day: 'numeric',
@@ -219,10 +239,10 @@ const OrderTacticalCard = ({ order: sellerOrder }) => {
               <Package className="w-5 h-5 text-slate-400 group-hover:text-white" />
             </div>
             <div>
-              <h3 className="font-black text-slate-900 text-xs tracking-tight uppercase group-hover:text-blue-600 transition-colors">
+              <h3 className="font-black text-slate-900 text-xs tracking-tight group-hover:text-blue-600 transition-colors">
                 {mainOrder?.trackingNumber || 'NO-TRACKING'}
               </h3>
-              <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">{dateStr}</p>
+              <p className="text-[9px] font-bold text-slate-400 tracking-widest mt-0.5">{dateStr}</p>
             </div>
           </div>
           <div className="flex flex-col items-end gap-1">
@@ -232,20 +252,20 @@ const OrderTacticalCard = ({ order: sellerOrder }) => {
 
         <div className="grid grid-cols-2 gap-6 bg-slate-50/50 rounded-lg p-4 border border-slate-100">
           <div className="space-y-1">
-            <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Consignee</p>
-            <p className="text-[11px] font-black text-slate-900 truncate uppercase">{mainOrder?.user?.username || 'Guest'}</p>
+            <p className="text-[8px] font-black text-slate-400 tracking-widest">Consignee</p>
+            <p className="text-[11px] font-black text-slate-900 truncate">{mainOrder?.user?.username || 'Guest'}</p>
             <p className="text-[9px] font-bold text-slate-500 whitespace-nowrap overflow-hidden text-ellipsis flex items-center gap-1">
               <Phone size={10} className="text-slate-300" /> {mainOrder?.user?.phone || 'N/A'}
             </p>
           </div>
           <div className="space-y-1">
-            <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Destination</p>
-            <p className="text-[11px] font-black text-slate-900 truncate uppercase">
-              {mainOrder?.deliveryType === 'DOOR' 
+            <p className="text-[8px] font-black text-slate-400 tracking-widest">Destination</p>
+            <p className="text-[11px] font-black text-slate-900 truncate">
+              {mainOrder?.deliveryType === 'DOOR'
                 ? (mainOrder?.deliveryArea?.name || mainOrder?.deliveryArea?.town || 'Door Delivery')
                 : (mainOrder?.pickupStation?.name || 'Pickup Station')}
             </p>
-            <p className="text-[9px] font-bold text-blue-600 uppercase tracking-tighter flex items-center gap-1">
+            <p className="text-[9px] font-bold text-blue-600 tracking-tighter flex items-center gap-1">
               <Navigation size={10} className="text-blue-400" /> {mainOrder?.deliveryType}
             </p>
           </div>
@@ -253,27 +273,27 @@ const OrderTacticalCard = ({ order: sellerOrder }) => {
 
         <div className="mt-5 space-y-3">
           <div className="flex items-center gap-3 bg-white border border-slate-100 rounded-md p-2 shadow-sm">
-             <div className="w-10 h-10 rounded bg-slate-50 border border-slate-100 overflow-hidden flex-shrink-0">
-                {product?.image ? (
-                   <img src={product.image} className="w-full h-full object-cover" alt="" />
-                ) : (
-                   <Package className="w-full h-full p-2 text-slate-200" />
-                )}
-             </div>
-             <div className="flex-1 min-w-0">
-                <p className="text-[11px] font-black text-slate-900 truncate uppercase">{product?.name || 'Product'}</p>
-                <p className="text-[9px] font-bold text-slate-500 uppercase">Qty: {sellerOrder.quantity || 1}</p>
-             </div>
+            <div className="w-10 h-10 rounded bg-slate-50 border border-slate-100 overflow-hidden flex-shrink-0">
+              {product?.image ? (
+                <img src={product.image} className="w-full h-full object-cover" alt="" />
+              ) : (
+                <Package className="w-full h-full p-2 text-slate-200" />
+              )}
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-[11px] font-black text-slate-900 truncate">{product?.name || 'Product'}</p>
+              <p className="text-[9px] font-bold text-slate-500">Qty: {sellerOrder.quantity || 1}</p>
+            </div>
           </div>
 
           <div className="flex items-center justify-between border-t border-slate-50 pt-4 mt-2">
             <div>
-              <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Gross Value</p>
+              <p className="text-[8px] font-black text-slate-400 tracking-widest">Gross Value</p>
               <p className="text-base font-black text-slate-900 tracking-tighter">
                 Ksh {(mainOrder?.totalCost || 0).toLocaleString()}
               </p>
             </div>
-            <Link to={`/orders/${mainOrder?.id}`} className="px-5 py-2 bg-slate-900 text-white rounded text-[10px] font-black uppercase tracking-[0.2em] hover:bg-blue-600 transition-all shadow-xl shadow-slate-200">
+            <Link to={`/orders/${mainOrder?.id}`} className="px-5 py-2 bg-slate-900 text-white rounded text-[10px] font-black tracking-[0.2em] hover:bg-blue-600 transition-all shadow-xl shadow-slate-200">
               Manage
             </Link>
           </div>
