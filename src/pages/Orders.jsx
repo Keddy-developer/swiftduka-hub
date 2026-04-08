@@ -37,7 +37,8 @@ const Orders = () => {
   const [period, setPeriod] = useState("all");
   const [activeTab, setActiveTab] = useState("ALL");
   const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(100);
+  const [limit, setLimit] = useState(24);
+  const [pagination, setPagination] = useState({ total: 0, totalPages: 1, hasNextPage: false, hasPrevPage: false });
 
   const fetchOrders = async (silent = false) => {
     if (!hub?.id) return setLoading(false);
@@ -45,13 +46,14 @@ const Orders = () => {
     else setRefreshing(true);
     try {
       const res = await axiosInstance.get(`/hubs/${hub.id}/seller-orders?period=${period}&page=${page}&limit=${limit}`);
-      const data = Array.isArray(res.data) ? res.data : (res.data?.orders || []);
+      
+      const ordersData = res.data.orders || [];
+      const paginationData = res.data.pagination || { total: 0, totalPages: 1, hasNextPage: false, hasPrevPage: false };
 
-      const hubOrders = data.filter(order =>
-        order.products?.some(p => p.product?.fulfillmentHubId === hub.id)
-      );
-
-      setOrders(hubOrders);
+      // Map backend sellerOrder fields to the flat order structure expected by the UI if needed
+      // Currently the UI seems to expect the sellerOrder structure directly or uses optional chaining
+      setOrders(ordersData);
+      setPagination(paginationData);
     } catch (error) {
       toast.error("Logistics sync failure");
     } finally {
@@ -60,7 +62,7 @@ const Orders = () => {
     }
   };
 
-  useEffect(() => { fetchOrders(); }, [hub, period]);
+  useEffect(() => { fetchOrders(); }, [hub, period, page]);
 
   const filteredOrders = useMemo(() => {
     return orders.filter(order => {
@@ -151,6 +153,31 @@ const Orders = () => {
           </div>
         )}
       </div>
+      
+      {/* 📑 PAGINATION CONTROLS */}
+      {pagination.totalPages > 1 && (
+        <div className="flex items-center justify-between bg-white p-4 border border-slate-200 rounded-xl shadow-sm mt-6">
+           <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+              Showing page {pagination.page} of {pagination.totalPages} ({pagination.total} Total)
+           </div>
+           <div className="flex gap-2">
+              <button 
+                disabled={!pagination.hasPrevPage}
+                onClick={() => setPage(p => Math.max(1, p - 1))}
+                className="px-4 py-2 border border-slate-200 rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-slate-50 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+              >
+                 Previous
+              </button>
+              <button 
+                disabled={!pagination.hasNextPage}
+                onClick={() => setPage(p => p + 1)}
+                className="px-4 py-2 bg-slate-900 text-white rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-blue-600 disabled:opacity-30 disabled:cursor-not-allowed transition-all px-6"
+              >
+                 Next
+              </button>
+           </div>
+        </div>
+      )}
 
       {/* ── AUDIT TRAIL ── */}
       <div className="pt-10 border-t border-slate-200">
@@ -166,8 +193,11 @@ const Orders = () => {
   );
 };
 
-const OrderTacticalCard = ({ order }) => {
-  const dateStr = new Date(order.createdAt).toLocaleDateString(undefined, {
+const OrderTacticalCard = ({ order: sellerOrder }) => {
+  const mainOrder = sellerOrder.order;
+  const product = sellerOrder.product;
+  
+  const dateStr = new Date(mainOrder?.createdAt || sellerOrder.createdAt).toLocaleDateString(undefined, {
     month: 'short',
     day: 'numeric',
     hour: '2-digit',
@@ -183,53 +213,61 @@ const OrderTacticalCard = ({ order }) => {
               <Package className="w-5 h-5 text-slate-400 group-hover:text-white" />
             </div>
             <div>
-              <h3 className="font-black text-slate-900 text-xs tracking-tight uppercase group-hover:text-blue-600 transition-colors">{order.trackingNumber}</h3>
+              <h3 className="font-black text-slate-900 text-xs tracking-tight uppercase group-hover:text-blue-600 transition-colors">
+                {mainOrder?.trackingNumber || 'NO-TRACKING'}
+              </h3>
               <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">{dateStr}</p>
             </div>
           </div>
           <div className="flex flex-col items-end gap-1">
-            <StatusBadge status={order.deliveryStatus || 'Pending'} />
+            <StatusBadge status={sellerOrder.deliveryStatus || 'Pending'} />
           </div>
         </div>
 
         <div className="grid grid-cols-2 gap-6 bg-slate-50/50 rounded-lg p-4 border border-slate-100">
           <div className="space-y-1">
             <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Consignee</p>
-            <p className="text-[11px] font-black text-slate-900 truncate uppercase">{order.shippingAddress?.name}</p>
+            <p className="text-[11px] font-black text-slate-900 truncate uppercase">{mainOrder?.user?.username || 'Guest'}</p>
             <p className="text-[9px] font-bold text-slate-500 whitespace-nowrap overflow-hidden text-ellipsis flex items-center gap-1">
-              <Phone size={10} className="text-slate-300" /> {order.shippingAddress?.phoneNumber}
+              <Phone size={10} className="text-slate-300" /> {mainOrder?.user?.phone || 'N/A'}
             </p>
           </div>
           <div className="space-y-1">
-            <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Tactical Destination</p>
-            <p className="text-[11px] font-black text-slate-900 truncate uppercase">{order.shippingAddress?.town}</p>
+            <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Destination</p>
+            <p className="text-[11px] font-black text-slate-900 truncate uppercase">
+              {mainOrder?.deliveryType === 'DOOR' 
+                ? (mainOrder?.deliveryArea?.name || mainOrder?.deliveryArea?.town || 'Door Delivery')
+                : (mainOrder?.pickupStation?.name || 'Pickup Station')}
+            </p>
             <p className="text-[9px] font-bold text-blue-600 uppercase tracking-tighter flex items-center gap-1">
-              <Navigation size={10} className="text-blue-400" /> 3.2KM DISTANCE
+              <Navigation size={10} className="text-blue-400" /> {mainOrder?.deliveryType}
             </p>
           </div>
         </div>
 
         <div className="mt-5 space-y-3">
-          <div className="flex flex-wrap gap-1.5 max-h-[60px] overflow-hidden">
-            {order.products?.slice(0, 3).map((p, idx) => (
-              <div key={idx} className="flex items-center gap-1 bg-white border border-slate-100 rounded-md px-2 py-1 shadow-sm">
-                <span className="text-[10px] font-black text-slate-900">{p.quantity}x</span>
-                <span className="text-[9px] font-bold text-slate-500 truncate max-w-[80px] uppercase">{p.product?.name}</span>
-              </div>
-            ))}
-            {order.products?.length > 3 && (
-              <div className="flex items-center gap-1 bg-slate-900 text-white border border-slate-900 rounded-md px-2 py-1 shadow-sm">
-                <span className="text-[9px] font-black">+{order.products.length - 3}</span>
-              </div>
-            )}
+          <div className="flex items-center gap-3 bg-white border border-slate-100 rounded-md p-2 shadow-sm">
+             <div className="w-10 h-10 rounded bg-slate-50 border border-slate-100 overflow-hidden flex-shrink-0">
+                {product?.image ? (
+                   <img src={product.image} className="w-full h-full object-cover" alt="" />
+                ) : (
+                   <Package className="w-full h-full p-2 text-slate-200" />
+                )}
+             </div>
+             <div className="flex-1 min-w-0">
+                <p className="text-[11px] font-black text-slate-900 truncate uppercase">{product?.name || 'Product'}</p>
+                <p className="text-[9px] font-bold text-slate-500 uppercase">Qty: {sellerOrder.quantity || 1}</p>
+             </div>
           </div>
 
           <div className="flex items-center justify-between border-t border-slate-50 pt-4 mt-2">
             <div>
               <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Gross Value</p>
-              <p className="text-base font-black text-slate-900 tracking-tighter">Ksh {order.totalCost.toLocaleString()}</p>
+              <p className="text-base font-black text-slate-900 tracking-tighter">
+                Ksh {(mainOrder?.totalCost || 0).toLocaleString()}
+              </p>
             </div>
-            <Link to={`/orders/${order.id}`} className="px-5 py-2 bg-slate-900 text-white rounded text-[10px] font-black uppercase tracking-[0.2em] hover:bg-blue-600 transition-all shadow-xl shadow-slate-200">
+            <Link to={`/orders/${mainOrder?.id}`} className="px-5 py-2 bg-slate-900 text-white rounded text-[10px] font-black uppercase tracking-[0.2em] hover:bg-blue-600 transition-all shadow-xl shadow-slate-200">
               Manage
             </Link>
           </div>
