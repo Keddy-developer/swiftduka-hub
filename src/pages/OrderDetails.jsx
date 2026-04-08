@@ -504,6 +504,28 @@ const OrderDetailsPage = () => {
                            )}
                         </div>
                      </div>
+
+                     {/* Pickup station/ delivery area */}
+                     {order.deliveryType === "PICKUP" ? (
+                        <div className="space-y-4">
+                           <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wider flex items-center gap-2">
+                              <FiMapPin className="text-gray-400" /> Pickup Station
+                           </h3>
+                           <div className="space-y-2 text-sm">
+                              <p><span className="text-gray-500">Pickup Station:</span> <span className="font-medium text-gray-900">{order.pickupStation?.name}</span></p>
+                           </div>
+                        </div>
+                     ) : (
+                        <div className="space-y-4">
+                           <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wider flex items-center gap-2">
+                              <FiMapPin className="text-gray-400" /> Delivery Area
+                           </h3>
+                           <div className="space-y-2 text-sm">
+                              <p><span className="text-gray-500">Delivery Area:</span> <span className="font-medium text-gray-900">{order.deliveryArea?.name}</span></p>
+                           </div>
+                        </div>
+                     )}
+
                   </div>
 
                   {/* Gift Details */}
