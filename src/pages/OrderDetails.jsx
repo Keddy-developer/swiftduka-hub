@@ -23,17 +23,14 @@ import {
    FaStore,
    FaPrint
 } from "react-icons/fa";
-import { useAuth } from "../contexts/AuthContext";
-
 import QRCode from "react-qr-code";
 import ReturnForm from "../components/ReturnForm";
 
 const OrderDetailsPage = () => {
-   const { trackingNumber } = useParams();
+   const { id } = useParams();
    const navigate = useNavigate();
    const [order, setOrder] = useState(null);
    const [loading, setLoading] = useState(true);
-   const { user } = useAuth();
 
    // Action Loading States
    const [loadingProcessing, setLoadingProcessing] = useState(false);
@@ -58,7 +55,7 @@ const OrderDetailsPage = () => {
 
    const fetchOrderDetails = async () => {
       try {
-         const res = await axiosInstance.get(`/order/admin/${trackingNumber}`);
+         const res = await axiosInstance.get(`/order/admin/${id}`);
          const data = res.data.data || res.data;
 
          // Validate data structure to prevent crashes in render
@@ -733,6 +730,7 @@ const OrderDetailsPage = () => {
                                        </ActionButton>
                                     )}
 
+                                    {/* Admin Initiate Return */}
                                     <ActionButton
                                        onClick={() => {
                                           setSelectedProductForReturn({
