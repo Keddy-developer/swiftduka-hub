@@ -23,7 +23,7 @@ import {
    FaStore,
    FaPrint
 } from "react-icons/fa";
-import QRCode from "react-qr-code";
+import { QRCode } from "react-qr-code";
 import ReturnForm from "../components/ReturnForm";
 
 const OrderDetailsPage = () => {
