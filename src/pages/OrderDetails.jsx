@@ -31,7 +31,7 @@ const OrderDetailsPage = () => {
    const navigate = useNavigate();
    const [order, setOrder] = useState(null);
    const [loading, setLoading] = useState(true);
-
+   const [trackingNumber, setTrackingNumber] = useState(id);
    // Action Loading States
    const [loadingProcessing, setLoadingProcessing] = useState(false);
    const [loadingMarkReceived, setLoadingMarkReceived] = useState(false);
@@ -61,6 +61,7 @@ const OrderDetailsPage = () => {
          // Validate data structure to prevent crashes in render
          if (data && typeof data === 'object' && Array.isArray(data.products)) {
             setOrder(data);
+            setTrackingNumber(data.trackingNumber);
          } else {
             console.error("Invalid order data format:", data);
             toast.error("Invalid order data received from server");
@@ -76,10 +77,10 @@ const OrderDetailsPage = () => {
    };
 
    useEffect(() => {
-      if (trackingNumber) {
+      if (id) {
          fetchOrderDetails();
       }
-   }, [trackingNumber]);
+   }, [id]);
 
    // Handlers
    const handleToggleProcessing = async () => {
