@@ -8,6 +8,8 @@ import {
   Edit2, Trash2, ExternalLink
 } from 'lucide-react';
 import { toast } from 'react-toastify';
+import QRCode from 'react-qr-code';
+import { Html5QrcodeScanner } from 'html5-qrcode';
 import LogisticsAuditTrail from '../components/LogisticsAuditTrail';
 
 // ─── Shared Components ──────────────────────────────────────────────────
@@ -170,8 +172,114 @@ const ReceiveShipmentModal = ({ hub, onClose, onSuccess }) => {
   );
 };
 
-// ─── Adjust Stock Modal ──────────────────────────────────────────────────────
-const AdjustModal = ({ item, hub, onClose, onSuccess }) => {
+// ─── QR Code Modal ──────────────────────────────────────────────────────
+const QRModal = ({ item, onClose }) => {
+  const printQR = () => {
+    const printContent = document.getElementById('qr-print-zone').innerHTML;
+    const windowUrl = 'about:blank';
+    const uniqueName = new Date();
+    const windowName = 'Print' + uniqueName.getTime();
+    const printWindow = window.open(windowUrl, windowName, 'left=50000,top=50000,width=0,height=0');
+
+    printWindow.document.write(`
+      <html>
+        <head>
+          <title>Print QR - ${item.product?.sku}</title>
+          <style>
+            @page { size: auto; margin: 0mm; }
+            body { 
+              display: flex; 
+              flex-direction: column; 
+              align-items: center; 
+              justify-content: center; 
+              height: 100vh;
+              font-family: sans-serif;
+            }
+            .label { margin-top: 10px; font-weight: bold; font-size: 14px; text-transform: uppercase; }
+          </style>
+        </head>
+        <body>
+          ${printContent}
+          <div class="label">${item.product?.name}</div>
+          <div class="label" style="font-size: 12px; color: #666;">SKU: ${item.product?.sku}</div>
+          <script>
+            window.onload = function() {
+              window.print();
+              setTimeout(function(){ window.close(); }, 100);
+            };
+          </script>
+        </body>
+      </html>
+    `);
+    printWindow.document.close();
+    printWindow.focus();
+  };
+
+  return (
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in">
+      <div className="bg-white rounded-xl shadow-2xl w-full max-w-sm p-8 text-center animate-in zoom-in-95">
+        <div className="flex justify-between items-center mb-6">
+          <h3 className="text-lg font-black text-slate-900">Asset Identity</h3>
+          <button onClick={onClose} className="p-2 text-slate-400 hover:text-slate-900"><X size={20} /></button>
+        </div>
+
+        <div id="qr-print-zone" className="bg-white p-6 inline-block border-2 border-slate-100 rounded-2xl shadow-inner mb-6">
+           <QRCode value={item.product?.sku || item.productId} size={180} />
+        </div>
+
+        <div className="mb-8">
+           <p className="font-black text-slate-900 truncate">{item.product?.name}</p>
+           <p className="text-[10px] font-mono text-slate-400 font-bold tracking-widest mt-1">SKU: {item.product?.sku}</p>
+        </div>
+
+        <div className="flex gap-3">
+          <button onClick={onClose} className="flex-1 py-3 border border-slate-200 rounded text-[10px] font-black tracking-widest uppercase">Close</button>
+          <button onClick={printQR} className="flex-1 py-3 bg-slate-900 text-white rounded text-[10px] font-black tracking-widest uppercase shadow-xl flex items-center justify-center gap-2">
+            <Layers className="w-3.5 h-3.5" /> Print Tag
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// ─── Scanner Modal ──────────────────────────────────────────────────────
+const ScannerModal = ({ onClose, onScan }) => {
+  useEffect(() => {
+    const scanner = new Html5QrcodeScanner("reader", { 
+      fps: 10, 
+      qrbox: { width: 250, height: 250 },
+      aspectRatio: 1.0
+    });
+
+    scanner.render((result) => {
+      onScan(result);
+      scanner.clear();
+      onClose();
+    }, (error) => {
+      // Fail silently for scan errors to avoid flooding
+    });
+
+    return () => {
+      scanner.clear().catch(e => console.error("Scanner cleanup failed", e));
+    };
+  }, [onScan, onClose]);
+
+  return (
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in">
+      <div className="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden animate-in zoom-in-95">
+        <div className="px-6 py-4 bg-slate-900 flex items-center justify-between text-white">
+          <h3 className="font-black text-sm tracking-widest uppercase">Tactical Scanner</h3>
+          <button onClick={onClose}><X size={20} /></button>
+        </div>
+        <div id="reader" className="p-4 bg-slate-50"></div>
+        <div className="p-4 text-center">
+           <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest animate-pulse">Position SKU within standard parameters</p>
+        </div>
+      </div>
+    </div>
+  );
+};
   const [qty, setQty] = useState('');
   const [mode, setMode] = useState('add');
   const [reason, setReason] = useState('');
@@ -262,6 +370,8 @@ const Inventory = () => {
   const [filterLowStock, setFilterLowStock] = useState(false);
   const [showReceiveModal, setShowReceiveModal] = useState(false);
   const [adjustItem, setAdjustItem] = useState(null);
+  const [qrItem, setQrItem] = useState(null);
+  const [showScanner, setShowScanner] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
 
   const fetchData = useCallback(async (silent = false) => {
@@ -303,6 +413,8 @@ const Inventory = () => {
     <div className="space-y-6 md:space-y-10 animate-in fade-in duration-500">
       {showReceiveModal && <ReceiveShipmentModal hub={hub} onClose={() => setShowReceiveModal(false)} onSuccess={() => fetchData(true)} />}
       {adjustItem && <AdjustModal item={adjustItem} hub={hub} onClose={() => setAdjustItem(null)} onSuccess={() => fetchData(true)} />}
+      {qrItem && <QRModal item={qrItem} onClose={() => setQrItem(null)} />}
+      {showScanner && <ScannerModal onClose={() => setShowScanner(false)} onScan={(res) => setSearch(res)} />}
 
       {/* ── ALIBABA STYLE TOP NAV ── */}
       <div className="flex flex-col md:flex-row md:items-end justify-between border-b border-slate-200 pb-6 gap-6">
@@ -336,6 +448,10 @@ const Inventory = () => {
             className="w-full bg-slate-50 border border-slate-200 rounded-lg pl-12 pr-4 py-3 text-sm font-bold outline-none focus:bg-white focus:border-slate-900 transition-all" />
         </div>
         <div className="flex gap-2">
+          <button onClick={() => setShowScanner(true)}
+            className="px-6 py-3 bg-white border border-slate-200 rounded-lg text-[10px] font-black tracking-widest text-slate-500 hover:text-slate-900 hover:border-slate-900 transition-all flex items-center gap-2">
+            <Zap className="w-4 h-4" /> Scan
+          </button>
           <button onClick={() => setFilterLowStock(f => !f)}
             className={`px-6 py-3 rounded-lg text-[10px] font-black  tracking-widest border transition-all flex items-center justify-center gap-2 whitespace-nowrap ${filterLowStock ? 'bg-amber-500 border-amber-500 text-white shadow-lg shadow-amber-200' : 'bg-white border-slate-200 text-slate-500 hover:border-slate-400'}`}>
             <AlertTriangle className="w-3.5 h-3.5" /> {filterLowStock ? 'Filter Active' : 'Low Stock Only'}
@@ -350,6 +466,7 @@ const Inventory = () => {
             key={item.id}
             item={item}
             onAdjust={() => setAdjustItem(item)}
+            onQR={() => setQrItem(item)}
           />
         ))}
 
@@ -376,7 +493,7 @@ const Inventory = () => {
   );
 };
 
-const InventoryCard = ({ item, onAdjust }) => {
+const InventoryCard = ({ item, onAdjust, onQR }) => {
   const isLow = item.quantity <= (item.lowStockAlert ?? 10);
   const lastDate = item.lastRestocked ? new Date(item.lastRestocked).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : 'INITIAL';
 
@@ -398,9 +515,14 @@ const InventoryCard = ({ item, onAdjust }) => {
         <div className="min-w-0 flex-1">
           <div className="flex justify-between items-start">
             <h3 className="font-black text-slate-900 text-xs truncate leading-tight  tracking-tight pr-4">{item.product?.name}</h3>
-            <button onClick={onAdjust} className="text-slate-300 hover:text-slate-900 transition-colors">
-              <MoreVertical className="w-4 h-4" />
-            </button>
+            <div className="flex gap-1">
+              <button onClick={onQR} className="p-1 px-2 border border-slate-100 rounded text-slate-400 hover:text-slate-900 hover:bg-slate-50 transition-all">
+                 <Zap className="w-3 h-3" />
+              </button>
+              <button onClick={onAdjust} className="text-slate-300 hover:text-slate-900 transition-colors">
+                <MoreVertical className="w-4 h-4" />
+              </button>
+            </div>
           </div>
           <p className="text-[9px] font-mono text-slate-400 font-black mt-1 font-bold">#{item.product?.sku || 'NO-SKU'}</p>
           <p className="text-[10px] font-bold text-slate-500 mt-2 truncate italic">{item.product?.seller?.storeName || 'PLATFORM ASSET'}</p>
