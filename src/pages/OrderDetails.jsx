@@ -499,9 +499,11 @@ const OrderDetailsPage = () => {
                         <div className="space-y-2 text-sm">
                            <p><span className="text-gray-500">Town:</span> <span className="font-medium text-gray-900">{order.shippingAddress?.town || "N/A"}</span></p>
                            <p><span className="text-gray-500">Address:</span> <span className="font-medium text-gray-900">{order.shippingAddress?.address || "N/A"}</span></p>
-                           {order.deliveryArea && (
-                              <p><span className="text-gray-500">Area:</span> <span className="font-medium text-gray-900">{order.deliveryArea?.name}</span></p>
-                           )}
+                            {(order.deliveryArea || order.shippingAddress?.deliveryArea || order.shippingAddress?.town) && (
+                               <p><span className="text-gray-500">Area:</span> <span className="font-medium text-gray-900">
+                                  {order.deliveryArea?.name || order.shippingAddress?.deliveryArea?.name || order.shippingAddress?.town || "N/A"}
+                               </span></p>
+                            )}
                         </div>
                      </div>
 
@@ -520,9 +522,11 @@ const OrderDetailsPage = () => {
                            <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wider flex items-center gap-2">
                               <FiMapPin className="text-gray-400" /> Delivery Area
                            </h3>
-                           <div className="space-y-2 text-sm">
-                              <p><span className="text-gray-500">Delivery Area:</span> <span className="font-medium text-gray-900">{order.deliveryArea?.name}</span></p>
-                           </div>
+                            <div className="space-y-2 text-sm">
+                               <p><span className="text-gray-500">Delivery Area:</span> <span className="font-medium text-gray-900">
+                                  {order.deliveryArea?.name || order.shippingAddress?.deliveryArea?.name || order.shippingAddress?.town || "N/A"}
+                               </span></p>
+                            </div>
                         </div>
                      )}
 
