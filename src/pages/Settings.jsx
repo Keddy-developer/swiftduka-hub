@@ -23,6 +23,7 @@ const SettingsPage = () => {
     capacity: 1000,
   });
   const [routes, setRoutes] = useState([]);
+  const [policies, setPolicies] = useState([]);
   const [showRouteModal, setShowRouteModal] = useState(false);
   const [newRoute, setNewRoute] = useState({
     toTown: '',
@@ -58,6 +59,12 @@ const SettingsPage = () => {
           });
         }
         setRoutes(routesRes.data.routes || []);
+
+        // Fetch Policies
+        const policiesRes = await axiosInstance.get(`/hub-policies?hubId=${hub.id}`);
+        if (policiesRes.data.success) {
+          setPolicies(policiesRes.data.policies);
+        }
       } catch (err) {
         console.error("Hub Sync Error", err);
         toast.error('Sync failure with headquarters');
@@ -311,35 +318,35 @@ const SettingsPage = () => {
             <div className="p-8 animate-in slide-in-from-right-4 duration-300">
               <SectionHeader title="Operational Fulfillment Policies" />
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <OpsPolicyCard
-                  title="Damage Reclamation"
-                  desc="Defines the penalty ratio for products damaged during hub transit or rider handling."
-                  value="15% Default"
-                />
-                <OpsPolicyCard
-                  title="Storage Surcharge"
-                  desc="Daily holding fee for products exceeding 60-day inventory aging threshold."
-                  value="Ksh 5.00/unit"
-                />
-                <OpsPolicyCard
-                  title="Route Optimization"
-                  desc="AI-driven clustering of delivery drops to minimize travel distance and rider fuel consumption."
-                  value="ENABLED"
-                  active
-                />
-                <OpsPolicyCard
-                  title="SLA Guardrails"
-                  desc="Automatic order escalation if logistics status is not updated within 24 operational hours."
-                  value="STRICT"
-                  active
-                />
+                {(policies && policies.length > 0) ? policies.map(policy => (
+                  <OpsPolicyCard
+                    key={policy.id}
+                    title={policy.name}
+                    desc={policy.description}
+                    value={policy.value}
+                    active={policy.isActive}
+                  />
+                )) : (
+                  <>
+                    <OpsPolicyCard
+                      title="Damage Reclamation"
+                      desc="Defines the penalty ratio for products damaged during hub transit or rider handling."
+                      value="15% Default"
+                    />
+                    <OpsPolicyCard
+                      title="Storage Surcharge"
+                      desc="Daily holding fee for products exceeding 60-day inventory aging threshold."
+                      value="Ksh 5.00/unit"
+                    />
+                  </>
+                )}
               </div>
               <div className="mt-12 bg-amber-50 border border-amber-100 p-6 rounded-lg flex gap-4">
                 <AlertTriangle className="w-6 h-6 text-amber-500 shrink-0" />
                 <div>
                   <h4 className="text-xs font-black text-amber-800  tracking-tight">System Compliance Warning</h4>
                   <p className="text-xs text-amber-700 font-medium leading-relaxed mt-1 italic">
-                    Operational policies are managed globally. Modifications to these thresholds must be authorized through the Regional Logistics Oversight board.
+                    Operational policies are managed globally or per-hub by system administrators. Modifications to these thresholds must be authorized through the Regional Logistics Oversight board.
                   </p>
                 </div>
               </div>

@@ -43,7 +43,8 @@ export default function ReturnsManagement() {
       const res = await axiosInstance.get(`/returns/admin`);
       // Filter returns for this hub
       const hubReturns = res.data.filter(ret =>
-        ret.product?.fulfillmentHubId === hub.id
+        ret.product?.fulfillmentHubId === hub.id ||
+        ret.product?.seller?.fulfillmentHubId === hub.id
       );
       setReturns(hubReturns);
     } catch (error) {
