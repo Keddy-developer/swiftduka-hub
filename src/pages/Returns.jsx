@@ -209,7 +209,8 @@ export default function ReturnsManagement() {
                         >
                           Mark Shipped
                         </button>
-                                   <button onClick={() => { setSelectedReturn(ret); setShowDetailsModal(true); }} className="p-1.5 text-slate-400 hover:text-slate-900 hover:bg-slate-100 rounded transition-colors"><Info size={14} /></button>
+                      )}
+                      <button onClick={() => { setSelectedReturn(ret); setShowDetailsModal(true); }} className="p-1.5 text-slate-400 hover:text-slate-900 hover:bg-slate-100 rounded transition-colors"><Info size={14} /></button>
                     </div>
                   </td>
                 </tr>
