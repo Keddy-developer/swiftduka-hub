@@ -161,12 +161,55 @@ export default function ReturnsManagement() {
                   </td>
                   <td className="px-6 py-4 text-right">
                     <div className="flex items-center justify-end gap-2">
-                      {ret.status === 'PENDING' && (
+                      {(ret.status === 'PENDING' || ret.status === 'REQUESTED') && (
                         <>
                           <button onClick={() => handleApprove(ret.id)} className="p-1 px-2 bg-green-50 text-green-700 border border-green-100 rounded text-[9px] font-bold hover:bg-green-600 hover:text-white transition-all">Approve</button>
                           <button onClick={() => { setSelectedReturn(ret); setShowRejectModal(true); }} className="p-1 px-2 bg-red-50 text-red-700 border border-red-100 rounded text-[9px] font-bold hover:bg-red-600 hover:text-white transition-all">Reject</button>
                         </>
                       )}
+                      
+                      {ret.status === 'APPROVED' && ret.agentStatus !== 'RECEIVED' && ret.agentStatus !== 'SENT' && (
+                        <button 
+                          onClick={async () => {
+                            if (!window.confirm("Confirm product received at hub?")) return;
+                            setIsSubmitting(true);
+                            try {
+                              await axiosInstance.patch(`/returns/${ret.id}/received`);
+                              toast.success("Marked as Received");
+                              fetchReturns(true);
+                            } catch (e) {
+                              toast.error("Operation failed");
+                            } finally {
+                              setIsSubmitting(false);
+                            }
+                          }}
+                          className="p-1 px-2 bg-blue-50 text-blue-700 border border-blue-100 rounded text-[9px] font-bold hover:bg-blue-600 hover:text-white transition-all"
+                        >
+                          Mark Received
+                        </button>
+                      )}
+
+                      {ret.agentStatus === 'RECEIVED' && (
+                        <button 
+                          onClick={async () => {
+                            if (!window.confirm("Mark this return as shipped back to seller/inventory?")) return;
+                            setIsSubmitting(true);
+                            try {
+                              await axiosInstance.patch(`/returns/${ret.id}/ship`);
+                              toast.success("Marked as Shipped");
+                              fetchReturns(true);
+                            } catch (e) {
+                              toast.error("Operation failed");
+                            } finally {
+                              setIsSubmitting(false);
+                            }
+                          }}
+                          className="p-1 px-2 bg-indigo-50 text-indigo-700 border border-indigo-100 rounded text-[9px] font-bold hover:bg-indigo-600 hover:text-white transition-all"
+                        >
+                          Mark Shipped
+                        </button>
+                      )}
+
                       <button onClick={() => setSelectedReturn(ret)} className="p-1.5 text-slate-400 hover:text-slate-900 hover:bg-slate-100 rounded transition-colors"><Info size={14} /></button>
                     </div>
                   </td>

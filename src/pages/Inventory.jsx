@@ -280,6 +280,9 @@ const ScannerModal = ({ onClose, onScan }) => {
     </div>
   );
 };
+
+// ─── Adjust Units Modal ──────────────────────────────────────────────────
+const AdjustModal = ({ item, hub, onClose, onSuccess }) => {
   const [qty, setQty] = useState('');
   const [mode, setMode] = useState('add');
   const [reason, setReason] = useState('');
