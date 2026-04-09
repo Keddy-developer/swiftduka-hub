@@ -29,6 +29,7 @@ import ZoneInfo from './pages/ZoneInfo';
 import Logistics from './pages/Logistics';
 import NotificationsPage from './pages/Notifications';
 import TrackingPage from './pages/TrackingPage';
+import AssignCourier from './pages/AssignCourier';
 import NotificationDropdown from './components/ui/NotificationDropdown';
 
 const MainLayout = ({ children }) => {
@@ -263,6 +264,7 @@ function App() {
                <Route path="/inventory" element={<PrivateRoute><Inventory /></PrivateRoute>} />
                <Route path="/orders" element={<PrivateRoute><Orders /></PrivateRoute>} />
                <Route path="/orders/:id" element={<PrivateRoute><OrderDetails /></PrivateRoute>} />
+               <Route path="/assign-courier/:shippingAddressId/:orderProductId" element={<PrivateRoute><AssignCourier /></PrivateRoute>} />
                <Route path="/tracking" element={<PrivateRoute><TrackingPage /></PrivateRoute>} />
                <Route path="/returns" element={<PrivateRoute><Returns /></PrivateRoute>} />
                <Route path="/sellers" element={<PrivateRoute><Sellers /></PrivateRoute>} />

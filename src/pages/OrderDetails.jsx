@@ -675,8 +675,8 @@ const OrderDetailsPage = () => {
                                           </span>
                                        )}
 
-                                    {/* Assign Courier - Countdown Timer */}
-                                    {product.adminReceived && !product.courierAccepted && product.deliveryStatus === "ReadyForLogistics" && !order.pickUpStation?.isPickupStation && (order.deliveryType === "PICKUP" || order.deliveryType === "NATIONWIDE") && (
+                                    {/* Assign Courier - After Hub Receipt */}
+                                    {product.adminReceived && !product.courierAccepted && product.deliveryStatus === "ReadyForLogistics" && !order.pickUpStation?.isPickupStation && (
                                        isAssignmentActive ? (
                                           <CountdownTimer
                                              targetDate={product.assignmentExpiresAt}
@@ -684,7 +684,7 @@ const OrderDetailsPage = () => {
                                           />
                                        ) : (
                                           <ActionButton
-                                             onClick={() => navigate(`/assign-courier/${order.shippingAddress.id}/${product.id}?productId=${product.id}&orderId=${order.id}`)}
+                                             onClick={() => navigate(`/assign-courier/${order.shippingAddress?.id}/${product.id}?productId=${product.id}&orderId=${order.id}`)}
                                              variant="warning"
                                              className="bg-amber-500 hover:bg-amber-600"
                                           >
