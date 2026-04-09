@@ -34,6 +34,7 @@ export default function ReturnsManagement() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [rejectNotes, setRejectNotes] = useState("");
   const [showRejectModal, setShowRejectModal] = useState(false);
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
 
   const fetchReturns = async (silent = false) => {
     if (!hub?.id) return setLoading(false);
@@ -208,9 +209,7 @@ export default function ReturnsManagement() {
                         >
                           Mark Shipped
                         </button>
-                      )}
-
-                      <button onClick={() => setSelectedReturn(ret)} className="p-1.5 text-slate-400 hover:text-slate-900 hover:bg-slate-100 rounded transition-colors"><Info size={14} /></button>
+                                   <button onClick={() => { setSelectedReturn(ret); setShowDetailsModal(true); }} className="p-1.5 text-slate-400 hover:text-slate-900 hover:bg-slate-100 rounded transition-colors"><Info size={14} /></button>
                     </div>
                   </td>
                 </tr>
@@ -242,6 +241,67 @@ export default function ReturnsManagement() {
               <button onClick={() => handleReject(selectedReturn.id)} disabled={isSubmitting} className="flex-1 py-2 bg-red-600 text-white rounded text-[10px] font-bold hover:bg-red-700 transition-all shadow-sm">
                 {isSubmitting ? 'SYNCING...' : 'CONFIRM REJECT'}
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Return Details Modal */}
+      {selectedReturn && showDetailsModal && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-in fade-in duration-300">
+          <div className="bg-white border border-slate-200 rounded-xl shadow-2xl w-full max-w-lg overflow-hidden animate-in zoom-in-95 duration-200">
+            <div className="px-6 py-4 bg-slate-900 flex items-center justify-between text-white">
+              <div className="flex items-center gap-3">
+                <PackageOpen size={18} className="text-blue-400" />
+                <h3 className="text-[11px] font-black uppercase tracking-widest">Return Dossier</h3>
+              </div>
+              <button onClick={() => setShowDetailsModal(false)} className="p-1 hover:bg-white/10 rounded transition-colors"><X size={18} /></button>
+            </div>
+            
+            <div className="p-8 space-y-8 max-h-[85vh] overflow-y-auto no-scrollbar">
+              <div className="flex gap-4 items-start">
+                <div className="w-20 h-20 bg-slate-50 border border-slate-100 rounded-lg p-1 flex-shrink-0">
+                  {selectedReturn.product?.image && <img src={selectedReturn.product.image} className="w-full h-full object-cover rounded" />}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2 mb-1">
+                     <p className="font-black text-slate-900 text-sm tracking-tight truncate flex-1">{selectedReturn.product?.name}</p>
+                     <StatusBadge status={selectedReturn.status} />
+                  </div>
+                  <p className="text-[10px] font-mono font-black text-slate-400">SKU: {selectedReturn.product?.sku || 'NO-SKU'}</p>
+                  <div className="mt-3 p-3 bg-red-50 border border-red-100 rounded text-red-700">
+                    <p className="text-[9px] font-black uppercase tracking-widest mb-1 flex items-center gap-1"><AlertTriangle size={10} /> Reason for Return</p>
+                    <p className="text-xs font-bold leading-relaxed">{selectedReturn.reason}</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
+                  <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Customer Profile</p>
+                  <p className="text-sm font-black text-slate-900 tracking-tight">{selectedReturn.user?.username}</p>
+                  <p className="text-[10px] text-slate-500 font-bold mt-1 tracking-tight">{selectedReturn.user?.phone}</p>
+                </div>
+                <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
+                  <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Timeline</p>
+                  <p className="text-sm font-black text-slate-900 tracking-tight">{new Date(selectedReturn.createdAt).toLocaleDateString()}</p>
+                  <p className="text-[10px] text-slate-500 font-bold mt-1 tracking-tight">{new Date(selectedReturn.createdAt).toLocaleTimeString()}</p>
+                </div>
+              </div>
+
+              {selectedReturn.notes && (
+                <div className="p-4 bg-slate-900 text-white rounded-xl shadow-xl">
+                  <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2">Internal Logistics Notes</p>
+                  <p className="text-xs font-medium italic opacity-90 leading-relaxed">"{selectedReturn.notes}"</p>
+                </div>
+              )}
+
+              <div className="pt-4 flex gap-3">
+                 <button onClick={() => setShowDetailsModal(false)} className="flex-1 py-3 border border-slate-200 rounded text-[10px] font-black uppercase tracking-widest hover:bg-slate-50 transition-all">Close Dossier</button>
+                 {(selectedReturn.status === 'PENDING' || selectedReturn.status === 'REQUESTED') && (
+                   <button onClick={() => { setShowRejectModal(true); setShowDetailsModal(false); }} className="flex-1 py-3 bg-red-600 text-white rounded text-[10px] font-black uppercase tracking-widest hover:bg-red-700 shadow-xl shadow-red-100 transition-all">Reject Claim</button>
+                 )}
+              </div>
             </div>
           </div>
         </div>

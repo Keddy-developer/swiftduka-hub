@@ -24,6 +24,7 @@ export default function AssignCourier() {
    const [loading, setLoading] = useState(true);
    const [assigning, setAssigning] = useState(null);
    const [searchQuery, setSearchQuery] = useState("");
+   const [statusFilter, setStatusFilter] = useState("All");
    const [stats, setStats] = useState({ available: 0, total: 0 });
 
    useEffect(() => {
@@ -36,7 +37,8 @@ export default function AssignCourier() {
       try {
          // Fetch order details
          const orderRes = await axiosInstance.get(`/order/admin/${orderId || orderProductId}`);
-         setOrder(orderRes.data);
+         const orderData = orderRes.data.data || orderRes.data;
+         setOrder(orderData);
 
          // Fetch riders for this hub
          const ridersRes = await axiosInstance.get(`/delivery/hubs/${hub.id}/riders`);
@@ -78,11 +80,19 @@ export default function AssignCourier() {
       }
    };
 
-   const filteredRiders = riders.filter(r => 
-      r.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      r.phone?.includes(searchQuery) ||
-      r.numberPlate?.toLowerCase().includes(searchQuery.toLowerCase())
-   );
+   const filteredRiders = riders.filter(r => {
+      const matchesSearch = 
+         r.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+         r.phone?.includes(searchQuery) ||
+         r.numberPlate?.toLowerCase().includes(searchQuery.toLowerCase());
+      
+      const matchesStatus = 
+         statusFilter === "All" || 
+         (statusFilter === "Available" && r.status === 'AVAILABLE') ||
+         (statusFilter === "Busy" && r.status !== 'AVAILABLE');
+         
+      return matchesSearch && matchesStatus;
+   });
 
    if (loading) {
       return (
@@ -221,7 +231,13 @@ export default function AssignCourier() {
                   <div className="flex items-center gap-3 overflow-x-auto no-scrollbar pb-1 md:pb-0">
                      <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest shrink-0">Filter Status:</span>
                      {['All', 'Available', 'Busy'].map(tag => (
-                        <button key={tag} className="px-4 py-2 bg-white border border-slate-200 rounded-full text-[10px] font-black uppercase tracking-tighter text-slate-500 hover:bg-slate-900 hover:text-white transition-all whitespace-nowrap">{tag}</button>
+                        <button 
+                           key={tag} 
+                           onClick={() => setStatusFilter(tag)}
+                           className={`px-4 py-2 border rounded-full text-[10px] font-black uppercase tracking-tighter transition-all whitespace-nowrap ${statusFilter === tag ? 'bg-slate-900 border-slate-900 text-white shadow-lg shadow-slate-200' : 'bg-white border-slate-200 text-slate-500 hover:bg-slate-50'}`}
+                        >
+                           {tag}
+                        </button>
                      ))}
                   </div>
                </div>
