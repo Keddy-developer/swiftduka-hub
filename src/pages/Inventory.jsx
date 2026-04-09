@@ -167,7 +167,10 @@ const QRModal = ({ item, onClose }) => {
         </div>
 
         <div id="qr-print-zone" className="bg-white p-6 inline-block border-2 border-slate-100 rounded-2xl shadow-inner mb-6">
-          <QRCode value={item.product?.sku || item.productId} size={180} />
+          {(() => {
+            const QRCodeComponent = QRCode.default || QRCode;
+            return <QRCodeComponent value={item.product?.sku || item.productId} size={180} />;
+          })()}
         </div>
 
         <div className="mb-8">
