@@ -237,7 +237,7 @@ const ScannerModal = ({ onClose, onScan }) => {
 };
 
 // ─── Inventory Card Component ─────────────────────────────────────────────────────
-const InventoryCard = ({ item, onAdjust, onQR }) => {
+const InventoryCard = ({ item, onAdjust, onQR, readOnly }) => {
   const isLow = item.quantity <= (item.lowStockAlert ?? 10);
   const lastDate = item.lastRestocked ? new Date(item.lastRestocked).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : 'INITIAL';
 
@@ -263,9 +263,11 @@ const InventoryCard = ({ item, onAdjust, onQR }) => {
               <button onClick={onQR} className="p-1 px-2 border border-slate-100 rounded text-slate-400 hover:text-slate-900 hover:bg-slate-50 transition-all">
                 <Zap className="w-3 h-3" />
               </button>
-              <button onClick={onAdjust} className="text-slate-300 hover:text-slate-900 transition-colors">
-                <MoreVertical className="w-4 h-4" />
-              </button>
+              {!readOnly && (
+                <button onClick={onAdjust} className="text-slate-300 hover:text-slate-900 transition-colors">
+                  <MoreVertical className="w-4 h-4" />
+                </button>
+              )}
             </div>
           </div>
           <p className="text-[9px] font-mono text-slate-400 font-black mt-1">#{item.product?.sku || 'NO-SKU'}</p>
@@ -439,7 +441,7 @@ const ReceiveShipmentModal = ({ hub, onClose, onSuccess }) => {
 };
 
 // ─── Main Inventory Page ─────────────────────────────────────────────────────
-const Inventory = () => {
+const Inventory = ({ readOnly }) => {
   const { hub } = useAuth();
   const [inventory, setInventory] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -513,8 +515,8 @@ const Inventory = () => {
 
   return (
     <div className="space-y-6 md:space-y-10 animate-in fade-in duration-500">
-      {showReceiveModal && <ReceiveShipmentModal hub={hub} onClose={() => setShowReceiveModal(false)} onSuccess={() => fetchData(true)} />}
-      {adjustItem && <AdjustModal item={adjustItem} hub={hub} onClose={() => setAdjustItem(null)} onSuccess={() => fetchData(true)} />}
+      {showReceiveModal && <ReceiveShipmentModal hub={hub} onClose={() => setShowReceiveModal(false)} onSuccess={() => fetchData(true)} readOnly={readOnly} />}
+      {adjustItem && <AdjustModal item={adjustItem} hub={hub} onClose={() => setAdjustItem(null)} onSuccess={() => fetchData(true)} readOnly={readOnly} />}
       {qrItem && <QRModal item={qrItem} onClose={() => setQrItem(null)} />}
       {showScanner && <ScannerModal onClose={() => setShowScanner(false)} onScan={(res) => setSearch(res)} />}
 
@@ -531,9 +533,11 @@ const Inventory = () => {
           <button onClick={() => fetchData(true)} className="flex-1 md:flex-none px-6 py-3 bg-white border border-slate-200 rounded text-[10px] font-black text-slate-600 hover:bg-slate-50 transition-all flex items-center justify-center gap-2 tracking-widest">
             <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? 'animate-spin' : ''}`} /> Refresh
           </button>
-          <button onClick={() => setShowReceiveModal(true)} className="flex-1 md:flex-none px-6 py-3 bg-slate-900 text-white rounded text-[10px] font-black hover:bg-slate-800 transition-all flex items-center justify-center gap-2 shadow-xl shadow-slate-200 tracking-widest">
-            <Plus size={16} /> Add Stock
-          </button>
+          {!readOnly && (
+            <button onClick={() => setShowReceiveModal(true)} className="flex-1 md:flex-none px-6 py-3 bg-slate-900 text-white rounded text-[10px] font-black hover:bg-slate-800 transition-all flex items-center justify-center gap-2 shadow-xl shadow-slate-200 tracking-widest">
+              <Plus size={16} /> Add Stock
+            </button>
+          )}
         </div>
       </div>
 
@@ -572,6 +576,7 @@ const Inventory = () => {
             item={item}
             onAdjust={() => setAdjustItem(item)}
             onQR={() => setQrItem(item)}
+            readOnly={readOnly}
           />
         ))}
 

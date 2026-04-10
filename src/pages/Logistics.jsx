@@ -306,7 +306,7 @@ const TabButton = ({ active, onClick, icon: Icon, label }) => (
    </button>
 );
 
-const LogisticsCard = ({ item, type, onEdit }) => (
+const LogisticsCard = ({ item, type, onEdit, readOnly }) => (
    <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm hover:shadow-2xl hover:-translate-y-1 transition-all group relative overflow-hidden">
       <div className="flex justify-between items-start mb-6">
          <div className="w-12 h-12 rounded-2xl bg-slate-50 flex items-center justify-center border border-slate-100 group-hover:scale-110 transition-transform">
@@ -381,7 +381,7 @@ const LoadingState = () => (
    </div>
 );
 
-const EmptyState = ({ type, hasSearch, onAdd }) => (
+const EmptyState = ({ type, hasSearch, onAdd, readOnly }) => (
    <div className="py-20 flex flex-col items-center text-center max-w-md mx-auto">
       <div className="w-24 h-24 bg-slate-50 border border-slate-100 rounded-[32px] flex items-center justify-center mb-8 shadow-sm">
          {type === 'stations' ? <Box size={40} className="text-slate-300" /> : <Navigation size={40} className="text-slate-300" />}
