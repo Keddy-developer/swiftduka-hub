@@ -62,7 +62,7 @@ const Orders = () => {
       if (error.response) {
         console.error("[Orders] Data:", error.response.data);
       }
-      toast.error("Logistics sync failure");
+      toast.error("Failed to load orders");
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -88,17 +88,17 @@ const Orders = () => {
   }, [search]);
 
   const handleDownloadReport = () => {
-    toast.info("Generating Logistics Manifest PDF...");
+    toast.info("Generating order report...");
     // Future: implement pdf download endpoint call
     setTimeout(() => {
-      toast.success("Ready for download. Check your system exports.");
+      toast.success("Ready for download. Check your downloads.");
     }, 2000);
   };
 
   if (loading) return (
     <div className="flex flex-col items-center justify-center p-20 opacity-50">
       <RefreshCw className="w-8 h-8 animate-spin mb-3 text-slate-400" />
-      <span className="text-xs font-bold tracking-widest text-slate-500">Synchronizing Order Manifest...</span>
+      <span className="text-xs font-bold tracking-widest text-slate-500">Loading orders...</span>
     </div>
   );
 
@@ -107,9 +107,9 @@ const Orders = () => {
       {/* 🏙️ TOP NAVIGATION & PERFORMANCE */}
       <div className="flex flex-col md:flex-row md:items-end justify-between border-b border-slate-200 pb-6 gap-6">
         <div>
-          <h1 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight">Order Fulfillment</h1>
+          <h1 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight">Orders</h1>
           <p className="text-xs md:text-sm text-slate-500 font-bold tracking-wide mt-1 italic">
-            Hub Inbound & Outbound Traffic Manifest
+            Recent orders for this hub
           </p>
         </div>
         <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
@@ -136,7 +136,7 @@ const Orders = () => {
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-slate-900 transition-colors" />
           <input
             type="text"
-            placeholder="Scan Tracking Master / Search Consignee..."
+            placeholder="Search by tracking number or customer..."
             value={search}
             onChange={e => setSearch(e.target.value)}
             className="w-full bg-slate-50 border border-slate-200 rounded-lg pl-12 pr-4 py-3 text-sm font-bold outline-none focus:bg-white focus:border-slate-900 transition-all"
@@ -148,7 +148,7 @@ const Orders = () => {
             onChange={e => setPeriod(e.target.value)}
             className="bg-white border border-slate-200 rounded-lg px-4 py-2 text-[10px] font-black text-slate-600 outline-none focus:border-slate-400 tracking-widest"
           >
-            <option value="all">Global History</option>
+            <option value="all">All Time</option>
             <option value="today">Today Only</option>
             <option value="week">Past 7 Days</option>
             <option value="month">Past 30 Days</option>
@@ -162,7 +162,7 @@ const Orders = () => {
         </div>
       </div>
 
-      {/* 🗄️ MANIFEST GRID (MOBILE FIRST) */}
+      {/* 🗄️ Order List (MOBILE FIRST) */}
       <div className="grid grid-cols-1 md:grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4 text-left">
         {orders.map(order => (
           <OrderTacticalCard key={order.id} order={order} />
@@ -171,8 +171,8 @@ const Orders = () => {
         {orders.length === 0 && (
           <div className="col-span-full py-24 text-center bg-white border-2 border-dashed border-slate-200 rounded-3xl opacity-40">
             <ClipboardList size={48} className="mx-auto mb-4 text-slate-300 animate-pulse" />
-            <h3 className="text-sm font-black tracking-[0.3em] text-slate-400">Zero Record Delta</h3>
-            <p className="text-[10px] font-bold text-slate-400 mt-2 italic">No operational orders detected in current logistics scope.</p>
+            <h3 className="text-sm font-black tracking-[0.3em] text-slate-400">No Orders Found</h3>
+            <p className="text-[10px] font-bold text-slate-400 mt-2 italic">No orders were found for the selected filters.</p>
           </div>
         )}
       </div>
@@ -202,11 +202,11 @@ const Orders = () => {
         </div>
       )}
 
-      {/* ── AUDIT TRAIL ── */}
+      {/* ── Order Activity ── */}
       <div className="pt-10 border-t border-slate-200">
         <div className="mb-6">
-          <h3 className="text-xl font-black text-slate-900 tracking-tight">Outbound Traffic Audit</h3>
-          <p className="text-[10px] font-bold text-slate-400 tracking-widest mt-1 italic">Recent order lifecycle status updates</p>
+          <h3 className="text-xl font-black text-slate-900 tracking-tight">Order Activity</h3>
+          <p className="text-[10px] font-bold text-slate-400 tracking-widest mt-1 italic">Recent updates to orders</p>
         </div>
         <LogisticsAuditTrail hubId={hub?.id || null} filterType="ORDER" />
       </div>
@@ -249,7 +249,7 @@ const OrderTacticalCard = ({ order: sellerOrder }) => {
 
         <div className="grid grid-cols-2 gap-6 bg-slate-50/50 rounded-lg p-4 border border-slate-100">
           <div className="space-y-1">
-            <p className="text-[8px] font-black text-slate-400 tracking-widest">Consignee</p>
+            <p className="text-[8px] font-black text-slate-400 tracking-widest">Customer</p>
             <p className="text-[11px] font-black text-slate-900 truncate">{mainOrder?.user?.username || 'Guest'}</p>
             <p className="text-[9px] font-bold text-slate-500 whitespace-nowrap overflow-hidden text-ellipsis flex items-center gap-1">
               <Phone size={10} className="text-slate-300" /> {mainOrder?.user?.phone || 'N/A'}
@@ -285,7 +285,7 @@ const OrderTacticalCard = ({ order: sellerOrder }) => {
 
           <div className="flex items-center justify-between border-t border-slate-50 pt-4 mt-2">
             <div>
-              <p className="text-[8px] font-black text-slate-400 tracking-widest">Gross Value</p>
+              <p className="text-[8px] font-black text-slate-400 tracking-widest">Total Amount</p>
               <p className="text-base font-black text-slate-900 tracking-tighter">
                 Ksh {(mainOrder?.totalCost || 0).toLocaleString()}
               </p>

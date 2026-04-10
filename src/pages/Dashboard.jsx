@@ -29,7 +29,7 @@ const Dashboard = () => {
          const { data } = await axiosInstance.get(`/delivery/hubs/${hub.id}/stats`);
          setStats(data.stats);
       } catch (err) {
-         console.error("Dashboard synchronization error", err);
+         console.error("Failed to load dashboard", err);
       } finally {
          setLoading(false);
          // If manually triggered (silent is false/undefined usually, but let's check if we want toast)
@@ -39,7 +39,7 @@ const Dashboard = () => {
 
    const handleForceSync = async () => {
       await fetchStats();
-      toast.success("Operational telemetry synchronized");
+      toast.success("Dashboard refreshed");
    };
 
    useEffect(() => { fetchStats(); }, [hub]);
@@ -48,16 +48,16 @@ const Dashboard = () => {
       return (
          <div className="flex flex-col items-center justify-center p-20 opacity-50">
             <RefreshCw className="w-8 h-8 animate-spin mb-3 text-slate-400" />
-            <span className="text-xs font-bold  tracking-widest text-slate-500">Synchronizing Hub Operational Data...</span>
+            <span className="text-xs font-bold  tracking-widest text-slate-500">Loading hub stats...</span>
          </div>
       );
    }
 
    const cards = [
-      { label: 'Current Inventory', value: stats?.totalStock || 0, icon: Package, sub: 'Units in Manifest', color: 'blue', trend: '+12%' },
-      { label: 'Active Fleet', value: stats?.activeRiders || 0, icon: Truck, sub: 'Field Operators', color: 'slate', trend: 'NOMINAL' },
-      { label: 'Node Utilization', value: `${stats?.utilization || 0}%`, icon: Layers, sub: `${hub?.capacity || 1000} Max Capacity`, color: 'amber', trend: 'STEADY' },
-      { label: 'Completed Today', value: stats?.completedToday || 0, icon: CheckCircle2, sub: 'Successful Drops', color: 'green', trend: '+5' },
+      { label: 'Current Inventory', value: stats?.totalStock || 0, icon: Package, sub: 'Products in stock', color: 'blue', trend: '+12%' },
+      { label: 'Active Riders', value: stats?.activeRiders || 0, icon: Truck, sub: 'Available riders', color: 'slate', trend: 'OK' },
+      { label: 'Hub Capacity', value: `${stats?.utilization || 0}%`, icon: Layers, sub: `${hub?.capacity || 1000} Max Capacity`, color: 'amber', trend: 'STEADY' },
+      { label: 'Completed Today', value: stats?.completedToday || 0, icon: CheckCircle2, sub: 'Items delivered', color: 'green', trend: '+5' },
    ];
 
    return (
@@ -65,20 +65,20 @@ const Dashboard = () => {
          {/* 🏙️ TACTICAL COMMAND HEADER */}
          <div className="flex flex-col md:flex-row md:items-end justify-between border-b border-slate-200 pb-6 gap-6">
             <div>
-               <h1 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight">Logistics Command Center</h1>
+               <h1 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight">Dashboard</h1>
                <div className="flex items-center gap-3 mt-1">
                   <p className="text-[10px] md:text-xs text-slate-500 font-black  tracking-widest flex items-center gap-2">
                      <Warehouse size={14} className="text-blue-600 mb-0.5" />
-                     Node: {hub?.name || 'SwiftHub Node'} · {hub?.town || 'Central'}, {hub?.county || 'HQ'}
+                     Hub: {hub?.name || 'Hub'} · {hub?.town || 'Central'}, {hub?.county || 'HQ'}
                   </p>
                   <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-                  <span className="text-[10px] font-bold text-green-600  tracking-tighter">Live Core Connected</span>
+                  <span className="text-[10px] font-bold text-green-600  tracking-tighter">Connected</span>
                </div>
             </div>
             <div className="flex gap-2 w-full md:w-auto">
-               <button onClick={() => navigate('/logs')} className="flex-1 md:flex-none px-6 py-3 bg-white border border-slate-200 rounded-lg text-[10px] font-black text-slate-600 hover:bg-slate-50 transition-all  tracking-widest shadow-sm">Audit History</button>
+               <button onClick={() => navigate('/logs')} className="flex-1 md:flex-none px-6 py-3 bg-white border border-slate-200 rounded-lg text-[10px] font-black text-slate-600 hover:bg-slate-50 transition-all  tracking-widest shadow-sm">Activity Logs</button>
                <button onClick={handleForceSync} className="flex-1 md:flex-none px-6 py-3 bg-slate-900 text-white rounded-lg text-[10px] font-black hover:bg-slate-800 transition-all shadow-xl shadow-slate-200  tracking-widest">
-                  <RefreshCw size={14} className="inline mr-2" /> Force Sync
+                  <RefreshCw size={14} className="inline mr-2" /> Refresh
                </button>
             </div>
          </div>
@@ -95,8 +95,8 @@ const Dashboard = () => {
             <div className="xl:col-span-2 bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden flex flex-col">
                <div className="p-6 md:p-8 bg-slate-50/50 border-b border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
                   <div>
-                     <h3 className="text-lg font-black text-slate-900  tracking-tight">Throughput Velocity</h3>
-                     <p className="text-[10px] font-bold text-slate-400  tracking-[0.2em] mt-1">24H Operational Flux Analysis</p>
+                     <h3 className="text-lg font-black text-slate-900  tracking-tight">Order Activity</h3>
+                     <p className="text-[10px] font-bold text-slate-400  tracking-[0.2em] mt-1">Daily activity over 24 hours</p>
                   </div>
                   <div className="flex items-center gap-6">
                      <LegendItem color="#0F172A" label="Inbound" />
@@ -144,8 +144,8 @@ const Dashboard = () => {
             <div className="bg-white border border-slate-200 rounded-2xl shadow-sm flex flex-col group overflow-hidden">
                <div className="p-6 md:p-8 bg-slate-900 text-white flex items-center justify-between border-b border-slate-800">
                   <div>
-                     <h3 className="text-lg font-black  tracking-tight">Active Logs</h3>
-                     <p className="text-[10px] font-bold text-slate-400  tracking-widest mt-1">Real-time Node Telemetry</p>
+                     <h3 className="text-lg font-black  tracking-tight">Recent Activity</h3>
+                     <p className="text-[10px] font-bold text-slate-400  tracking-widest mt-1">Live updates</p>
                   </div>
                   <div className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center border border-white/10 group-hover:scale-110 transition-transform">
                      <Zap className="w-5 h-5 text-blue-400 fill-blue-400" />
@@ -172,15 +172,15 @@ const Dashboard = () => {
                   {!stats?.alerts?.length && (
                      <div className="flex flex-col items-center justify-center py-20 opacity-30 text-center px-8">
                         <Shield size={48} className="text-slate-300 mb-4" />
-                        <p className="text-[10px] font-black  tracking-[0.2em] text-slate-400">All Systems Nominal</p>
-                        <p className="text-[9px] font-bold text-slate-400 mt-2 italic">Node operating within established security and operational guardrails.</p>
+                        <p className="text-[10px] font-black  tracking-[0.2em] text-slate-400">No Issues Found</p>
+                        <p className="text-[9px] font-bold text-slate-400 mt-2 italic">Everything is running smoothly.</p>
                      </div>
                   )}
                </div>
 
                <div className="p-6 bg-slate-50 border-t border-slate-100">
                   <button onClick={() => navigate('/logs')} className="w-full py-3.5 bg-white border border-slate-200 rounded-xl text-[10px] font-black  tracking-[0.2em] shadow-sm hover:shadow-lg hover:border-slate-300 transition-all flex items-center justify-center gap-3">
-                     <ClipboardList size={14} className="text-slate-400" /> Complete Audit Trail
+                     <ClipboardList size={14} className="text-slate-400" /> View All Activity
                   </button>
                </div>
             </div>

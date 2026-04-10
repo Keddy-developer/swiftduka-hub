@@ -36,7 +36,7 @@ export default function SellersPage() {
       setSellers(Array.isArray(sellersData) ? sellersData : []);
     } catch (error) {
       console.error("Error fetching sellers:", error);
-      toast.error("Failed to load hub merchants");
+      toast.error("Failed to load sellers");
       setSellers([]);
     } finally {
       setLoading(false);
@@ -53,10 +53,10 @@ export default function SellersPage() {
     try {
       await axiosInstance.delete(`/admin/delete-seller-account/${id}`);
       setSellers((prev) => prev.filter((seller) => seller.id !== id));
-      toast.success("Merchant profile decoupled from hub");
+      toast.success("Seller removed from hub");
     } catch (error) {
       console.error("Error removing seller:", error);
-      toast.error("Failed to revoke merchant authority.");
+      toast.error("Failed to remove seller.");
     } finally {
       setLoadingDelete(false);
       setShowModal(false);
@@ -73,7 +73,7 @@ export default function SellersPage() {
   if (loading) return (
     <div className="flex flex-col items-center justify-center p-20 opacity-50">
       <RefreshCw className="w-8 h-8 animate-spin mb-3 text-slate-400" />
-      <span className="text-xs font-bold  tracking-widest text-slate-500">Synchronizing merchant network...</span>
+      <span className="text-xs font-bold  tracking-widest text-slate-500">Loading sellers...</span>
     </div>
   );
 
@@ -82,28 +82,28 @@ export default function SellersPage() {
       {/* 🏙️ TACTICAL HEADER */}
       <div className="flex flex-col md:flex-row md:items-end justify-between border-b border-slate-200 pb-6 gap-6">
         <div>
-          <h1 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight">Merchant Command</h1>
+          <h1 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight">Sellers</h1>
           <p className="text-[10px] md:text-xs text-slate-500 font-black  tracking-widest mt-1 flex items-center gap-2">
             <Building size={14} className="text-blue-600 mb-0.5" />
-            Node: {hub?.name} · Global Partner Inventory
+            Hub: {hub?.name} · Seller Directory
           </p>
         </div>
         <div className="flex gap-2 w-full md:w-auto">
           <button onClick={() => fetchSellers(true)} className="flex-1 md:flex-none px-6 py-3 bg-white border border-slate-200 rounded-lg text-[10px] font-black text-slate-600 hover:bg-slate-50 transition-all  tracking-widest shadow-sm flex items-center justify-center gap-2">
-            <RefreshCw size={14} className={refreshing ? 'animate-spin' : ''} /> Sync Mesh
+            <RefreshCw size={14} className={refreshing ? 'animate-spin' : ''} /> Refresh
           </button>
           <button onClick={() => navigate("/register-seller")} className="flex-1 md:flex-none px-6 py-3 bg-slate-900 text-white rounded-lg text-[10px] font-black hover:bg-slate-800 transition-all shadow-xl shadow-slate-200  tracking-widest flex items-center justify-center gap-2">
-            <Plus size={14} /> Onboard Merchant
+            <Plus size={14} /> Add New Seller
           </button>
         </div>
       </div>
 
       {/* 📊 KPI SUMMARY HUD */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
-        <KPICard label="Active Merchants" value={sellers.length} icon={UserRound} color="blue" />
-        <KPICard label="Security Compliance" value={sellers.filter(s => s.approvalStatus === 'approved').length} icon={ShieldCheck} color="green" />
-        <KPICard label="Global SKUs" value={sellers.reduce((acc, s) => acc + (s._count?.products || 0), 0)} icon={Package} color="slate" />
-        <KPICard label="Pending vetting" value={sellers.filter(s => s.approvalStatus === 'pending').length} icon={Zap} color="amber" />
+        <KPICard label="Active Sellers" value={sellers.length} icon={UserRound} color="blue" />
+        <KPICard label="Approved Sellers" value={sellers.filter(s => s.approvalStatus === 'approved').length} icon={ShieldCheck} color="green" />
+        <KPICard label="Total Products" value={sellers.reduce((acc, s) => acc + (s._count?.products || 0), 0)} icon={Package} color="slate" />
+        <KPICard label="Pending Approval" value={sellers.filter(s => s.approvalStatus === 'pending').length} icon={Zap} color="amber" />
       </div>
 
       <div className="space-y-6">
@@ -119,7 +119,7 @@ export default function SellersPage() {
             />
           </div>
           <div className="flex items-center gap-2 overflow-x-auto no-scrollbar">
-            {['Vetted', 'Internal', 'External', 'Flagged'].map(t => (
+            {['Approved', 'Pending', 'Premium', 'All'].map(t => (
               <button key={t} className="px-4 py-2 bg-white border border-slate-200 rounded-full text-[9px] font-black  tracking-widest text-slate-500 hover:bg-slate-50 whitespace-nowrap">{t}</button>
             ))}
           </div>
@@ -133,8 +133,8 @@ export default function SellersPage() {
           {filteredSellers.length === 0 && (
             <div className="col-span-full py-24 text-center bg-white border border-slate-200 border-dashed rounded-3xl opacity-40">
               <Globe size={48} className="mx-auto mb-4 text-slate-300 animate-pulse" />
-              <p className="text-xs font-black  tracking-[0.2em] text-slate-400">Isolated Scope: Zero Merchants Detected</p>
-              <p className="text-[10px] font-bold text-slate-400 mt-2 italic">Refine search parameters or initiate global onboarding.</p>
+              <p className="text-xs font-black  tracking-[0.2em] text-slate-400">No Sellers Found</p>
+              <p className="text-[10px] font-bold text-slate-400 mt-2 italic">Refine search parameters or add a new seller.</p>
             </div>
           )}
         </div>
@@ -149,21 +149,21 @@ export default function SellersPage() {
                 <AlertTriangle className="text-rose-600 w-6 h-6" />
               </div>
               <div>
-                <h3 className="text-base font-black text-slate-900  tracking-tight">Security notice</h3>
-                <p className="text-[10px] font-bold text-slate-400  tracking-widest mt-0.5">Asset Decoupling Protocol</p>
+                <h3 className="text-base font-black text-slate-900  tracking-tight">Remove Seller</h3>
+                <p className="text-[10px] font-bold text-slate-400  tracking-widest mt-0.5">Remove Seller Account</p>
               </div>
             </div>
             <p className="text-xs font-bold text-slate-500 leading-relaxed  tracking-tight italic relative z-10">
-              System will initiate decoupling of this merchant from hub logistics. Active inventory status will be suspended. Verify this action before proceeding.
+              This will remove the seller from this hub. Their products will no longer be available for fulfillment through this hub. Verify this action before proceeding.
             </p>
             <div className="flex gap-3 relative z-10">
-              <button className="flex-1 py-3.5 bg-slate-50 border border-slate-200 rounded-xl text-[10px] font-black  tracking-widest hover:bg-slate-100 transition-all font-black" onClick={() => setShowModal(false)}>Abort</button>
+              <button className="flex-1 py-3.5 bg-slate-50 border border-slate-200 rounded-xl text-[10px] font-black  tracking-widest hover:bg-slate-100 transition-all font-black" onClick={() => setShowModal(false)}>Cancel</button>
               <button
                 className="flex-1 py-3.5 bg-rose-600 text-white rounded-xl text-[10px] font-black  tracking-widest hover:bg-rose-700 transition-all shadow-xl shadow-rose-200"
                 onClick={() => selectedSellerId && handleDelete(selectedSellerId)}
                 disabled={loadingDelete}
               >
-                {loadingDelete ? 'SYCHRONIZING...' : 'CONFIRM REVOKE'}
+                {loadingDelete ? 'REMOVING...' : 'REMOVE SELLER'}
               </button>
             </div>
             <div className="absolute top-0 right-0 w-32 h-32 bg-slate-50 rounded-full -mr-16 -mt-16 -z-10"></div>
@@ -206,7 +206,7 @@ const MerchantCard = ({ seller, onDetails, onEdit, onDelete }) => (
           {seller.profilePicture ? <img src={seller.profilePicture} className="w-full h-full object-cover" /> : <Store size={24} className="text-slate-300" />}
         </div>
         <div className="min-w-0 flex-1">
-          <h3 className="font-black text-slate-900 text-base truncate  tracking-tight leading-none mb-1.5">{seller.storeName || 'Unnamed Entity'}</h3>
+          <h3 className="font-black text-slate-900 text-base truncate  tracking-tight leading-none mb-1.5">{seller.storeName || 'Unnamed Seller'}</h3>
           <div className="flex items-center gap-2">
             <span className={`px-2 py-0.5 rounded text-[8px] font-black  tracking-widest border ${seller.approvalStatus === 'approved' ? 'bg-green-50 text-green-700 border-green-100' : 'bg-amber-50 text-amber-700 border-amber-100'
               }`}>
@@ -233,17 +233,17 @@ const MerchantCard = ({ seller, onDetails, onEdit, onDelete }) => (
       <div className="grid grid-cols-2 gap-4 border-t border-slate-100 pt-6 mt-2">
         <div className="text-center bg-slate-50 p-2.5 rounded-xl border border-slate-100">
           <p className="text-sm font-black text-slate-900 tracking-tighter leading-none">{seller.sales || 0}</p>
-          <p className="text-[8px] font-black text-slate-400  tracking-widest mt-1">Net Sales</p>
+          <p className="text-[8px] font-black text-slate-400  tracking-widest mt-1">Total Sales</p>
         </div>
         <div className="text-center bg-slate-50 p-2.5 rounded-xl border border-slate-100">
           <p className="text-sm font-black text-slate-900 tracking-tighter leading-none">{seller._count?.products || 0}</p>
-          <p className="text-[8px] font-black text-slate-400  tracking-widest mt-1">Active SKUs</p>
+          <p className="text-[8px] font-black text-slate-400  tracking-widest mt-1">Total Products</p>
         </div>
       </div>
 
       <div className="flex gap-2 pt-6">
         <button onClick={onDetails} className="flex-1 py-3 bg-slate-900 text-white rounded-xl text-[9px] font-black  tracking-widest hover:bg-blue-600 transition-all shadow-lg flex items-center justify-center gap-2">
-          <Eye size={12} /> Dossier
+          <Eye size={12} /> Details
         </button>
         <div className="flex gap-1">
           <button onClick={onEdit} className="p-3 bg-slate-50 text-slate-400 rounded-xl hover:text-slate-900 transition-colors">

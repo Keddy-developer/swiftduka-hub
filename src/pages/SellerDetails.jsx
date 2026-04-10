@@ -47,7 +47,7 @@ const AdminSellerDetails = () => {
             const response = await axiosInstance.get(`/seller/${id}`);
             setSeller(response.data.data || response.data);
          } catch (error) {
-            toast.error('Manifest retrieval failure');
+            toast.error('Failed to load seller details');
          } finally {
             setLoading(false);
          }
@@ -56,44 +56,44 @@ const AdminSellerDetails = () => {
    }, [id]);
 
    const handleApprove = async () => {
-      if (!window.confirm("Authorize this seller for hub operations?")) return;
+      if (!window.confirm("Approve this seller?")) return;
       setProcessing(true);
       try {
          await axiosInstance.patch(`/sellers/${id}/approve`, {});
-         toast.success('Seller authorized');
+         toast.success('Seller approved');
          navigate('/sellers');
       } catch (error) {
-         toast.error('Authorization failed');
+         toast.error('Approval failed');
       } finally {
          setProcessing(false);
       }
    };
 
    const handleReject = async () => {
-      if (!rejectionReason.trim()) return toast.warning('Operational justification required');
+      if (!rejectionReason.trim()) return toast.warning('Please provide a reason for rejection');
       setProcessing(true);
       try {
          await axiosInstance.patch(`/sellers/${id}/disapprove`, { reason: rejectionReason });
-         toast.success('Application rejected');
+         toast.success('Seller application rejected');
          setShowRejectModal(false);
          navigate('/sellers');
       } catch (error) {
-         toast.error('Rejection failed');
+         toast.error('Failed to reject seller');
       } finally {
          setProcessing(false);
       }
    };
 
-   if (loading) return <div className="p-8 text-slate-400 font-medium italic text-sm">Syncing partner manifest...</div>;
-   if (!seller) return <div className="p-20 text-center text-slate-400 font-bold tracking-widest">Partner not found in registry.</div>;
+   if (loading) return <div className="p-8 text-slate-400 font-medium italic text-sm">Loading seller details...</div>;
+   if (!seller) return <div className="p-20 text-center text-slate-400 font-bold tracking-widest">Seller not found.</div>;
 
    return (
       <div className="space-y-6 md:space-y-8">
-         {/* 🏙️ HEADER */}
+         {/* HEADER */}
          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 pb-4">
             <div className="space-y-1">
                <button onClick={() => navigate('/sellers')} className="flex items-center gap-1.5 text-[10px] font-bold text-slate-400 hover:text-slate-900 transition-colors">
-                  <ArrowLeft size={14} /> Back to Partners
+                  <ArrowLeft size={14} /> Back to Sellers
                </button>
                <h2 className="text-xl md:text-2xl font-bold text-slate-900 tracking-tighter flex items-center gap-3 lowercase">
                   @{seller.storeName?.replace(/\s+/g, '')}
@@ -106,41 +106,41 @@ const AdminSellerDetails = () => {
                {seller.approvalStatus !== 'approved' && (
                   <>
                      <button onClick={() => setShowRejectModal(true)} className="px-4 py-2 bg-white border border-slate-200 rounded text-[10px] font-bold text-red-600 hover:bg-red-50 flex items-center justify-center gap-2 shadow-sm">REJECT</button>
-                     <button onClick={handleApprove} disabled={processing} className="px-4 py-2 bg-slate-900 text-white rounded text-[10px] font-bold hover:bg-slate-800 flex items-center justify-center gap-2 shadow-sm">AUTHORIZE PARTNER</button>
+                     <button onClick={handleApprove} disabled={processing} className="px-4 py-2 bg-slate-900 text-white rounded text-[10px] font-bold hover:bg-slate-800 flex items-center justify-center gap-2 shadow-sm">APPROVE SELLER</button>
                   </>
                )}
             </div>
          </div>
 
          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-8 items-start">
-            {/* ── LEFT: BUSINESS PROFILE ── */}
+            {/* LEFT: BUSINESS PROFILE */}
             <div className="lg:col-span-8 space-y-6">
                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <section className="bg-white border border-slate-200 rounded shadow-sm overflow-hidden">
                      <div className="px-5 py-3 bg-slate-50 border-b border-slate-200 flex items-center gap-2">
                         <Building size={14} className="text-slate-400" />
-                        <span className="text-[10px] font-bold text-slate-500 tracking-widest">Entity Identity</span>
+                        <span className="text-[10px] font-bold text-slate-500 tracking-widest">Business Information</span>
                      </div>
                      <div className="p-5 space-y-1">
-                        <InfoRow label="Legal Name" value={seller.storeName} />
-                        <InfoRow label="Business Class" value={seller.businessType} />
-                        <InfoRow label="Taxation PIN" value={seller.kraPin || seller.profile?.kraPin} verified={!!(seller.kraPin || seller.profile?.kraPin)} />
-                        <InfoRow label="Reg. Number" value={seller.businessRegistrationNumber} />
-                        <InfoRow label="Email Authority" value={seller.email} verified={seller.emailVerified} />
+                        <InfoRow label="Business Name" value={seller.storeName} />
+                        <InfoRow label="Business Type" value={seller.businessType} />
+                        <InfoRow label="KRA PIN" value={seller.kraPin || seller.profile?.kraPin} verified={!!(seller.kraPin || seller.profile?.kraPin)} />
+                        <InfoRow label="Registration Number" value={seller.businessRegistrationNumber} />
+                        <InfoRow label="Email Address" value={seller.email} verified={seller.emailVerified} />
                      </div>
                   </section>
 
                   <section className="bg-white border border-slate-200 rounded shadow-sm overflow-hidden">
                      <div className="px-5 py-3 bg-slate-50 border-b border-slate-200 flex items-center gap-2">
                         <MapPin size={14} className="text-slate-400" />
-                        <span className="text-[10px] font-bold text-slate-500 tracking-widest">Logistics Anchor</span>
+                        <span className="text-[10px] font-bold text-slate-500 tracking-widest">Location Details</span>
                      </div>
                      <div className="p-5 space-y-1">
-                        <InfoRow label="Global Region" value={seller.country} />
-                        <InfoRow label="Strategic Hub" value={seller.city} />
-                        <InfoRow label="Operational County" value={seller.county} />
+                        <InfoRow label="Country" value={seller.country} />
+                        <InfoRow label="City / Town" value={seller.city} />
+                        <InfoRow label="County" value={seller.county} />
                         <div className="pt-2">
-                           <p className="text-[9px] font-bold text-slate-400 tracking-widest leading-none mb-1.5">Fulfillment Address</p>
+                           <p className="text-[9px] font-bold text-slate-400 tracking-widest leading-none mb-1.5">Physical Address</p>
                            <p className="text-[11px] text-slate-600 font-medium leading-relaxed bg-slate-50 border border-slate-100 p-2 rounded">{seller.address}</p>
                         </div>
                      </div>
@@ -150,38 +150,38 @@ const AdminSellerDetails = () => {
                <section className="bg-white border border-slate-200 rounded shadow-sm overflow-hidden">
                   <div className="px-5 py-3 bg-slate-50 border-b border-slate-200 flex items-center gap-2">
                      <FileText size={14} className="text-slate-400" />
-                     <span className="text-[10px] font-bold text-slate-500 tracking-widest">Partner Dossier</span>
+                     <span className="text-[10px] font-bold text-slate-500 tracking-widest">Business Description</span>
                   </div>
                   <div className="p-5">
-                     <p className="text-[11px] text-slate-600 font-medium leading-relaxed min-h-[100px] border border-slate-100 p-4 rounded bg-slate-50/50 italic">{seller.storeDescription || 'No operational narrative provided by partner.'}</p>
+                     <p className="text-[11px] text-slate-600 font-medium leading-relaxed min-h-[100px] border border-slate-100 p-4 rounded bg-slate-50/50 italic">{seller.storeDescription || 'No description provided.'}</p>
                   </div>
                </section>
             </div>
 
-            {/* ── RIGHT: SETTLEMENT & OPS ── */}
+            {/* RIGHT: PAYMENT & STATUS */}
             <div className="lg:col-span-4 space-y-6">
                <section className="bg-white border border-slate-200 rounded shadow-sm overflow-hidden">
                   <div className="px-5 py-3 bg-slate-50 border-b border-slate-200 flex items-center gap-2">
                      <CreditCard size={14} className="text-slate-400" />
-                     <span className="text-[10px] font-bold text-slate-500 tracking-widest">Settlement Protocols</span>
+                     <span className="text-[10px] font-bold text-slate-500 tracking-widest">Payment Details</span>
                   </div>
                   <div className="p-5">
                      <div className="mb-4 bg-slate-900 text-white p-4 rounded shadow-inner">
-                        <p className="text-[9px] font-bold text-slate-440 gap-1 tracking-widest leading-none opacity-60 mb-2">Primary Disbursement Gateway</p>
+                        <p className="text-[9px] font-bold text-slate-440 gap-1 tracking-widest leading-none opacity-60 mb-2">Payment Method</p>
                         <p className="text-lg font-black tracking-tight">{seller.paymentMethod || 'UNDEFINED'}</p>
                      </div>
                      <div className="space-y-1">
                         {seller.paymentMethod === 'BANK' && (
                            <>
-                              <InfoRow label="Bank Authority" value={seller.bankName} />
+                              <InfoRow label="Bank Name" value={seller.bankName} />
                               <InfoRow label="Account Number" value={seller.accountNumber} />
-                              <InfoRow label="Bene. Name" value={seller.accountHolderName} />
+                              <InfoRow label="Account Holder" value={seller.accountHolderName} />
                            </>
                         )}
                         {seller.paymentMethod === 'MPESA' && (
                            <>
-                              <InfoRow label="Mobile Token" value={seller.mpesaNumber} />
-                              <InfoRow label="Authorized Persona" value={seller.mpesaName} />
+                              <InfoRow label="Phone Number" value={seller.mpesaNumber} />
+                              <InfoRow label="Account Name" value={seller.mpesaName} />
                            </>
                         )}
                         {!seller.paymentMethod && <InfoRow label="Status" value="Payment Profile Incomplete" verified={false} />}
@@ -191,13 +191,13 @@ const AdminSellerDetails = () => {
 
                <section className="bg-slate-50 border border-slate-200 rounded p-5 relative overflow-hidden group">
                   <Zap size={40} className="absolute -right-4 -bottom-4 text-slate-200/50 rotate-12 group-hover:text-slate-200 transition-colors" />
-                  <h3 className="text-[10px] font-bold text-slate-500 tracking-widest mb-3 flex items-center gap-2"><ShieldCheck size={14} /> Compliance Tier</h3>
+                  <h3 className="text-[10px] font-bold text-slate-500 tracking-widest mb-3 flex items-center gap-2"><ShieldCheck size={14} /> Account Status</h3>
                   <div className="space-y-2">
                      <div className="flex items-center justify-between">
-                        <span className="text-xs font-black text-slate-900">{seller.PremiumSubscription ? 'Premium Service' : 'Standard Pipeline'}</span>
+                        <span className="text-xs font-black text-slate-900">{seller.PremiumSubscription ? 'Premium Service' : 'Standard Account'}</span>
                         <StatusBadge status={seller.PremiumSubscription ? 'ACTIVE' : 'BASIC'} />
                      </div>
-                     <p className="text-[9px] text-slate-400 font-bold leading-tight">Partner is operating under protocol version Alpha-4. Performance monitoring is active.</p>
+                     <p className="text-[9px] text-slate-400 font-bold leading-tight">Seller verification status is active.</p>
                   </div>
                </section>
             </div>
@@ -211,16 +211,16 @@ const AdminSellerDetails = () => {
                      <XCircle size={20} />
                      <h3 className="text-sm font-bold text-slate-900 tracking-tight">Reject Application</h3>
                   </div>
-                  <p className="text-[11px] text-slate-500 leading-relaxed">Provide an operational justification for the rejection of this partner application. The partner will be notified to correct these parameters.</p>
+                  <p className="text-[11px] text-slate-500 leading-relaxed">Please provide a reason for rejecting this seller. The seller will be notified of the reason.</p>
                   <textarea
                      value={rejectionReason} onChange={e => setRejectionReason(e.target.value)}
-                     placeholder="Operational justification..."
+                     placeholder="Reason for rejection..."
                      className="w-full border border-slate-200 rounded p-3 text-xs font-medium outline-none focus:border-slate-900 h-24 resize-none"
                   />
                   <div className="flex gap-2">
                      <button onClick={() => setShowRejectModal(false)} className="flex-1 py-2 bg-slate-50 border border-slate-200 rounded text-[10px] font-bold hover:bg-slate-100">Cancel</button>
                      <button onClick={handleReject} disabled={processing} className="flex-1 py-2 bg-red-600 text-white rounded text-[10px] font-bold hover:bg-red-700 transition-all shadow-sm">
-                        {processing ? 'SYNCING...' : 'CONFIRM REJECT'}
+                        {processing ? 'SAVING...' : 'CONFIRM REJECT'}
                      </button>
                   </div>
                </div>

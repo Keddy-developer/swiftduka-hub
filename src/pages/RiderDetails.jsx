@@ -38,7 +38,7 @@ export default function RiderDetails() {
                 setRider(data);
             }
         } catch (err) {
-            toast.error("Rider manifest retrieval failure");
+            toast.error("Failed to load rider details");
         } finally {
             setLoading(false);
         }
@@ -46,8 +46,8 @@ export default function RiderDetails() {
 
     useEffect(() => { fetchRider(); }, [id]);
 
-    if (loading) return <div className="p-8 text-slate-400 font-medium italic text-sm text-center">Syncing agent manifest...</div>;
-    if (!rider) return <div className="p-20 text-center text-slate-400 font-bold tracking-widest">Agent record not found in hub registry.</div>;
+    if (loading) return <div className="p-8 text-slate-400 font-medium italic text-sm text-center">Loading rider details...</div>;
+    if (!rider) return <div className="p-20 text-center text-slate-400 font-bold tracking-widest">Rider not found.</div>;
 
     return (
         <div className="space-y-6 md:space-y-8">
@@ -58,7 +58,7 @@ export default function RiderDetails() {
                         <ArrowLeft size={14} /> Back to Fleet
                     </button>
                     <h2 className="text-xl md:text-2xl font-bold text-slate-900 tracking-tighter flex items-center gap-3">
-                        {rider.user?.firstName ? `${rider.user.firstName} ${rider.user.lastName}` : (rider.name || 'Anonymous Agent')}
+                        {rider.user?.firstName ? `${rider.user.firstName} ${rider.user.lastName}` : (rider.name || 'Rider')}
                         <span className={`px-2 py-0.5 rounded text-[10px] font-bold tracking-tight border ${rider.status === 'AVAILABLE' ? 'bg-green-50 text-green-700 border-green-100' : 'bg-slate-50 text-slate-700 border-slate-100'}`}>
                             {rider.status || 'OFFLINE'}
                         </span>
@@ -67,13 +67,13 @@ export default function RiderDetails() {
                 <div className="flex gap-2">
                     <button
                         onClick={async () => {
-                            if (window.confirm("Are you sure you want to decouple this agent from the hub framework?")) {
+                            if (window.confirm("Remove this rider from the hub?")) {
                                 try {
                                     await axiosInstance.delete(`/riders/${id}`);
-                                    toast.success("Rider personnel record revoked");
+                                    toast.success("Rider removed successfully");
                                     navigate('/fleet');
                                 } catch (err) {
-                                    toast.error("Revocation failure");
+                                    toast.error("Failed to remove rider");
                                 }
                             }
                         }}
@@ -81,12 +81,12 @@ export default function RiderDetails() {
                     >
                         DEACTIVATE
                     </button>
-                    <button onClick={fetchRider} className="px-4 py-2 bg-slate-900 text-white rounded text-[10px] font-bold hover:bg-slate-800 flex items-center justify-center gap-2 shadow-sm animate-none">SYNC DOSSIER</button>
+                    <button onClick={fetchRider} className="px-4 py-2 bg-slate-900 text-white rounded text-[10px] font-bold hover:bg-slate-800 flex items-center justify-center gap-2 shadow-sm animate-none">REFRESH</button>
                 </div>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-8 items-start">
-                {/* ── LEFT: AGENT IDENTITY ── */}
+                {/* ── LEFT: RIDER IDENTITY ── */}
                 <div className="lg:col-span-4 space-y-6">
                     <section className="bg-slate-900 rounded-2xl border border-slate-800 p-8 text-white shadow-2xl relative overflow-hidden group text-center lg:text-left">
                         <ShieldCheck size={160} className="absolute -right-12 -top-12 text-white/5 rotate-12 group-hover:text-white/10 transition-all duration-700" />
@@ -105,9 +105,9 @@ export default function RiderDetails() {
                             </div>
                             <div className="space-y-2">
                                 <h3 className="text-xl font-black tracking-tight leading-tight">
-                                    {rider.user?.firstName ? `${rider.user.firstName} ${rider.user.lastName}` : (rider.name || 'Field Personnel')}
+                                    {rider.user?.firstName ? `${rider.user.firstName} ${rider.user.lastName}` : (rider.name || 'Rider')}
                                 </h3>
-                                <p className="text-[10px] font-black text-slate-400 tracking-[0.2em] uppercase">Auth Cipher: {rider.id?.slice(0, 8)}</p>
+                                <p className="text-[10px] font-black text-slate-400 tracking-[0.2em] uppercase">ID Number: {rider.id?.slice(0, 8)}</p>
                                 <div className="flex flex-wrap gap-2 justify-center lg:justify-start pt-1">
                                     <span className="px-2.5 py-1 bg-white/10 border border-white/10 rounded-lg text-[9px] font-black tracking-widest text-blue-400 capitalize">
                                         {rider.vehicleType || 'Class-A Agent'}
@@ -123,7 +123,7 @@ export default function RiderDetails() {
                     <section className="bg-white border border-slate-200 rounded shadow-sm overflow-hidden">
                         <div className="px-5 py-3 bg-slate-50 border-b border-slate-200 flex items-center gap-2">
                             <Truck size={14} className="text-slate-400" />
-                            <span className="text-[10px] font-bold text-slate-500 tracking-widest">Asset Parameters</span>
+                            <span className="text-[10px] font-bold text-slate-500 tracking-widest">Vehicle Details</span>
                         </div>
                         <div className="p-5 space-y-3">
                             <div className="flex justify-between items-center border-b border-slate-50 pb-2">
@@ -135,7 +135,7 @@ export default function RiderDetails() {
                                 <span className="text-sm font-bold text-slate-700 tracking-tight">{rider.vehicleType || 'Motorbike'}</span>
                             </div>
                             <div className="flex justify-between items-center pt-1">
-                                <span className="text-[10px] font-bold text-slate-400">Registry Date</span>
+                                <span className="text-[10px] font-bold text-slate-400">Registration Date</span>
                                 <span className="text-xs font-bold text-slate-800">{new Date(rider.createdAt).toLocaleDateString()}</span>
                             </div>
                         </div>
@@ -147,17 +147,17 @@ export default function RiderDetails() {
                     <section className="bg-white border border-slate-200 rounded shadow-sm overflow-hidden min-h-[400px]">
                         <div className="px-5 py-3 bg-slate-50 border-b border-slate-200 flex items-center gap-2">
                             <Navigation size={14} className="text-slate-400" />
-                            <span className="text-[10px] font-bold text-slate-500 tracking-widest">Communication & Deployment</span>
+                            <span className="text-[10px] font-bold text-slate-500 tracking-widest">Contact Information</span>
                         </div>
 
                         <div className="p-6">
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                <InfoTile label="Primary Signal" value={rider.user?.phone || rider.phone} icon={Phone} />
-                                <InfoTile label="Digital Authority" value={rider.user?.email || rider.email} icon={Mail} />
-                                <InfoTile label="Deployment Hub" value={rider.fulfillmentHub?.town || 'Central Command'} icon={Warehouse} />
-                                <InfoTile label="Sector Zone" value={rider.coverageArea || 'General Ops'} icon={MapPin} />
+                                <InfoTile label="Phone Number" value={rider.user?.phone || rider.phone} icon={Phone} />
+                                <InfoTile label="Email Address" value={rider.user?.email || rider.email} icon={Mail} />
+                                <InfoTile label="Assigned Hub" value={rider.fulfillmentHub?.town || 'Main Hub'} icon={Warehouse} />
+                                <InfoTile label="Delivery Area" value={rider.coverageArea || 'General Area'} icon={MapPin} />
                                                <div className="flex flex-wrap gap-2 text-[10px] font-bold text-slate-400 tracking-widest uppercase">
-                                    Operational Authority dossier
+                                    Rider Records
                                 </div>
                                 <div className="flex flex-wrap gap-3 mt-4">
                                     <button 
@@ -165,14 +165,14 @@ export default function RiderDetails() {
                                         className="flex-1 min-w-[140px] p-3.5 bg-slate-900 text-white rounded-xl text-[10px] font-black tracking-widest hover:bg-slate-800 transition-all shadow-lg flex items-center justify-center gap-2 group"
                                     >
                                         <History size={14} className="group-hover:rotate-12 transition-transform" />
-                                        PERSONNEL AUDIT
+                                        VIEW ACTIVITY LOG
                                     </button>
                                     <button 
                                         onClick={() => setShowCredsModal(true)}
                                         className="flex-1 min-w-[140px] p-3.5 bg-white border border-slate-200 rounded-xl text-[10px] font-black text-slate-600 tracking-widest hover:border-slate-900 hover:text-slate-900 transition-all shadow-sm flex items-center justify-center gap-2"
                                     >
                                         <ShieldCheck size={14} />
-                                        REVIEW CREDENTIALS
+                                        VIEW DOCUMENTS
                                     </button>
                                 </div>
                             </div>
@@ -180,8 +180,8 @@ export default function RiderDetails() {
                             <div className="mt-8 p-6 bg-blue-50/50 border border-blue-100 rounded-2xl flex gap-4 items-start animate-pulse shadow-sm">
                                 <ShieldAlert size={20} className="text-blue-600 shrink-0 mt-0.5" />
                                 <div className="space-y-1">
-                                    <h5 className="text-[11px] font-black text-blue-900 tracking-tight uppercase">Registry integrity advising</h5>
-                                    <p className="text-[10px] text-blue-700 leading-relaxed font-bold">Verify all identification documents are current. Unverified agents will be automatically throttled by the automated dispatch engine in the next cycle.</p>
+                                    <h5 className="text-[11px] font-black text-blue-900 tracking-tight uppercase">Document Verification</h5>
+                                    <p className="text-[10px] text-blue-700 leading-relaxed font-bold">Please ensure all rider documents are up to date. Riders with expired documents may be suspended from the dispatch engine.</p>
                                 </div>
                             </div>
                         </div>
@@ -194,8 +194,8 @@ export default function RiderDetails() {
                     <div className="bg-white w-full max-w-4xl rounded-3xl shadow-2xl overflow-hidden relative animate-in zoom-in-95 duration-200 h-[80vh] flex flex-col">
                         <div className="flex items-center justify-between p-6 bg-slate-900 text-white shrink-0">
                             <div>
-                                <h3 className="text-lg font-black tracking-tight">Personnel Audit Trail</h3>
-                                <p className="text-[10px] font-bold text-slate-400 tracking-widest uppercase mt-0.5">Tactical Log History: {rider.name}</p>
+                                <h3 className="text-lg font-black tracking-tight">Rider Activity Log</h3>
+                                <p className="text-[10px] font-bold text-slate-400 tracking-widest uppercase mt-0.5">Log History: {rider.name}</p>
                             </div>
                             <button onClick={() => setShowAuditModal(false)} className="p-2 hover:bg-white/10 rounded-full transition-colors">
                                 <X size={20} />
@@ -206,7 +206,7 @@ export default function RiderDetails() {
                             <div className="mt-6 p-4 bg-blue-50 border border-blue-100 rounded-2xl flex gap-3 text-blue-800">
                                 <Info size={16} className="shrink-0 mt-0.5" />
                                 <p className="text-[11px] font-medium leading-relaxed">
-                                    This audit trail includes all system-wide interactions involving this agent, filtered by the local hub authority. For historical data older than 30 days, please contact the central repository administrator.
+                                    This log shows all system actions related to this rider, filtered by the local hub authority. For historical data older than 30 days, please contact the main administrator.
                                 </p>
                             </div>
                         </div>
@@ -225,8 +225,8 @@ export default function RiderDetails() {
                                         <ShieldCheck size={24} />
                                     </div>
                                     <div>
-                                        <h3 className="text-xl font-black text-slate-900 tracking-tight">Registry Verification</h3>
-                                        <p className="text-[10px] font-black text-slate-400 tracking-widest uppercase mt-0.5">Dossier ID: {rider.id}</p>
+                                        <h3 className="text-xl font-black text-slate-900 tracking-tight">Identity Verification</h3>
+                                        <p className="text-[10px] font-black text-slate-400 tracking-widest uppercase mt-0.5">Account ID: {rider.id}</p>
                                     </div>
                                 </div>
                                 <button onClick={() => setShowCredsModal(false)} className="p-2 hover:bg-slate-100 rounded-xl transition-colors">
@@ -236,12 +236,12 @@ export default function RiderDetails() {
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                                 <div className="space-y-6">
-                                    <CredItem icon={IdCard} label="National ID CIPHER" value={rider.nationalId} />
-                                    <CredItem icon={ShieldCheck} label="Driving License Identifier" value={rider.drivingLicence} />
-                                    <CredItem icon={Activity} label="Registry Status" value={rider.status} color={rider.status === 'AVAILABLE' ? 'text-green-600' : 'text-amber-600'} />
+                                    <CredItem icon={IdCard} label="National ID Number" value={rider.nationalId} />
+                                    <CredItem icon={ShieldCheck} label="Driving License Number" value={rider.drivingLicence} />
+                                    <CredItem icon={Activity} label="Status" value={rider.status} color={rider.status === 'AVAILABLE' ? 'text-green-600' : 'text-amber-600'} />
                                 </div>
                                 <div className="space-y-4">
-                                    <p className="text-[10px] font-black text-slate-400 tracking-widest uppercase mb-2">Asset Visualization</p>
+                                    <p className="text-[10px] font-black text-slate-400 tracking-widest uppercase mb-2">Vehicle Photo</p>
                                     <div className="aspect-video rounded-3xl bg-slate-100 border border-slate-200 overflow-hidden relative group/asset cursor-pointer shadow-inner" onClick={() => setShowVehicleModal(true)}>
                                         <img 
                                             src={rider.vehicleImage || 'https://images.unsplash.com/photo-1558981403-c5f9899a28bc?w=600&h=400&fit=crop'} 
@@ -250,11 +250,11 @@ export default function RiderDetails() {
                                         />
                                         <div className="absolute inset-0 bg-black/60 opacity-0 group-hover/asset:opacity-100 flex flex-col items-center justify-center transition-opacity text-white">
                                             <Maximize2 size={24} className="mb-2 animate-bounce" />
-                                            <span className="text-[10px] font-black tracking-widest">EXPAND TELEMETRY</span>
+                                            <span className="text-[10px] font-black tracking-widest">VIEW PHOTO</span>
                                         </div>
                                     </div>
                                     <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 text-center">
-                                        <p className="text-[9px] font-black text-slate-500 tracking-widest uppercase mb-1">Asset Asset Registry</p>
+                                        <p className="text-[9px] font-black text-slate-500 tracking-widest uppercase mb-1">Vehicle Information</p>
                                         <p className="text-sm font-black text-slate-900 tracking-tighter">
                                             {rider.vehicleType} · {rider.numberPlate}
                                         </p>
@@ -263,13 +263,13 @@ export default function RiderDetails() {
                             </div>
 
                             <div className="flex gap-4 pt-4">
-                                <button onClick={() => setShowCredsModal(false)} className="flex-1 py-4 bg-slate-900 text-white rounded-2xl text-[10px] font-black tracking-[0.2em] shadow-xl hover:shadow-2xl hover:-translate-y-0.5 transition-all">CLOSE DOSSIER</button>
+                                <button onClick={() => setShowCredsModal(false)} className="flex-1 py-4 bg-slate-900 text-white rounded-2xl text-[10px] font-black tracking-[0.2em] shadow-xl hover:shadow-2xl hover:-translate-y-0.5 transition-all">CLOSE</button>
                                 <button 
                                     onClick={() => navigate(`/register-a-rider/${rider.id}`)}
                                     className="px-6 py-4 bg-white border border-slate-200 rounded-2xl text-[10px] font-black text-slate-600 tracking-widest hover:border-slate-900 hover:text-slate-900 transition-all flex items-center justify-center gap-2"
                                 >
                                     <Edit size={14} />
-                                    MODIFY DATA
+                                    EDIT DETAILS
                                 </button>
                             </div>
                         </div>
@@ -286,7 +286,7 @@ export default function RiderDetails() {
                             <X size={32} className="group-hover:rotate-90 transition-transform" />
                         </button>
                         <div className="absolute bottom-6 left-6 p-6 bg-black/40 backdrop-blur-md border border-white/10 rounded-3xl text-white">
-                            <p className="text-[10px] font-black tracking-widest uppercase text-white/60 mb-1">Asset Security Identifier</p>
+                            <p className="text-[10px] font-black tracking-widest uppercase text-white/60 mb-1">Plate Number</p>
                             <h4 className="text-2xl font-black tracking-tight">{rider.numberPlate}</h4>
                         </div>
                     </div>
