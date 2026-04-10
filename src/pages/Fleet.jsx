@@ -12,7 +12,7 @@ import { toast } from "react-toastify";
 import PendingAssignmentsPanel from "../components/PendingAssignmentsPanel";
 import { useAuth } from "../contexts/AuthContext";
 
-export default function RidersManagement() {
+export default function RidersManagement({ readOnly }) {
    const { hub } = useAuth();
    const [riders, setRiders] = useState([]);
    const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -88,9 +88,11 @@ export default function RidersManagement() {
                <button onClick={() => fetchRiders(true)} className="flex-1 md:flex-none px-6 py-3 bg-white border border-slate-200 rounded-lg text-[10px] font-black text-slate-600 hover:bg-slate-50 transition-all  tracking-widest shadow-sm flex items-center justify-center gap-2">
                   <RefreshCw size={14} className={refreshing ? 'animate-spin' : ''} /> Refresh
                </button>
-               <button onClick={() => navigate("/register-a-rider/new")} className="flex-1 md:flex-none px-6 py-3 bg-slate-900 text-white rounded-lg text-[10px] font-black hover:bg-slate-800 transition-all shadow-xl shadow-slate-200  tracking-widest flex items-center justify-center gap-2">
-                  <Plus size={14} /> Add New Rider
-               </button>
+               {!readOnly && (
+                  <button onClick={() => navigate("/register-a-rider/new")} className="flex-1 md:flex-none px-6 py-3 bg-slate-900 text-white rounded-lg text-[10px] font-black hover:bg-slate-800 transition-all shadow-xl shadow-slate-200  tracking-widest flex items-center justify-center gap-2">
+                     <Plus size={14} /> Add New Rider
+                  </button>
+               )}
             </div>
          </div>
 
@@ -142,6 +144,7 @@ export default function RidersManagement() {
                            key={rider.id}
                            rider={rider}
                            navigate={navigate}
+                           readOnly={readOnly}
                            onDelete={() => { setSelectedRiderId(rider.id); setShowDeleteModal(true); }}
                            onConfig={() => navigate(`/register-a-rider/${rider.id}`)}
                         />
@@ -183,16 +186,18 @@ export default function RidersManagement() {
                   </div>
                </section>
 
-               <div className="p-6 bg-gradient-to-br from-blue-600 to-blue-800 rounded-2xl text-white shadow-xl relative overflow-hidden group">
-                  <div className="relative z-10">
-                     <h4 className="text-xs font-black  tracking-widest mb-1 opacity-80">Network Intelligence</h4>
-                     <p className="text-lg font-black tracking-tight leading-tight mb-4">Add a new rider to expand your delivery range.</p>
-                     <button onClick={() => navigate("/register-a-rider/new")} className="py-2.5 px-6 bg-white text-blue-900 rounded-lg text-[10px] font-black  tracking-widest shadow-lg hover:scale-105 transition-transform">
-                        Add New Rider
-                     </button>
+               {!readOnly && (
+                  <div className="p-6 bg-gradient-to-br from-blue-600 to-blue-800 rounded-2xl text-white shadow-xl relative overflow-hidden group">
+                     <div className="relative z-10">
+                        <h4 className="text-xs font-black  tracking-widest mb-1 opacity-80">Network Intelligence</h4>
+                        <p className="text-lg font-black tracking-tight leading-tight mb-4">Add a new rider to expand your delivery range.</p>
+                        <button onClick={() => navigate("/register-a-rider/new")} className="py-2.5 px-6 bg-white text-blue-900 rounded-lg text-[10px] font-black  tracking-widest shadow-lg hover:scale-105 transition-transform">
+                           Add New Rider
+                        </button>
+                     </div>
+                     <Navigation size={120} className="absolute -bottom-10 -right-10 text-white/10 group-hover:scale-110 transition-transform duration-700" />
                   </div>
-                  <Navigation size={120} className="absolute -bottom-10 -right-10 text-white/10 group-hover:scale-110 transition-transform duration-700" />
-               </div>
+               )}
             </div>
          </div>
 
@@ -251,7 +256,7 @@ const KPICard = ({ label, value, icon: Icon, color }) => {
    );
 };
 
-const RiderCard = ({ rider, onDelete, onConfig, navigate }) => (
+const RiderCard = ({ rider, onDelete, onConfig, navigate, readOnly }) => (
    <div className="bg-white border border-slate-200 rounded-2xl p-5 space-y-4 hover:border-slate-400 hover:shadow-xl transition-all group relative overflow-hidden">
       <div className="flex items-center gap-4 relative z-10">
          <div className="w-12 h-12 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-center overflow-hidden flex-shrink-0 group-hover:scale-105 transition-transform shadow-sm">
@@ -295,8 +300,12 @@ const RiderCard = ({ rider, onDelete, onConfig, navigate }) => (
 
       <div className="flex gap-2 pt-2 relative z-10">
          <button onClick={() => navigate(`/fleet/${rider.id}`)} className="flex-1 py-3 bg-slate-100 text-slate-700 rounded-xl text-[10px] font-black  tracking-widest hover:bg-slate-200 transition-all border border-slate-200">VIEW DETAILS</button>
-         <button onClick={() => navigate(`/register-a-rider/${rider.id}`)} className="flex-1 py-3 bg-slate-900 text-white rounded-xl text-[10px] font-black  tracking-widest hover:bg-blue-600 transition-all shadow-lg shadow-slate-100">EDIT DETAILS</button>
-         <button onClick={onDelete} className="px-3 py-3 bg-rose-50 text-rose-600 border border-rose-100 rounded-xl text-[10px] font-black  hover:bg-rose-600 hover:text-white transition-all">REMOVE</button>
+         {!readOnly && (
+            <>
+               <button onClick={() => navigate(`/register-a-rider/${rider.id}`)} className="flex-1 py-3 bg-slate-900 text-white rounded-xl text-[10px] font-black  tracking-widest hover:bg-blue-600 transition-all shadow-lg shadow-slate-100">EDIT DETAILS</button>
+               <button onClick={onDelete} className="px-3 py-3 bg-rose-50 text-rose-600 border border-rose-100 rounded-xl text-[10px] font-black  hover:bg-rose-600 hover:text-white transition-all">REMOVE</button>
+            </>
+         )}
       </div>
       <div className="absolute top-0 right-0 w-24 h-24 bg-slate-50 rounded-full -mr-12 -mt-12 opacity-0 group-hover:opacity-100 transition-opacity -z-10"></div>
    </div>

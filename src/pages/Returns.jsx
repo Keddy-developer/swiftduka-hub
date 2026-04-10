@@ -22,7 +22,7 @@ const StatusBadge = ({ status }) => {
   );
 };
 
-export default function ReturnsManagement() {
+export default function ReturnsManagement({ readOnly }) {
   const { hub } = useAuth();
   const [returns, setReturns] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -162,14 +162,14 @@ export default function ReturnsManagement() {
                   </td>
                   <td className="px-6 py-4 text-right">
                     <div className="flex items-center justify-end gap-2">
-                      {(ret.status === 'PENDING' || ret.status === 'REQUESTED') && (
+                      {(!readOnly && (ret.status === 'PENDING' || ret.status === 'REQUESTED')) && (
                         <>
                           <button onClick={() => handleApprove(ret.id)} className="p-1 px-2 bg-green-50 text-green-700 border border-green-100 rounded text-[9px] font-bold hover:bg-green-600 hover:text-white transition-all">Approve</button>
                           <button onClick={() => { setSelectedReturn(ret); setShowRejectModal(true); }} className="p-1 px-2 bg-red-50 text-red-700 border border-red-100 rounded text-[9px] font-bold hover:bg-red-600 hover:text-white transition-all">Reject</button>
                         </>
                       )}
                       
-                      {ret.status === 'APPROVED' && ret.agentStatus !== 'RECEIVED' && ret.agentStatus !== 'SENT' && (
+                      {(!readOnly && ret.status === 'APPROVED' && ret.agentStatus !== 'RECEIVED' && ret.agentStatus !== 'SENT') && (
                         <button 
                           onClick={async () => {
                             if (!window.confirm("Confirm product received at hub?")) return;
@@ -299,7 +299,7 @@ export default function ReturnsManagement() {
 
               <div className="pt-4 flex gap-3">
                  <button onClick={() => setShowDetailsModal(false)} className="flex-1 py-3 border border-slate-200 rounded text-[10px] font-black uppercase tracking-widest hover:bg-slate-50 transition-all">Close Dossier</button>
-                 {(selectedReturn.status === 'PENDING' || selectedReturn.status === 'REQUESTED') && (
+                 {(!readOnly && (selectedReturn.status === 'PENDING' || selectedReturn.status === 'REQUESTED')) && (
                    <button onClick={() => { setShowRejectModal(true); setShowDetailsModal(false); }} className="flex-1 py-3 bg-red-600 text-white rounded text-[10px] font-black uppercase tracking-widest hover:bg-red-700 shadow-xl shadow-red-100 transition-all">Reject Claim</button>
                  )}
               </div>

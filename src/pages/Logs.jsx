@@ -47,6 +47,7 @@ const LogsPage = () => {
 
    const getIcon = (type, severity) => {
       if (type === 'ORDER') return <Truck size={16} className="text-blue-500" />;
+      if (type === 'STAFF_ACTION') return <Users size={16} className="text-purple-500" />;
       if (severity === 'warning') return <AlertTriangle size={16} className="text-amber-500" />;
       if (severity === 'success') return <CheckCircle2 size={16} className="text-green-500" />;
       return <Package size={16} className="text-slate-400" />;
@@ -100,6 +101,7 @@ const LogsPage = () => {
                   <option value="ALL">ALL EVENTS</option>
                   <option value="INVENTORY">INVENTORY ONLY</option>
                   <option value="ORDER">ORDER UPDATES</option>
+                  <option value="STAFF_ACTION">STAFF ACTIVITIES</option>
                </select>
             </div>
          </div>
@@ -122,9 +124,12 @@ const LogsPage = () => {
                               </div>
                               <div>
                                  <div className="flex items-center gap-3 mb-1">
-                                    <span className={`text-[9px] font-black  tracking-widest px-2 py-0.5 rounded border ${log.type === 'ORDER' ? 'bg-blue-50 text-blue-600 border-blue-100' : 'bg-slate-50 text-slate-600 border-slate-200'
+                                    <span className={`text-[9px] font-black  tracking-widest px-2 py-0.5 rounded border ${
+                                       log.type === 'ORDER' ? 'bg-blue-50 text-blue-600 border-blue-100' : 
+                                       log.type === 'STAFF_ACTION' ? 'bg-purple-50 text-purple-600 border-purple-100' :
+                                       'bg-slate-50 text-slate-600 border-slate-200'
                                        }`}>
-                                       {log.type === 'INVENTORY' ? '📦 ' : '🚚 '}{log.type}
+                                       {log.type === 'INVENTORY' ? '📦 ' : log.type === 'STAFF_ACTION' ? '👤 ' : '🚚 '}{log.type}
                                     </span>
                                     <h4 className="text-sm font-black text-slate-900  tracking-tight">{log.title}</h4>
                                  </div>

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import axiosInstance from '../services/axiosConfig';
 import { 
@@ -157,9 +158,12 @@ const StaffManagement = () => {
                                             </div>
                                         </td>
                                         <td className="px-6 py-5 text-right">
-                                            <button className="p-2 hover:bg-white rounded-lg transition-all text-slate-400 hover:text-slate-600">
+                                            <Link 
+                                                to={`/staff/${staff.userId || staff.user.id}`}
+                                                className="p-2 hover:bg-white rounded-lg transition-all text-slate-400 hover:text-slate-900 inline-block"
+                                            >
                                                 <ChevronRight size={18} />
-                                            </button>
+                                            </Link>
                                         </td>
                                     </tr>
                                 ))}

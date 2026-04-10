@@ -10,7 +10,7 @@ import {
 import { toast } from "react-toastify";
 import { useAuth } from "../contexts/AuthContext";
 
-export default function SellersPage() {
+export default function SellersPage({ readOnly }) {
   const { hub } = useAuth();
   const [sellers, setSellers] = useState([]);
   const [showModal, setShowModal] = useState(false);
@@ -92,9 +92,11 @@ export default function SellersPage() {
           <button onClick={() => fetchSellers(true)} className="flex-1 md:flex-none px-6 py-3 bg-white border border-slate-200 rounded-lg text-[10px] font-black text-slate-600 hover:bg-slate-50 transition-all  tracking-widest shadow-sm flex items-center justify-center gap-2">
             <RefreshCw size={14} className={refreshing ? 'animate-spin' : ''} /> Refresh
           </button>
-          <button onClick={() => navigate("/register-seller")} className="flex-1 md:flex-none px-6 py-3 bg-slate-900 text-white rounded-lg text-[10px] font-black hover:bg-slate-800 transition-all shadow-xl shadow-slate-200  tracking-widest flex items-center justify-center gap-2">
-            <Plus size={14} /> Add New Seller
-          </button>
+          {!readOnly && (
+            <button onClick={() => navigate("/register-seller")} className="flex-1 md:flex-none px-6 py-3 bg-slate-900 text-white rounded-lg text-[10px] font-black hover:bg-slate-800 transition-all shadow-xl shadow-slate-200  tracking-widest flex items-center justify-center gap-2">
+              <Plus size={14} /> Add New Seller
+            </button>
+          )}
         </div>
       </div>
 
@@ -128,7 +130,14 @@ export default function SellersPage() {
         {/* 🗄️ MERCHANT CARDS / GRID */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredSellers.map(seller => (
-            <MerchantCard key={seller.id} seller={seller} onDetails={() => navigate(`/sellers/${seller.id}`)} onEdit={() => navigate(`/register-seller?edit=${seller.id}`)} onDelete={() => { setSelectedSellerId(seller.id); setShowModal(true); }} />
+            <MerchantCard 
+               key={seller.id} 
+               seller={seller} 
+               readOnly={readOnly}
+               onDetails={() => navigate(`/sellers/${seller.id}`)} 
+               onEdit={() => navigate(`/register-seller?edit=${seller.id}`)} 
+               onDelete={() => { setSelectedSellerId(seller.id); setShowModal(true); }} 
+            />
           ))}
           {filteredSellers.length === 0 && (
             <div className="col-span-full py-24 text-center bg-white border border-slate-200 border-dashed rounded-3xl opacity-40">
@@ -198,7 +207,7 @@ const KPICard = ({ label, value, icon: Icon, color }) => {
   );
 };
 
-const MerchantCard = ({ seller, onDetails, onEdit, onDelete }) => (
+const MerchantCard = ({ seller, onDetails, onEdit, onDelete, readOnly }) => (
   <div className="bg-white border border-slate-200 rounded-3xl p-6 space-y-6 hover:shadow-2xl transition-all group relative overflow-hidden flex flex-col justify-between">
     <div>
       <div className="flex items-center gap-4 mb-6">
@@ -245,14 +254,16 @@ const MerchantCard = ({ seller, onDetails, onEdit, onDelete }) => (
         <button onClick={onDetails} className="flex-1 py-3 bg-slate-900 text-white rounded-xl text-[9px] font-black  tracking-widest hover:bg-blue-600 transition-all shadow-lg flex items-center justify-center gap-2">
           <Eye size={12} /> Details
         </button>
-        <div className="flex gap-1">
-          <button onClick={onEdit} className="p-3 bg-slate-50 text-slate-400 rounded-xl hover:text-slate-900 transition-colors">
-            <Edit size={14} />
-          </button>
-          <button onClick={onDelete} className="p-3 bg-rose-50 text-rose-400 rounded-xl hover:text-rose-600 transition-colors">
-            <Trash2 size={14} />
-          </button>
-        </div>
+        {!readOnly && (
+          <div className="flex gap-1">
+            <button onClick={onEdit} className="p-3 bg-slate-50 text-slate-400 rounded-xl hover:text-slate-900 transition-colors">
+              <Edit size={14} />
+            </button>
+            <button onClick={onDelete} className="p-3 bg-rose-50 text-rose-400 rounded-xl hover:text-rose-600 transition-colors">
+              <Trash2 size={14} />
+            </button>
+          </div>
+        )}
       </div>
     </div>
     <div className="absolute top-0 right-0 w-32 h-32 bg-slate-50 rounded-full -mr-16 -mt-16 opacity-0 group-hover:opacity-100 transition-opacity -z-10"></div>

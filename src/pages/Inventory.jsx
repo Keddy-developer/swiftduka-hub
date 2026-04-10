@@ -12,6 +12,7 @@ import { toast } from 'react-toastify';
 import QRCode from 'react-qr-code';
 import { Html5QrcodeScanner } from 'html5-qrcode';
 import LogisticsAuditTrail from '../components/LogisticsAuditTrail';
+import { AuditService } from '../utils/AuditService';
 
 // ─── Shared Components ──────────────────────────────────────────────────
 const StatTile = ({ label, value, icon: Icon, color }) => {
@@ -53,6 +54,13 @@ const AdjustModal = ({ item, hub, onClose, onSuccess }) => {
         notes: `ADJUSTMENT: ${reason}`
       });
       toast.success('Stock updated');
+      // Audit log
+      AuditService.logAction(hub.id, 'STOCK_ADJUSTMENT', {
+        message: `${mode === 'add' ? 'Added' : 'Removed'} ${q} units of ${item.product?.name}`,
+        sku: item.product?.sku,
+        newQuantity: mode === 'add' ? item.quantity + q : item.quantity - q,
+        reason: reason
+      });
       onSuccess();
       onClose();
     } catch (err) {
@@ -326,6 +334,13 @@ const ReceiveShipmentModal = ({ hub, onClose, onSuccess }) => {
         notes: `INBOUND: ${supplier || 'Direct Inbound'}. ${notes}`.trim()
       });
       toast.success('Inventory manifest updated');
+      // Audit log
+      AuditService.logAction(hub.id, 'INBOUND_RECEIPT', {
+        message: `Received ${quantity} units of ${selected.name} from ${supplier || 'Direct Inbound'}`,
+        sku: selected.sku,
+        quantity: parseInt(quantity),
+        supplier: supplier
+      });
       onSuccess();
       onClose();
     } catch (err) {

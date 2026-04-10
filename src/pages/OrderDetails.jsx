@@ -25,8 +25,11 @@ import {
 } from "react-icons/fa";
 import { QRCode } from "react-qr-code";
 import ReturnForm from "../components/ReturnForm";
+import { AuditService } from "../utils/AuditService";
+import { useAuth } from "../contexts/AuthContext";
 
 const OrderDetailsPage = () => {
+   const { hub } = useAuth();
    const { id } = useParams();
    const navigate = useNavigate();
    const [order, setOrder] = useState(null);
@@ -101,6 +104,12 @@ const OrderDetailsPage = () => {
       try {
          await axiosInstance.patch(`/order/${trackingNumber}/mark-received`, { orderProductId });
          toast.success("Order marked as received!");
+         // Audit Log
+         AuditService.logAction(hub?.id, 'HUB_RECEIPT', {
+            message: `Handover received for Order #${trackingNumber}`,
+            trackingNumber: trackingNumber,
+            orderProductId: orderProductId
+         });
          fetchOrderDetails();
       } catch (err) {
          toast.error("Failed to update order status.");
@@ -114,6 +123,12 @@ const OrderDetailsPage = () => {
       try {
          await axiosInstance.patch(`/order/${trackingNumber}/admin-ready-for-pickup`, { orderProductId });
          toast.success("Order marked as ready for pickup!");
+         // Audit Log
+         AuditService.logAction(hub?.id, 'READY_FOR_PICKUP_UPDATE', {
+            message: `Order #${trackingNumber} moved to Ready for Pickup`,
+            trackingNumber: trackingNumber,
+            orderProductId: orderProductId
+         });
          fetchOrderDetails();
       } catch (err) {
          toast.error(`Failed to update order status: ${err.response?.data?.message || err.message}`);
@@ -152,6 +167,12 @@ const OrderDetailsPage = () => {
             orderProductId: selectedProductId
          });
          toast.success("Product/Order cancelled.");
+         // Audit Log
+         AuditService.logAction(hub?.id, 'ORDER_CANCELLATION', {
+            message: `Cancelled item in Order #${trackingNumber}. Reason: ${cancelReason}`,
+            trackingNumber: trackingNumber,
+            reason: cancelReason
+         });
          setIsCancelModalOpen(false);
          fetchOrderDetails();
       } catch (err) {

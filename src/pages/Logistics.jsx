@@ -15,7 +15,7 @@ import { toast } from 'react-toastify';
  * 1. Pickup Stations (BOUND to Hub & Zone)
  * 2. Delivery Areas (BOUND to Hub & Zone)
  */
-const Logistics = () => {
+const Logistics = ({ readOnly }) => {
    const { hub } = useAuth();
    const [activeTab, setActiveTab] = useState('stations'); // 'stations' | 'areas'
    const [stations, setStations] = useState([]);
@@ -145,7 +145,8 @@ const Logistics = () => {
             <EmptyState
                type={activeTab}
                hasSearch={!!searchTerm}
-               onAdd={() => handleOpenModal()}
+               onAdd={readOnly ? null : () => handleOpenModal()}
+               readOnly={readOnly}
             />
          ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
@@ -155,6 +156,7 @@ const Logistics = () => {
                      item={item}
                      type={activeTab}
                      onEdit={() => handleOpenModal(item)}
+                     readOnly={readOnly}
                   />
                ))}
             </div>
@@ -167,7 +169,7 @@ const Logistics = () => {
                   <div className="p-8 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
                      <div>
                         <h2 className="text-xl font-black text-slate-900 tracking-tight">
-                           {editingItem ? 'Update Configuration' : 'Infrastructure View'}
+                           {readOnly ? 'Infrastructure View' : editingItem ? 'Update Configuration' : 'Establish Asset'}
                         </h2>
                         <p className="text-[10px] font-bold text-slate-400 tracking-widest mt-1">
                            Node Zone: {hub?.zoneId || 'AUTO_ASSIGN'}
@@ -184,6 +186,7 @@ const Logistics = () => {
                            <label className="text-[10px] font-black text-slate-500 tracking-widest px-1">Name / Identifier</label>
                            <input
                               required
+                              disabled={readOnly}
                               value={formData.name || ''}
                               onChange={e => setFormData({ ...formData, name: e.target.value })}
                               className="w-full px-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold focus:bg-white transition-all outline-none"
@@ -195,6 +198,7 @@ const Logistics = () => {
                               <label className="text-[10px] font-black text-slate-500 tracking-widest px-1">Standard Delivery Fee (KES)</label>
                               <input
                                  required
+                                 disabled={readOnly}
                                  type="number"
                                  value={formData.fee || 0}
                                  onChange={e => setFormData({ ...formData, fee: e.target.value })}
@@ -207,6 +211,7 @@ const Logistics = () => {
                               <label className="text-[10px] font-black text-slate-500 tracking-widest px-1">Contact Phone</label>
                               <input
                                  required
+                                 disabled={readOnly}
                                  value={formData.phone || ''}
                                  onChange={e => setFormData({ ...formData, phone: e.target.value })}
                                  className="w-full px-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold focus:bg-white transition-all outline-none"
@@ -219,6 +224,7 @@ const Logistics = () => {
                         <label className="text-[10px] font-black text-slate-500 tracking-widest px-1">Physical Location Address</label>
                         <textarea
                            required
+                           disabled={readOnly}
                            value={formData.address || ''}
                            onChange={e => setFormData({ ...formData, address: e.target.value })}
                            className="w-full px-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold focus:bg-white transition-all outline-none h-24"
@@ -250,6 +256,7 @@ const Logistics = () => {
                            <input
                               type="checkbox"
                               id="free-del"
+                              disabled={readOnly}
                               checked={formData.freeDeliveryEligibility || false}
                               onChange={e => setFormData({ ...formData, freeDeliveryEligibility: e.target.checked })}
                               className="w-5 h-5 rounded border-blue-300 text-blue-600 focus:ring-blue-500"
@@ -258,22 +265,24 @@ const Logistics = () => {
                         </div>
                      )}
 
-                     <div className="pt-6 flex gap-4">
-                        <button
-                           type="button"
-                           onClick={() => setIsModalOpen(false)}
-                           className="flex-1 py-4 border border-slate-200 rounded-2xl text-xs font-black tracking-widest hover:bg-slate-50 transition-all font-sans"
-                        >
-                           Cancel
-                        </button>
-                        <button
-                           type="submit"
-                           className="flex-[2] py-4 bg-slate-900 text-white rounded-2xl text-xs font-black tracking-widest hover:bg-slate-800 shadow-xl shadow-slate-200 transition-all flex items-center justify-center gap-2"
-                        >
-                           <Save size={16} />
-                           {editingItem ? 'Commit Changes' : 'Initialize Asset'}
-                        </button>
-                     </div>
+                     {!readOnly && (
+                        <div className="pt-6 flex gap-4">
+                           <button
+                              type="button"
+                              onClick={() => setIsModalOpen(false)}
+                              className="flex-1 py-4 border border-slate-200 rounded-2xl text-xs font-black tracking-widest hover:bg-slate-50 transition-all font-sans"
+                           >
+                              Cancel
+                           </button>
+                           <button
+                              type="submit"
+                              className="flex-[2] py-4 bg-slate-900 text-white rounded-2xl text-xs font-black tracking-widest hover:bg-slate-800 shadow-xl shadow-slate-200 transition-all flex items-center justify-center gap-2"
+                           >
+                              <Save size={16} />
+                              {editingItem ? 'Commit Changes' : 'Initialize Asset'}
+                           </button>
+                        </div>
+                     )}
                   </form>
                </div>
             </div>
@@ -303,12 +312,22 @@ const LogisticsCard = ({ item, type, onEdit }) => (
          <div className="w-12 h-12 rounded-2xl bg-slate-50 flex items-center justify-center border border-slate-100 group-hover:scale-110 transition-transform">
             {type === 'stations' ? <Box className="text-blue-600" /> : <Navigation className="text-purple-600" />}
          </div>
-         <button
-            onClick={onEdit}
-            className="p-2.5 bg-slate-50 border border-slate-100 rounded-xl text-slate-400 hover:text-slate-900 hover:bg-white transition-all shadow-sm"
-         >
-            <Edit2 size={16} />
-         </button>
+         {!readOnly && (
+            <button
+               onClick={onEdit}
+               className="p-2.5 bg-slate-50 border border-slate-100 rounded-xl text-slate-400 hover:text-slate-900 hover:bg-white transition-all shadow-sm"
+            >
+               <Edit2 size={16} />
+            </button>
+         )}
+         {readOnly && (
+            <button
+               onClick={onEdit}
+               className="p-2.5 bg-slate-50 border border-slate-100 rounded-xl text-slate-400 hover:text-blue-600 hover:bg-white transition-all shadow-sm"
+            >
+               <Info size={16} />
+            </button>
+         )}
       </div>
 
       <div className="space-y-4">
@@ -376,13 +395,18 @@ const EmptyState = ({ type, hasSearch, onAdd }) => (
             : `Expand your hub's operational reach by defining new ${type === 'stations' ? 'pickup points' : 'delivery sectors'} in this zone.`
          }
       </p>
-      {!hasSearch && (
+      {(!hasSearch && !readOnly) && (
          <button
             onClick={onAdd}
             className="mt-10 px-8 py-4 bg-slate-900 text-white rounded-2xl text-[10px] font-black tracking-widest shadow-xl shadow-slate-200 hover:bg-slate-800 transition-all flex items-center gap-3"
          >
             <Plus size={16} strokeWidth={3} /> Establish First Asset
          </button>
+      )}
+      {(!hasSearch && readOnly) && (
+         <div className="mt-10 flex items-center gap-3 text-slate-400 text-[10px] font-black tracking-widest uppercase">
+            <Shield size={16} /> Read Only Mode Enabled
+         </div>
       )}
    </div>
 );
