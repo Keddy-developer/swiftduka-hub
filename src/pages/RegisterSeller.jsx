@@ -47,7 +47,7 @@ export default function RegisterSeller() {
             if (!editId) return;
             try {
                 setFetching(true);
-                const res = await axiosInstance.get(`/seller/seller/${editId}`);
+                const res = await axiosInstance.get(`/seller/${editId}`);
                 const s = res.data.data || res.data;
                 setForm({
                     userIdentifier: s.email, email: s.email || "",

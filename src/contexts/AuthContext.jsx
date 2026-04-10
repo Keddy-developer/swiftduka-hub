@@ -23,17 +23,17 @@ export const AuthProvider = ({ children }) => {
             const token = localStorage.getItem('fulfillment_token');
             const cachedHub = localStorage.getItem('active_fulfillment_hub');
 
-            // 🛡️ Always fetch CSRF token first for secure mutations
+            if (!token) {
+                setLoading(false);
+                return;
+            }
+
+            // 🛡️ Always fetch CSRF token for secure mutations when token exists
             try {
                const { data: csrfData } = await axiosInstance.get('/csrf-token');
                setCsrfToken(csrfData.csrfToken);
             } catch (err) {
                console.error("CSRF Bootstrap Failure:", err);
-            }
-
-            if (!token) {
-                setLoading(false);
-                return;
             }
 
             // Restore hub from cache immediately for UX

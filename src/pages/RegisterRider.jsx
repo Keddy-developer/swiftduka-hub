@@ -22,9 +22,11 @@ export default function RegisterRider() {
     name: "", age: "", drivingLicence: "", nationalId: "",
     numberPlate: "", phone: "", email: "", vehicleType: "",
     vehicleModel: "", vehicleColor: "", vehicleImage: null,
+    profileImage: null,
     selectedHubId: "" // Stores admin's manually selected hub
   });
   const [existingImage, setExistingImage] = useState(null);
+  const [existingProfileImage, setExistingProfileImage] = useState(null);
 
   useEffect(() => {
     // If Admin doesn't have a hub, fetch all hubs so they can assign the rider
@@ -63,6 +65,7 @@ export default function RegisterRider() {
             selectedHubId: rider.fulfillmentHubId || ""
           }));
           setExistingImage(rider.vehicleImage || null);
+          setExistingProfileImage(rider.user?.avatar || null);
         })
         .catch(err => {
           toast.error("Manifest retrieval failure");
@@ -75,6 +78,7 @@ export default function RegisterRider() {
   const handleChange = (e) => {
     const { name, value, files } = e.target;
     if (name === "vehicleImage") setForm({ ...form, vehicleImage: files[0] });
+    else if (name === "profileImage") setForm({ ...form, profileImage: files[0] });
     else setForm({ ...form, [name]: value });
   };
 
@@ -92,10 +96,17 @@ export default function RegisterRider() {
         uploadedImageUrl = uploadResult.imageUrl;
       }
 
+      let uploadedProfileUrl = existingProfileImage;
+      if (form.profileImage) {
+        const uploadResult = await uploadToCloudinary(form.profileImage);
+        uploadedProfileUrl = uploadResult.imageUrl;
+      }
+
       const payload = {
         ...form,
         age: parseInt(form.age, 10),
         vehicleImage: uploadedImageUrl || existingImage,
+        profileImage: uploadedProfileUrl || existingProfileImage,
         fulfillmentHubId: targetHubId
       };
 
@@ -158,6 +169,38 @@ export default function RegisterRider() {
             </div>
 
             <div className="p-6 md:p-8 space-y-8">
+              {/* Profile Image Upload */}
+              <div className="flex flex-col md:flex-row items-center gap-8 pb-8 border-b border-slate-100">
+                <div className="relative group/profile">
+                  <div className="w-32 h-32 rounded-3xl bg-slate-100 border-4 border-white shadow-xl overflow-hidden relative">
+                    {form.profileImage || existingProfileImage ? (
+                      <img 
+                        src={form.profileImage ? URL.createObjectURL(form.profileImage) : existingProfileImage} 
+                        className="w-full h-full object-cover"
+                        alt="Profile"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex flex-col items-center justify-center text-slate-300">
+                        <User size={40} />
+                      </div>
+                    )}
+                    <label className="absolute inset-0 bg-black/40 opacity-0 group-hover/profile:opacity-100 transition-opacity flex items-center justify-center cursor-pointer">
+                      <Camera className="text-white w-8 h-8" />
+                      <input type="file" name="profileImage" className="hidden" accept="image/*" onChange={handleChange} />
+                    </label>
+                  </div>
+                  <div className="absolute -bottom-2 -right-2 p-2 bg-blue-600 rounded-xl text-white shadow-lg border-2 border-white">
+                    <Upload size={14} />
+                  </div>
+                </div>
+                <div className="flex-1 space-y-1">
+                  <h4 className="text-sm font-black text-slate-900 tracking-tight">Personnel Profile Image</h4>
+                  <p className="text-[10px] font-bold text-slate-400 tracking-widest leading-relaxed">
+                    Upload a clear, front-facing photo of the agent. This image is used for identity verification and customer interaction.
+                  </p>
+                </div>
+              </div>
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <InputUnit label="Full Legal Identity" name="name" value={form.name} onChange={handleChange} required icon={User} />
                 <InputUnit label="Personnel Age (Years)" name="age" type="number" min={18} value={form.age} onChange={handleChange} required icon={Calendar} />

@@ -50,10 +50,7 @@ const Orders = () => {
       const searchParam = search ? `&search=${encodeURIComponent(search)}` : '';
 
       const url = `/hubs/${hub.id}/seller-orders?period=${period}&page=${page}&limit=${limit}${statusParam}${searchParam}`;
-      console.log(`[Orders] Fetching from: ${url}`);
-
       const res = await axiosInstance.get(url);
-      console.log(`[Orders] Response:`, res.data);
 
       const ordersData = res.data.orders || [];
       const paginationData = res.data.pagination || { total: 0, totalPages: 1, hasNextPage: false, hasPrevPage: false };
