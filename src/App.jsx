@@ -30,6 +30,7 @@ import Logistics from './pages/Logistics';
 import NotificationsPage from './pages/Notifications';
 import TrackingPage from './pages/TrackingPage';
 import AssignCourier from './pages/AssignCourier';
+import StaffManagement from './pages/StaffManagement';
 import NotificationDropdown from './components/ui/NotificationDropdown';
 
 const MainLayout = ({ children }) => {
@@ -39,6 +40,7 @@ const MainLayout = ({ children }) => {
 
    const links = [
       { name: 'Workbench', icon: BarChart3, path: '/' },
+      { name: 'Staff Intelligence', icon: Users, path: '/staff-management' },
       { name: 'Seller Network', icon: Users, path: '/sellers' },
       { name: 'Inbound & Stocks', icon: Package, path: '/inventory' },
       { name: 'Order Fulfillment', icon: ClipboardList, path: '/orders' },
@@ -278,6 +280,7 @@ function App() {
                <Route path="/zone-info" element={<PrivateRoute><ZoneInfo /></PrivateRoute>} />
                <Route path="/logistics" element={<PrivateRoute><Logistics /></PrivateRoute>} />
                <Route path="/notifications" element={<PrivateRoute><NotificationsPage /></PrivateRoute>} />
+               <Route path="/staff-management" element={<PrivateRoute><StaffManagement /></PrivateRoute>} />
                {/* Redirect all unknown routes to dashboard */}
                <Route path="*" element={<Navigate to="/" />} />
             </Routes>

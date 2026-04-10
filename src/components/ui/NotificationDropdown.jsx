@@ -30,6 +30,12 @@ const NotificationDropdown = () => {
   }, [hub?.id]);
 
   useEffect(() => {
+    fetchRecent();
+    const interval = setInterval(fetchRecent, 60000); // Poll every 60s
+    return () => clearInterval(interval);
+  }, [fetchRecent]);
+
+  useEffect(() => {
     if (open) fetchRecent();
   }, [open, fetchRecent]);
 
@@ -56,8 +62,10 @@ const NotificationDropdown = () => {
 
   const getIcon = (type) => {
     switch (type) {
-      case 'URGENT': return <ShieldAlert className="w-4 h-4 text-rose-500" />;
+      case 'URGENT':
+      case 'DANGER': return <ShieldAlert className="w-4 h-4 text-rose-500" />;
       case 'WARNING': return <AlertTriangle className="w-4 h-4 text-amber-500" />;
+      case 'SUCCESS': return <Check className="w-4 h-4 text-emerald-500" />;
       default: return <Info className="w-4 h-4 text-blue-500" />;
     }
   };
