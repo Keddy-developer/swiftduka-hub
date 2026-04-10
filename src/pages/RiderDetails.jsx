@@ -308,4 +308,4 @@ const CredItem = ({ icon: Icon, label, value, color = "text-slate-900" }) => (
     </div>
 );
 
-export default RiderDetails;
+
