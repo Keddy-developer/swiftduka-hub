@@ -10,6 +10,7 @@ import { toast } from "react-toastify";
 import axiosInstance from "../services/axiosConfig";
 import { useAuth } from "../contexts/AuthContext";
 import LogisticsAuditTrail from "../components/LogisticsAuditTrail";
+import { exportToCSV } from "../utils/exportUtils";
 
 const StatusBadge = ({ status }) => {
   const configs = {
@@ -88,11 +89,30 @@ const Orders = () => {
   }, [search]);
 
   const handleDownloadReport = () => {
+    if (!orders.length) return toast.error("No data to export");
+    
     toast.info("Generating order report...");
-    // Future: implement pdf download endpoint call
-    setTimeout(() => {
-      toast.success("Ready for download. Check your downloads.");
-    }, 2000);
+    
+    const exportData = orders.map(sellerOrder => ({
+      Tracking: sellerOrder.order?.trackingNumber || 'N/A',
+      Date: new Date(sellerOrder.order?.createdAt || sellerOrder.createdAt).toLocaleString(),
+      Customer: sellerOrder.order?.user?.username || 'Guest',
+      Phone: sellerOrder.order?.user?.phone || 'N/A',
+      Product: sellerOrder.product?.name || 'Unknown',
+      Quantity: sellerOrder.quantity || 1,
+      Amount: sellerOrder.order?.totalCost || 0,
+      Status: sellerOrder.deliveryStatus || 'Pending',
+      DeliveryType: sellerOrder.order?.deliveryType || 'PICKUP',
+      Destination: sellerOrder.order?.deliveryType === 'DOOR' 
+        ? (sellerOrder.order?.deliveryArea?.name || 'Door') 
+        : (sellerOrder.order?.pickupStation?.name || 'Station')
+    }));
+
+    exportToCSV(exportData, `Order_Report_${hub?.name || 'Hub'}`, [
+      "Tracking", "Date", "Customer", "Phone", "Product", "Quantity", "Amount", "Status", "DeliveryType", "Destination"
+    ]);
+    
+    toast.success("Download started");
   };
 
   if (loading) return (

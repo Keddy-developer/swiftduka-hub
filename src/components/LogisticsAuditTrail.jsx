@@ -4,6 +4,8 @@ import {
     Activity, Clock, Package, Truck, AlertTriangle,
     CheckCircle, Info, ChevronRight, RefreshCw, Layers
 } from 'lucide-react';
+import { exportToCSV } from '../utils/exportUtils';
+import { toast } from 'react-toastify';
 
 const LogisticsAuditTrail = ({ hubId, filterType }) => {
     const [logs, setLogs] = useState([]);
@@ -36,7 +38,7 @@ const LogisticsAuditTrail = ({ hubId, filterType }) => {
     if (loading) return (
         <div className="p-10 text-center opacity-30">
             <RefreshCw size={24} className="mx-auto mb-2 animate-spin text-slate-400" />
-            <p className="text-[10px] font-black  tracking-widest">Synchronizing Audit Trail...</p>
+            <p className="text-[10px] font-black  tracking-widest">Loading activity logs...</p>
         </div>
     );
 
@@ -45,10 +47,10 @@ const LogisticsAuditTrail = ({ hubId, filterType }) => {
             <div className="px-6 py-4 bg-slate-900 border-b border-slate-800 flex items-center justify-between">
                 <div className="flex items-center gap-3">
                     <Activity size={18} className="text-blue-400" />
-                    <h3 className="text-xs font-black text-white  tracking-widest">Tactical Audit Trail</h3>
+                    <h3 className="text-xs font-black text-white  tracking-widest">Activity Logs</h3>
                 </div>
                 <div className="flex items-center gap-4">
-                    <span className="text-[9px] font-black text-slate-500  tracking-tighter">Real-time Node Activity</span>
+                    <span className="text-[9px] font-black text-slate-500  tracking-tighter">Live activity</span>
                     <button onClick={() => fetchLogs(true)} className="p-1 text-slate-400 hover:text-white transition-colors">
                         <RefreshCw size={14} className={refreshing ? 'animate-spin' : ''} />
                     </button>
@@ -95,14 +97,30 @@ const LogisticsAuditTrail = ({ hubId, filterType }) => {
                 ) : (
                     <div className="p-20 text-center opacity-30 italic">
                         <Package size={32} className="mx-auto mb-3" />
-                        <p className="text-[10px] font-black  tracking-widest">No activity reported for this tactical window.</p>
+                        <p className="text-[10px] font-black  tracking-widest">No activity found for this period.</p>
                     </div>
                 )}
             </div>
 
             <div className="px-6 py-3 bg-slate-50 border-t border-slate-100 flex items-center justify-between">
-                <p className="text-[9px] font-black text-slate-400  tracking-widest">End of Record</p>
-                <button onClick={() => fetchLogs()} className="text-[9px] font-black text-blue-600  tracking-widest hover:underline">Download Master Logs</button>
+                <p className="text-[9px] font-black text-slate-400  tracking-widest">End of logs</p>
+                <button 
+                  onClick={() => {
+                    if (!logs.length) return toast.error("No logs to download");
+                    const exportData = logs.map(l => ({
+                        Time: new Date(l.time).toLocaleString(),
+                        Type: l.type,
+                        Title: l.title,
+                        Message: l.message,
+                        Severity: l.severity
+                    }));
+                    exportToCSV(exportData, `Logs_${filterType || 'All'}_${hubId}`, ["Time", "Type", "Title", "Message", "Severity"]);
+                    toast.success("Logs downloaded");
+                  }} 
+                  className="text-[9px] font-black text-blue-600 tracking-widest hover:underline"
+                >
+                  Download All Logs
+                </button>
             </div>
         </section>
     );

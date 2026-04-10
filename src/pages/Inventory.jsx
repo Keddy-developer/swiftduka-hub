@@ -5,8 +5,9 @@ import {
   Plus, Search, Package, RefreshCw,
   ArrowDown, ArrowUp, X, Loader2, AlertTriangle,
   Truck, Layers, CheckCircle, ChevronDown, MoreVertical,
-  Edit2, Trash2, ExternalLink, Zap  // Added Zap icon
+  Edit2, Trash2, ExternalLink, Zap, Download  // Added Zap and Download icon
 } from 'lucide-react';
+import { exportToCSV } from '../utils/exportUtils';
 import { toast } from 'react-toastify';
 import QRCode from 'react-qr-code';
 import { Html5QrcodeScanner } from 'html5-qrcode';
@@ -51,7 +52,7 @@ const AdjustModal = ({ item, hub, onClose, onSuccess }) => {
         mode,
         notes: `ADJUSTMENT: ${reason}`
       });
-      toast.success('Manifest reconciled');
+      toast.success('Stock updated');
       onSuccess();
       onClose();
     } catch (err) {
@@ -66,7 +67,7 @@ const AdjustModal = ({ item, hub, onClose, onSuccess }) => {
       <div className="bg-white rounded-xl shadow-2xl w-full max-w-sm p-8 overflow-hidden animate-in zoom-in-95 duration-200">
         <div className="flex items-center justify-between mb-8">
           <div className="min-w-0 flex-1">
-            <h3 className="text-lg font-black text-slate-900 tracking-tight">Reconcile Units</h3>
+            <h3 className="text-lg font-black text-slate-900 tracking-tight">Adjust Stock</h3>
             <p className="text-[10px] font-bold text-slate-400 tracking-widest mt-1 truncate">{item.product?.name}</p>
           </div>
           <button onClick={onClose} className="p-2 text-slate-300 hover:text-slate-900 transition-colors">
@@ -75,7 +76,7 @@ const AdjustModal = ({ item, hub, onClose, onSuccess }) => {
         </div>
 
         <div className="bg-slate-900 rounded-xl p-5 mb-8 text-center border-4 border-slate-800 shadow-xl">
-          <span className="text-[10px] font-black text-slate-400 tracking-[0.2em] block mb-1">Active Hub Manifest</span>
+          <span className="text-[10px] font-black text-slate-400 tracking-[0.2em] block mb-1">Available Stock</span>
           <span className="text-4xl font-black text-white tracking-tighter">{item.quantity}</span>
           <span className="text-[12px] font-black text-slate-500 ml-2 tracking-widest">PCS</span>
         </div>
@@ -98,7 +99,7 @@ const AdjustModal = ({ item, hub, onClose, onSuccess }) => {
           </div>
 
           <div className="space-y-2">
-            <label className="text-[10px] font-black text-slate-400 tracking-widest ml-1">Tactical Reason</label>
+            <label className="text-[10px] font-black text-slate-400 tracking-widest ml-1">Reason</label>
             <input type="text" placeholder="e.g. Damage, Transfer, Shrinkage" value={reason} onChange={e => setReason(e.target.value)}
               className="w-full border border-slate-200 rounded-lg px-4 py-2.5 text-xs font-bold outline-none focus:border-slate-900 shadow-sm" />
           </div>
@@ -107,7 +108,7 @@ const AdjustModal = ({ item, hub, onClose, onSuccess }) => {
             className={`w-full py-4 mt-2 rounded-lg text-white text-[11px] font-black tracking-widest shadow-xl transition-all ${mode === 'add' ? 'bg-slate-900 hover:bg-slate-800' : 'bg-rose-600 hover:bg-rose-700'
               } disabled:opacity-50`}
           >
-            {loading ? 'SYNCHRONIZING...' : `Commit ${mode === 'add' ? 'Inbound' : 'Outbound'}`}
+            {loading ? 'SAVING...' : `${mode === 'add' ? 'Add to Stock' : 'Remove from Stock'}`}
           </button>
         </form>
       </div>
@@ -162,7 +163,7 @@ const QRModal = ({ item, onClose }) => {
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in">
       <div className="bg-white rounded-xl shadow-2xl w-full max-w-sm p-8 text-center animate-in zoom-in-95">
         <div className="flex justify-between items-center mb-6">
-          <h3 className="text-lg font-black text-slate-900">Asset Identity</h3>
+          <h3 className="text-lg font-black text-slate-900">Product QR Code</h3>
           <button onClick={onClose} className="p-2 text-slate-400 hover:text-slate-900"><X size={20} /></button>
         </div>
 
@@ -215,12 +216,12 @@ const ScannerModal = ({ onClose, onScan }) => {
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in">
       <div className="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden animate-in zoom-in-95">
         <div className="px-6 py-4 bg-slate-900 flex items-center justify-between text-white">
-          <h3 className="font-black text-sm tracking-widest uppercase">Tactical Scanner</h3>
+          <h3 className="font-black text-sm tracking-widest uppercase">Scanner</h3>
           <button onClick={onClose}><X size={20} /></button>
         </div>
         <div id="reader" className="p-4 bg-slate-50"></div>
         <div className="p-4 text-center">
-          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest animate-pulse">Position SKU within standard parameters</p>
+          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest animate-pulse">Point the camera at the product barcode</p>
         </div>
       </div>
     </div>
@@ -266,13 +267,13 @@ const InventoryCard = ({ item, onAdjust, onQR }) => {
 
       <div className="px-4 py-3 bg-slate-50 border-t border-slate-100 flex items-center justify-between">
         <div className="flex flex-col">
-          <span className="text-[8px] font-black text-slate-400 tracking-widest leading-none">Manifest</span>
+          <span className="text-[8px] font-black text-slate-400 tracking-widest leading-none">Stock</span>
           <span className={`text-xl font-black tracking-tighter ${isLow ? 'text-rose-600' : 'text-slate-900'}`}>
             {item.quantity.toLocaleString()} <span className="text-[10px] font-bold text-slate-400">Pcs</span>
           </span>
         </div>
         <div className="text-right">
-          <span className="text-[8px] font-black text-slate-400 tracking-widest leading-none">Last Sync</span>
+          <span className="text-[8px] font-black text-slate-400 tracking-widest leading-none">Last Updated</span>
           <p className="text-[10px] font-black text-slate-900 mt-1">{lastDate}</p>
         </div>
       </div>
@@ -339,8 +340,8 @@ const ReceiveShipmentModal = ({ hub, onClose, onSuccess }) => {
       <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg overflow-hidden animate-in zoom-in-95 duration-200">
         <div className="px-8 py-6 bg-slate-900 flex items-center justify-between">
           <div>
-            <h2 className="text-lg font-black text-white tracking-tight">Lock Inbound Stock</h2>
-            <p className="text-[10px] font-bold text-slate-400 tracking-widest mt-1">Physical Inventory Reconciliation</p>
+            <h2 className="text-lg font-black text-white tracking-tight">Add Stock</h2>
+            <p className="text-[10px] font-bold text-slate-400 tracking-widest mt-1">Receive new items into the hub</p>
           </div>
           <button onClick={onClose} className="text-white/50 hover:text-white transition-colors">
             <X size={20} />
@@ -349,7 +350,7 @@ const ReceiveShipmentModal = ({ hub, onClose, onSuccess }) => {
 
         <form onSubmit={handleSubmit} className="p-8 space-y-6 max-h-[80vh] overflow-y-auto no-scrollbar">
           <div className="space-y-2">
-            <label className="text-[10px] font-black text-slate-400 tracking-widest ml-1">Target Asset</label>
+            <label className="text-[10px] font-black text-slate-400 tracking-widest ml-1">Product</label>
             {selected ? (
               <div className="flex items-center gap-4 bg-blue-50 border border-blue-100 rounded-lg p-4">
                 <img src={selected.image} alt="" className="w-12 h-12 rounded bg-white object-cover border border-blue-200 shadow-sm" />
@@ -365,7 +366,7 @@ const ReceiveShipmentModal = ({ hub, onClose, onSuccess }) => {
               <div className="relative">
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                 <input
-                  type="text" placeholder="Scan SKU or Search Product Catalog..."
+                  type="text" placeholder="Search or scan product SKU..."
                   value={productSearch} onChange={e => setProductSearch(e.target.value)}
                   className="w-full bg-slate-50 border border-slate-200 rounded-lg pl-11 pr-4 py-3 text-sm font-bold outline-none focus:bg-white focus:border-slate-900 shadow-sm transition-all"
                 />
@@ -391,20 +392,20 @@ const ReceiveShipmentModal = ({ hub, onClose, onSuccess }) => {
 
           <div className="grid grid-cols-2 gap-6">
             <div className="space-y-2">
-              <label className="text-[10px] font-black text-slate-400 tracking-widest ml-1">Quantity Received</label>
+              <label className="text-[10px] font-black text-slate-400 tracking-widest ml-1">Quantity</label>
               <input type="number" min="1" placeholder="Units Count" value={quantity} onChange={e => setQuantity(e.target.value)}
                 className="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-3 text-lg font-black outline-none focus:bg-white focus:border-slate-900 shadow-sm transition-all" required />
             </div>
             <div className="space-y-2">
-              <label className="text-[10px] font-black text-slate-400 tracking-widest ml-1">Supplier Entity</label>
+              <label className="text-[10px] font-black text-slate-400 tracking-widest ml-1">Supplier</label>
               <input type="text" placeholder="Vendor / Store" value={supplier} onChange={e => setSupplier(e.target.value)}
                 className="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-3 text-sm font-bold outline-none focus:bg-white focus:border-slate-900 shadow-sm transition-all" />
             </div>
           </div>
 
           <div className="space-y-2">
-            <label className="text-[10px] font-black text-slate-400 tracking-widest ml-1">Logistics Notes</label>
-            <textarea placeholder="Condition reports, batch numbers, or tactical notes..." value={notes} onChange={e => setNotes(e.target.value)}
+            <label className="text-[10px] font-black text-slate-400 tracking-widest ml-1">Notes</label>
+            <textarea placeholder="Any extra details about this stock..." value={notes} onChange={e => setNotes(e.target.value)}
               className="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-3 text-xs font-medium outline-none focus:bg-white focus:border-slate-900 shadow-sm transition-all resize-none h-24" />
           </div>
 
@@ -413,7 +414,7 @@ const ReceiveShipmentModal = ({ hub, onClose, onSuccess }) => {
             <button type="submit" disabled={submitting || !selected}
               className="flex-1 py-3 bg-slate-900 text-white rounded text-[11px] font-black tracking-widest hover:bg-slate-800 transition-all shadow-xl disabled:opacity-50"
             >
-              {submitting ? 'Syncing...' : 'Confirm Inbound'}
+              {submitting ? 'Saving...' : 'Add Stock'}
             </button>
           </div>
         </form>
@@ -434,6 +435,31 @@ const Inventory = () => {
   const [qrItem, setQrItem] = useState(null);
   const [showScanner, setShowScanner] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const [downloading, setDownloading] = useState(false);
+
+  const handleDownloadInventory = () => {
+    if (!inventory.length) return toast.error("No inventory to export");
+    setDownloading(true);
+    toast.info("Generating inventory report...");
+    
+    const exportData = inventory.map(item => ({
+      Product: item.product?.name || 'N/A',
+      SKU: item.product?.sku || 'N/A',
+      Seller: item.product?.seller?.storeName || 'Platform',
+      Stock: item.quantity,
+      Price: item.product?.price || 0,
+      TotalValue: item.quantity * (item.product?.price || 0),
+      LowStockLimit: item.lowStockAlert || 10,
+      LastUpdate: item.lastRestocked ? new Date(item.lastRestocked).toLocaleString() : 'N/A'
+    }));
+
+    exportToCSV(exportData, `Inventory_Report_${hub?.name || 'Hub'}`, [
+      "Product", "SKU", "Seller", "Stock", "Price", "TotalValue", "LowStockLimit", "LastUpdate"
+    ]);
+    
+    setDownloading(false);
+    toast.success("Download started");
+  };
 
   const fetchData = useCallback(async (silent = false) => {
     if (!hub?.id) return setLoading(false);
@@ -466,7 +492,7 @@ const Inventory = () => {
   if (loading) return (
     <div className="flex flex-col items-center justify-center p-20 opacity-50">
       <Loader2 className="w-8 h-8 animate-spin mb-3 text-slate-400" />
-      <span className="text-xs font-bold tracking-widest text-slate-500">Retrieving Stock Manifest...</span>
+      <span className="text-xs font-bold tracking-widest text-slate-500">Loading inventory...</span>
     </div>
   );
 
@@ -480,32 +506,35 @@ const Inventory = () => {
       {/* ── ALIBABA STYLE TOP NAV ── */}
       <div className="flex flex-col md:flex-row md:items-end justify-between border-b border-slate-200 pb-6 gap-6">
         <div>
-          <h1 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight">Stock Manifest</h1>
-          <p className="text-xs md:text-sm text-slate-500 font-bold tracking-wide mt-1">Real-time Node Inventory Control</p>
+          <h1 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight">Inventory</h1>
+          <p className="text-xs md:text-sm text-slate-500 font-bold tracking-wide mt-1">Manage your hub stock</p>
         </div>
         <div className="flex gap-2 w-full md:w-auto">
+          <button onClick={handleDownloadInventory} className="flex-1 md:flex-none px-6 py-3 bg-white border border-slate-200 rounded text-[10px] font-black text-slate-600 hover:bg-slate-50 transition-all flex items-center justify-center gap-2 tracking-widest">
+            <Download className="w-3.5 h-3.5" /> Reports
+          </button>
           <button onClick={() => fetchData(true)} className="flex-1 md:flex-none px-6 py-3 bg-white border border-slate-200 rounded text-[10px] font-black text-slate-600 hover:bg-slate-50 transition-all flex items-center justify-center gap-2 tracking-widest">
-            <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? 'animate-spin' : ''}`} /> Sync
+            <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? 'animate-spin' : ''}`} /> Refresh
           </button>
           <button onClick={() => setShowReceiveModal(true)} className="flex-1 md:flex-none px-6 py-3 bg-slate-900 text-white rounded text-[10px] font-black hover:bg-slate-800 transition-all flex items-center justify-center gap-2 shadow-xl shadow-slate-200 tracking-widest">
-            <Plus size={16} /> Inbound
+            <Plus size={16} /> Add Stock
           </button>
         </div>
       </div>
 
       {/* ── KPI GRID ── */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 lg:gap-6">
-        <StatTile label="Unique SKUs" value={inventory.length} icon={Layers} color="slate" />
+        <StatTile label="Total Products" value={inventory.length} icon={Layers} color="slate" />
         <StatTile label="Total Units" value={totalUnits.toLocaleString()} icon={Package} color="blue" />
-        <StatTile label="Critical Level" value={lowStockCount} icon={AlertTriangle} color="amber" />
-        <StatTile label="Node Health" value={`${inventory.length > 0 ? Math.round(((inventory.length - lowStockCount) / inventory.length) * 100) : 100}%`} icon={CheckCircle} color="green" />
+        <StatTile label="Low Stock Items" value={lowStockCount} icon={AlertTriangle} color="amber" />
+        <StatTile label="Stock Status" value={`${inventory.length > 0 ? Math.round(((inventory.length - lowStockCount) / inventory.length) * 100) : 100}%`} icon={CheckCircle} color="green" />
       </div>
 
       {/* ── SEARCH & FILTERS ── */}
       <div className="flex flex-col md:flex-row gap-4 bg-white p-4 border border-slate-200 rounded-xl shadow-sm">
         <div className="flex-1 relative group">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-slate-900 transition-colors" />
-          <input type="text" placeholder="Scan SKU / Search Asset Catalog..." value={search} onChange={e => setSearch(e.target.value)}
+          <input type="text" placeholder="Scan or search products..." value={search} onChange={e => setSearch(e.target.value)}
             className="w-full bg-slate-50 border border-slate-200 rounded-lg pl-12 pr-4 py-3 text-sm font-bold outline-none focus:bg-white focus:border-slate-900 transition-all" />
         </div>
         <div className="flex gap-2">
@@ -534,8 +563,8 @@ const Inventory = () => {
         {filtered.length === 0 && (
           <div className="col-span-full py-24 text-center bg-white border-2 border-dashed border-slate-200 rounded-3xl opacity-40">
             <Package size={48} className="mx-auto mb-4 text-slate-300 animate-pulse" />
-            <h3 className="text-sm font-black tracking-[0.3em] text-slate-400">Zero Record Delta</h3>
-            <p className="text-[10px] font-bold text-slate-400 mt-2">No assets matching current logistics parameters.</p>
+            <h3 className="text-sm font-black tracking-[0.3em] text-slate-400">No Products Found</h3>
+            <p className="text-[10px] font-bold text-slate-400 mt-2">No products were found matching your search.</p>
           </div>
         )}
       </div>
@@ -543,8 +572,8 @@ const Inventory = () => {
       {/* ── AUDIT TRAIL ── */}
       <div className="pt-10 border-t border-slate-200">
         <div className="mb-6">
-          <h3 className="text-xl font-black text-slate-900 tracking-tight">Inbound & Internal Audit</h3>
-          <p className="text-[10px] font-bold text-slate-400 tracking-widest mt-1">Recent physical inventory reconciliations</p>
+          <h3 className="text-xl font-black text-slate-900 tracking-tight">Stock Logs</h3>
+          <p className="text-[10px] font-bold text-slate-400 tracking-widest mt-1">Recent stock changes and updates</p>
         </div>
         <LogisticsAuditTrail hubId={hub?.id || null} filterType="INVENTORY" />
       </div>
