@@ -84,7 +84,7 @@ export default function RegisterSeller() {
         try {
             const payload = { userIdentifier: form.userIdentifier, profile: { ...form, agreeToTerms: true } };
             if (editId) {
-                await axiosInstance.patch(`/seller/sellers/${editId}/update`, payload);
+                await axiosInstance.patch(`/seller/${editId}/update`, payload);
                 toast.success("Merchant dossier serialized");
             } else {
                 await axiosInstance.post('/seller/become-a-seller', payload);
