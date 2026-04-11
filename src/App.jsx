@@ -6,8 +6,8 @@ import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
 import {
-  Package, Users, ClipboardList, Search, Warehouse, Truck, Navigation, Globe,
-  Settings, RotateCw, LogOut, Menu, X, BarChart3, ChevronDown, Check
+   Package, Users, ClipboardList, Search, Warehouse, Truck, Navigation, Globe,
+   Settings, RotateCw, LogOut, Menu, X, BarChart3, ChevronDown, Check
 } from 'lucide-react';
 
 // Pages
@@ -32,6 +32,7 @@ import Logistics from './pages/Logistics';
 import NotificationsPage from './pages/Notifications';
 import StaffManagement from './pages/StaffManagement';
 import StaffDetails from './pages/StaffDetails';
+import Home from './pages/Home';
 
 import NotificationDropdown from './components/NotificationDropdown';
 import { hasAccess, isReadOnly } from './utils/permissions';
@@ -216,16 +217,16 @@ const PrivateRoute = ({ children, resource }) => {
    const { user, loading } = useAuth();
    if (loading) return null;
    if (!user) return <Navigate to="/login" />;
-   
+
    if (resource && !hasAccess(user.role || [], resource)) {
       toast.error(`Unauthorized: No access to ${resource}`);
-      return <Navigate to="/" />;
+      return <Navigate to="/home" />;
    }
 
    // Pass read-only state to children if they are components
    const roles = user.role || [];
    const readOnly = resource ? isReadOnly(roles, resource) : false;
-   
+
    return (
       <MainLayout>
          {React.cloneElement(children, { readOnly })}
@@ -259,7 +260,8 @@ function App() {
                <Route path="/notifications" element={<PrivateRoute><NotificationsPage /></PrivateRoute>} />
                <Route path="/staff-management" element={<PrivateRoute resource="Staff Intelligence"><StaffManagement /></PrivateRoute>} />
                <Route path="/staff/:id" element={<PrivateRoute resource="Staff Intelligence"><StaffDetails /></PrivateRoute>} />
-               <Route path="*" element={<Navigate to="/" />} />
+               <Route path="/home" element={<PrivateRoute><Home /></PrivateRoute>} />
+               <Route path="*" element={<Navigate to="/home" />} />
             </Routes>
          </BrowserRouter>
          <ToastContainer position="top-right" theme="colored" autoClose={3000} hideProgressBar />
