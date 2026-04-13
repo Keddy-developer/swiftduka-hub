@@ -104,8 +104,8 @@ const Dashboard = () => {
                   </div>
                </div>
 
-               <div className="p-6 md:p-8 flex-1 min-h-[300px]">
-                  <ResponsiveContainer width="100%" height="100%" minWidth={0}>
+               <div className="p-6 md:p-8 flex-1 min-h-[400px]">
+                  <ResponsiveContainer width="100%" height="100%">
                      <AreaChart data={stats?.chartData || []}>
                         <defs>
                            <linearGradient id="colorIn" x1="0" y1="0" x2="0" y2="1">

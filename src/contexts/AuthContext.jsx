@@ -72,7 +72,11 @@ export const AuthProvider = ({ children }) => {
 
     const login = async (identifier, password) => {
         try {
-            const { data } = await axiosInstance.post('/auth/login', { identifier, password });
+            const { data } = await axiosInstance.post('/auth/login', { 
+              identifier, 
+              password,
+              portal: 'fulfillment' 
+            });
             if (data.success && !data.twoFactorRequired) {
                 setAccessToken(data.accessToken);
                 setUser(data.user);

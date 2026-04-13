@@ -5,7 +5,7 @@ import {
     ArrowLeft, User, Truck, ShieldCheck, Navigation,
     Phone, Mail, Activity, Calendar, IdCard, Star, MapPin, X, Info,
     AlertTriangle, Briefcase, Eye, ExternalLink, FileText, Image as ImageIcon,
-    History, BadgeCheck, ShieldAlert, Locate, Maximize2, CheckCircle2
+    History, BadgeCheck, ShieldAlert, Locate, Maximize2, CheckCircle2, Edit3
 } from 'lucide-react';
 import { toast } from 'react-toastify';
 import LogisticsAuditTrail from '../components/LogisticsAuditTrail';
@@ -268,7 +268,7 @@ export default function RiderDetails() {
                                     onClick={() => navigate(`/register-a-rider/${rider.id}`)}
                                     className="px-6 py-4 bg-white border border-slate-200 rounded-2xl text-[10px] font-black text-slate-600 tracking-widest hover:border-slate-900 hover:text-slate-900 transition-all flex items-center justify-center gap-2"
                                 >
-                                    <Edit size={14} />
+                                    <Edit3 size={14} />
                                     EDIT DETAILS
                                 </button>
                             </div>

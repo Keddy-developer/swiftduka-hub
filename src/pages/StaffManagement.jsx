@@ -69,7 +69,7 @@ const StaffManagement = () => {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <MetricCard 
                     label="Hygieia Score" 
-                    value={`${(performance.reduce((acc, m) => acc + m.overallScore, 0) / (performance.length || 1)).toFixed(1)}%`}
+                    value={`${(performance.reduce((acc, m) => acc + (Number(m.overallScore) || 0), 0) / (performance.length || 1)).toFixed(1)}%`}
                     sub="Avg Collective Efficiency"
                     icon={TrendingUp}
                     color="blue"
@@ -136,24 +136,24 @@ const StaffManagement = () => {
                                             <div className="flex flex-col items-center">
                                                 <div className="w-24 h-1.5 bg-slate-100 rounded-full overflow-hidden">
                                                     <div 
-                                                        className={`h-full rounded-full ${staff.completionRate > 80 ? 'bg-green-500' : 'bg-amber-500'}`}
-                                                        style={{ width: `${staff.completionRate}%` }}
+                                                        className={`h-full rounded-full ${(staff.completionRate || 0) > 80 ? 'bg-green-500' : 'bg-amber-500'}`}
+                                                        style={{ width: `${staff.completionRate || 0}%` }}
                                                     />
                                                 </div>
-                                                <span className="text-[10px] font-black text-slate-700 mt-1.5">{staff.completionRate.toFixed(1)}%</span>
+                                                <span className="text-[10px] font-black text-slate-700 mt-1.5">{(staff.completionRate || 0).toFixed(1)}%</span>
                                             </div>
                                         </td>
                                         <td className="px-6 py-5 text-center">
-                                            <span className="text-[11px] font-black text-slate-700">{staff.avgTimePerTask.toFixed(1)}m</span>
+                                            <span className="text-[11px] font-black text-slate-700">{(staff.avgTimePerTask || 0).toFixed(1)}m</span>
                                         </td>
                                         <td className="px-6 py-5">
                                             <div className="flex justify-center">
                                                 <div className={`px-2 py-1 rounded text-[10px] font-black border ${
-                                                    staff.overallScore > 90 ? 'bg-green-50 text-green-700 border-green-200' :
-                                                    staff.overallScore > 70 ? 'bg-blue-50 text-blue-700 border-blue-200' :
+                                                    (staff.overallScore || 0) > 90 ? 'bg-green-50 text-green-700 border-green-200' :
+                                                    (staff.overallScore || 0) > 70 ? 'bg-blue-50 text-blue-700 border-blue-200' :
                                                     'bg-rose-50 text-rose-700 border-rose-200'
                                                 }`}>
-                                                    {staff.overallScore.toFixed(0)} CP
+                                                    {(staff.overallScore || 0).toFixed(0)} CP
                                                 </div>
                                             </div>
                                         </td>
