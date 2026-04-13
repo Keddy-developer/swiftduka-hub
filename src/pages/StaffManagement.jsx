@@ -144,7 +144,7 @@ const StaffManagement = () => {
                                             </div>
                                         </td>
                                         <td className="px-6 py-5 text-center">
-                                            <span className="text-[11px] font-black text-slate-700">{(staff.avgTimePerTask || 0).toFixed(1)}m</span>
+                                            <span className="text-[11px] font-black text-slate-700">{(staff.efficiencyScore || 0).toFixed(1)}m</span>
                                         </td>
                                         <td className="px-6 py-5">
                                             <div className="flex justify-center">

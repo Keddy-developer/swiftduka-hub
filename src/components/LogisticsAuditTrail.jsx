@@ -7,7 +7,7 @@ import {
 import { exportToCSV } from '../utils/exportUtils';
 import { toast } from 'react-toastify';
 
-const LogisticsAuditTrail = ({ hubId, filterType }) => {
+const LogisticsAuditTrail = ({ hubId, staffId, filterType }) => {
     const [logs, setLogs] = useState([]);
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
@@ -17,7 +17,9 @@ const LogisticsAuditTrail = ({ hubId, filterType }) => {
         if (!silent) setLoading(true);
         else setRefreshing(true);
         try {
-            const { data } = await axiosInstance.get(`/delivery/hubs/${hubId}/logs`);
+            const { data } = await axiosInstance.get(`/delivery/hubs/${hubId}/logs`, {
+                params: { staffId }
+            });
             let unifiedLogs = data.logs || [];
             if (filterType) {
                 unifiedLogs = unifiedLogs.filter(l => l.type === filterType);
@@ -33,7 +35,7 @@ const LogisticsAuditTrail = ({ hubId, filterType }) => {
 
     useEffect(() => {
         fetchLogs();
-    }, [hubId, filterType]);
+    }, [hubId, staffId, filterType]);
 
     if (loading) return (
         <div className="p-10 text-center opacity-30">

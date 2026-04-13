@@ -129,31 +129,31 @@ export default function StaffDetails() {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <PerformanceMetric 
                             label="Reliability Score" 
-                            value={`${(staff.overallScore || 85).toFixed(0)}%`} 
+                            value={`${(staff.analysis?.reliability?.value || 0).toFixed(0)}%`} 
                             icon={Award}
-                            trend="+4.2%"
-                            color="blue"
+                            trend={staff.analysis?.reliability?.trend}
+                            color={staff.analysis?.reliability?.status === 'CRITICAL' ? 'rose' : 'blue'}
                         />
                         <PerformanceMetric 
                             label="Task Throughput" 
-                            value={staff.tasksCompleted || 0} 
+                            value={staff.analysis?.throughput?.value || 0} 
                             icon={ClipboardList}
-                            trend="Season High"
+                            trend={staff.analysis?.throughput?.trend}
                             color="green"
                         />
                         <PerformanceMetric 
                             label="Avg Latency / Task" 
-                            value={`${(staff.avgTimePerTask || 12).toFixed(1)}m`} 
+                            value={`${(staff.analysis?.latency?.value || 0).toFixed(1)}m`} 
                             icon={Clock}
-                            trend="-1.5m (Ideal)"
+                            trend={staff.analysis?.latency?.trend}
                             color="amber"
                         />
                         <PerformanceMetric 
                             label="Compliance" 
-                            value="100%" 
+                            value={`${(staff.analysis?.compliance?.value || 100).toFixed(0)}%`} 
                             icon={ShieldCheck}
-                            trend="No Violations"
-                            color="rose"
+                            trend={staff.analysis?.compliance?.trend}
+                            color={staff.analysis?.compliance?.status === 'MONITOR' ? 'rose' : 'blue'}
                         />
                     </div>
 
