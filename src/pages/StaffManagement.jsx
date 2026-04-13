@@ -247,6 +247,7 @@ const StaffManagement = () => {
                 <DutyModal 
                     onClose={() => setShowDutyModal(false)} 
                     workers={workers} 
+                    hubId={hub?.id}
                     onSuccess={() => { fetchData(); setShowDutyModal(false); }}
                 />
             )}
@@ -276,7 +277,7 @@ const MetricCard = ({ label, value, sub, icon: Icon, color }) => {
     );
 };
 
-const DutyModal = ({ onClose, workers, onSuccess }) => {
+const DutyModal = ({ onClose, workers, onSuccess, hubId }) => {
     const [formData, setFormData] = useState({
         title: '', description: '', assignedTo: '', priority: 'MEDIUM', deadline: '', requiresQR: false
     });
@@ -286,108 +287,115 @@ const DutyModal = ({ onClose, workers, onSuccess }) => {
         e.preventDefault();
         setLoading(true);
         try {
-            await axiosInstance.post('/workforce/duties/custom', formData);
+            await axiosInstance.post('/workforce/duties/custom', { ...formData, hubId });
             toast.success("Duty assigned successfully");
             onSuccess();
         } catch (err) {
-            toast.error("Failed to assign duty");
+            const errorMsg = err.response?.data?.message || "Failed to assign duty";
+            toast.error(errorMsg);
         } finally {
             setLoading(false);
         }
     };
 
     return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 backdrop-blur-sm bg-slate-900/40 animate-in fade-in duration-300">
-            <div className="bg-white rounded-3xl w-full max-w-xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300">
-                <div className="p-8 border-b border-slate-100 flex items-center justify-between">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 backdrop-blur-sm bg-slate-900/40 animate-in fade-in duration-300">
+            <div className="bg-white rounded-3xl w-full max-w-xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300 flex flex-col max-h-[90vh]">
+                <div className="p-6 sm:p-8 border-b border-slate-100 flex items-center justify-between shrink-0">
                     <div>
-                        <h2 className="text-2xl font-black text-slate-900 tracking-tight">Assign Duty</h2>
+                        <h2 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">Assign Duty</h2>
                         <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Operational Directive</p>
                     </div>
-                    <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-xl transition-all"><Plus className="rotate-45" /></button>
+                    <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-xl transition-all">
+                        <Plus className="rotate-45" size={20} />
+                    </button>
                 </div>
-                <form onSubmit={handleSubmit} className="p-8 space-y-6">
-                    <div className="grid grid-cols-2 gap-6">
-                        <div className="col-span-2">
-                            <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Duty Title</label>
-                            <input 
-                                required
-                                value={formData.title}
-                                onChange={e => setFormData({...formData, title: e.target.value})}
-                                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 ring-blue-500/10 outline-none"
-                                placeholder="e.g. Warehouse Inventory Cycle Count"
-                            />
-                        </div>
-                        <div className="col-span-2">
-                            <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Instructions</label>
-                            <textarea 
-                                value={formData.description}
-                                onChange={e => setFormData({...formData, description: e.target.value})}
-                                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm h-24 focus:ring-2 ring-blue-500/10 outline-none"
-                                placeholder="Detail steps for this activity..."
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Assigned Staff</label>
-                            <select 
-                                required
-                                value={formData.assignedTo}
-                                onChange={e => setFormData({...formData, assignedTo: e.target.value})}
-                                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none"
-                            >
-                                <option value="">Select individual...</option>
-                                {workers.map(w => (
-                                    <option key={w.id} value={w.id}>{w.firstName} {w.lastName}</option>
-                                ))}
-                            </select>
-                        </div>
-                        <div>
-                            <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Priority</label>
-                            <select 
-                                value={formData.priority}
-                                onChange={e => setFormData({...formData, priority: e.target.value})}
-                                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none"
-                            >
-                                <option value="LOW">LOW</option>
-                                <option value="MEDIUM">MEDIUM</option>
-                                <option value="HIGH">HIGH</option>
-                                <option value="CRITICAL">CRITICAL</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Deadline</label>
-                            <input 
-                                type="datetime-local"
-                                value={formData.deadline}
-                                onChange={e => setFormData({...formData, deadline: e.target.value})}
-                                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none"
-                            />
-                        </div>
-                        <div className="flex items-center gap-3">
-                            <input 
-                                type="checkbox"
-                                id="qr_req"
-                                checked={formData.requiresQR}
-                                onChange={e => setFormData({...formData, requiresQR: e.target.checked})}
-                                className="w-5 h-5 rounded border-slate-200 text-blue-600 focus:ring-blue-500/20"
-                            />
-                            <label htmlFor="qr_req" className="text-xs font-bold text-slate-700">Require QR scan</label>
+                
+                <form onSubmit={handleSubmit} className="flex flex-col flex-1 overflow-hidden">
+                    <div className="p-6 sm:p-8 space-y-6 overflow-y-auto custom-scrollbar flex-1">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                            <div className="sm:col-span-2">
+                                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Duty Title</label>
+                                <input 
+                                    required
+                                    value={formData.title}
+                                    onChange={e => setFormData({...formData, title: e.target.value})}
+                                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 ring-blue-500/10 outline-none transition-all"
+                                    placeholder="e.g. Warehouse Inventory Cycle Count"
+                                />
+                            </div>
+                            <div className="sm:col-span-2">
+                                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Instructions</label>
+                                <textarea 
+                                    value={formData.description}
+                                    onChange={e => setFormData({...formData, description: e.target.value})}
+                                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm h-32 resize-none focus:ring-2 ring-blue-500/10 outline-none transition-all"
+                                    placeholder="Detail steps for this activity..."
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Assigned Staff</label>
+                                <select 
+                                    required
+                                    value={formData.assignedTo}
+                                    onChange={e => setFormData({...formData, assignedTo: e.target.value})}
+                                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 ring-blue-500/10 transition-all cursor-pointer"
+                                >
+                                    <option value="">Select individual...</option>
+                                    {workers.map(w => (
+                                        <option key={w.id} value={w.id}>{w.firstName} {w.lastName}</option>
+                                    ))}
+                                </select>
+                            </div>
+                            <div>
+                                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Priority</label>
+                                <select 
+                                    value={formData.priority}
+                                    onChange={e => setFormData({...formData, priority: e.target.value})}
+                                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 ring-blue-500/10 transition-all cursor-pointer"
+                                >
+                                    <option value="LOW">LOW</option>
+                                    <option value="MEDIUM">MEDIUM</option>
+                                    <option value="HIGH">HIGH</option>
+                                    <option value="CRITICAL">CRITICAL</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Deadline</label>
+                                <input 
+                                    type="datetime-local"
+                                    value={formData.deadline}
+                                    onChange={e => setFormData({...formData, deadline: e.target.value})}
+                                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm outline-none focus:ring-2 ring-blue-500/10 transition-all"
+                                />
+                            </div>
+                            <div className="flex items-center gap-3 pt-4 sm:pt-6">
+                                <input 
+                                    type="checkbox"
+                                    id="qr_req"
+                                    checked={formData.requiresQR}
+                                    onChange={e => setFormData({...formData, requiresQR: e.target.checked})}
+                                    className="w-5 h-5 rounded border-slate-200 text-blue-600 focus:ring-blue-500/20 transition-all cursor-pointer"
+                                />
+                                <label htmlFor="qr_req" className="text-xs font-bold text-slate-700 cursor-pointer select-none">Require QR scan</label>
+                            </div>
                         </div>
                     </div>
-                    <div className="pt-4 border-t border-slate-100 flex gap-4">
+                    
+                    <div className="p-6 sm:p-8 border-t border-slate-100 bg-slate-50/50 flex flex-col sm:flex-row gap-4 shrink-0">
                          <button 
                             type="button"
                             onClick={onClose}
-                            className="flex-1 py-4 bg-slate-100 text-slate-600 rounded-2xl text-xs font-black hover:bg-slate-200 transition-all"
+                            className="w-full sm:flex-1 py-4 bg-slate-100 text-slate-600 rounded-2xl text-xs font-black hover:bg-slate-200 transition-all active:scale-95"
                          >
                              CANCEL
                          </button>
                          <button 
                             disabled={loading}
                             type="submit"
-                            className="flex-[2] py-4 bg-slate-900 text-white rounded-2xl text-xs font-black shadow-xl shadow-slate-200 hover:bg-slate-800 transition-all flex items-center justify-center gap-3"
+                            className="w-full sm:flex-[2] py-4 bg-slate-900 text-white rounded-2xl text-xs font-black shadow-xl shadow-slate-200 hover:bg-slate-800 transition-all flex items-center justify-center gap-3 active:scale-95 disabled:opacity-50"
                          >
-                             {loading && <Zap className="animate-spin" size={16} />}
+                             {loading ? <Clock className="animate-spin" size={16} /> : <Zap className="fill-white" size={16} />}
                              ISSUE DIRECTIVE
                          </button>
                     </div>
