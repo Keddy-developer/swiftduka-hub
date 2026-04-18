@@ -20,12 +20,19 @@ export default function RegisterSeller() {
     const [locations, setLocations] = useState([]);
 
     const [form, setForm] = useState({
-        userIdentifier: "", seller_type: "individual", storeName: "",
+        userIdentifier: "", username: "", seller_type: "individual", storeName: "",
         phone: "", address: "", city: "", county: "", country: "Kenya",
         businessType: "", paymentMethod: "MPESA", kraPin: "",
         businessRegistrationNumber: "", mpesaNumber: "", mpesaName: "",
         bankName: "", accountNumber: "", accountHolderName: "",
         storeDescription: "", fulfillmentHubId: hub?.id || "",
+    });
+
+    const [usernameStatus, setUsernameStatus] = useState({
+        available: null,
+        loading: false,
+        message: '',
+        slug: ''
     });
 
     useEffect(() => {
@@ -72,6 +79,31 @@ export default function RegisterSeller() {
         fetchLocations();
         fetchSellerForEdit();
     }, [editId, hub?.id]);
+
+    // Check username availability
+    useEffect(() => {
+        if (form.username?.trim().length >= 3) {
+            const delayDebounceFn = setTimeout(async () => {
+                try {
+                    setUsernameStatus(prev => ({ ...prev, loading: true }));
+                    const response = await axiosInstance.get(`/sellers/check-username?username=${encodeURIComponent(form.username)}`);
+                    setUsernameStatus({
+                        available: response.data.available,
+                        loading: false,
+                        message: response.data.message,
+                        slug: response.data.slug
+                    });
+                } catch (error) {
+                    console.error('Error checking username:', error);
+                    setUsernameStatus(prev => ({ ...prev, loading: false }));
+                }
+            }, 600);
+
+            return () => clearTimeout(delayDebounceFn);
+        } else {
+            setUsernameStatus({ available: null, loading: false, message: '', slug: '' });
+        }
+    }, [form.username]);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -152,8 +184,33 @@ export default function RegisterSeller() {
                                     onChange={handleChange} required icon={Briefcase} />
                             </div>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-black text-slate-400  tracking-widest ml-1 flex items-center gap-2">
+                                        <User size={12} /> Public Username *
+                                        {usernameStatus.loading && <Loader2 size={10} className="animate-spin" />}
+                                    </label>
+                                    <div className="relative">
+                                        <input
+                                            type="text"
+                                            name="username"
+                                            required
+                                            value={form.username}
+                                            onChange={(e) => {
+                                                const val = e.target.value.replace(/[^a-zA-Z0-9_-]/g, '');
+                                                setForm(prev => ({ ...prev, username: val }));
+                                            }}
+                                            placeholder="store-username"
+                                            className={`w-full border rounded-xl px-4 py-3.5 text-xs font-black outline-none focus:ring-2 focus:ring-slate-900/5 transition-all ${usernameStatus.available === true ? 'bg-green-50 border-green-500' : usernameStatus.available === false ? 'bg-red-50 border-red-500' : 'bg-slate-50 border-slate-200 focus:border-slate-900 focus:bg-white shadow-sm'}`}
+                                        />
+                                        {usernameStatus.available === true && <CheckCircle2 className="w-4 h-4 text-green-500 absolute right-3 top-1/2 -translate-y-1/2" />}
+                                        {usernameStatus.available === false && <X className="w-4 h-4 text-red-500 absolute right-3 top-1/2 -translate-y-1/2" />}
+                                    </div>
+                                    {usernameStatus.available === true && <p className="text-[9px] text-green-600 font-bold">URL: ikosoko.com/store/{usernameStatus.slug}</p>}
+                                    {usernameStatus.available === false && <p className="text-[9px] text-red-600 font-bold">{usernameStatus.message}</p>}
+                                </div>
                                 <InputUnit label="Phone Number" name="phone" value={form.phone}
                                     onChange={handleChange} required icon={Phone} />
+                            </div>
                                 <div className="space-y-2">
                                     <label className="text-[10px] font-black text-slate-400  tracking-widest ml-1 flex items-center gap-2">
                                         <Zap size={12} /> Business Type

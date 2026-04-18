@@ -1,4 +1,6 @@
 import axios from 'axios';
+import { toast } from 'react-toastify';
+
 
 /**
  * Fulfillment Hub Portal - API Config
@@ -58,7 +60,19 @@ axiosInstance.interceptors.response.use(
                 return Promise.reject(err);
             }
         }
+        if (error.response?.status === 403) {
+            toast.error(
+                "Access Denied (403): Your security token may be invalid. Please clear your browsing data (cookies/cache) and refresh the page to continue.",
+                { 
+                    position: "top-center",
+                    autoClose: false,
+                    closeOnClick: false,
+                    draggable: false
+                }
+            );
+        }
         return Promise.reject(error);
+
     }
 );
 
