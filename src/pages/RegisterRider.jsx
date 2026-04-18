@@ -339,7 +339,8 @@ const InputUnit = ({ label, icon: Icon, textarea, fullWidth, ...props }) => (
     {textarea ? (
       <textarea {...props} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-xs font-black outline-none focus:border-slate-900 focus:bg-white focus:ring-2 focus:ring-slate-900/5 shadow-sm transition-all resize-none h-24" />
     ) : (
-      <input {...props} className={`w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3.5 text-xs font-black outline-none focus:border-slate-900 focus:bg-white focus:ring-2 focus:ring-slate-900/5 shadow-sm transition-all ${uppercase ? ' select-all' : ''}`} />
+      <input {...props} className={`w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3.5 text-xs font-black outline-none focus:border-slate-900 focus:bg-white focus:ring-2 focus:ring-slate-900/5 shadow-sm transition-all`} />
     )}
+
   </div>
 );
