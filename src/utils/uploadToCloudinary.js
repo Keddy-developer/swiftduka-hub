@@ -7,8 +7,8 @@ import axios from "axios";
 const uploadToCloudinary = async (file) => {
   const token = localStorage.getItem("fulfillment_token"); // Standard for fulfillment dashboard
 
-  const apiUrl = import.meta.env.VITE_APP_API_URL || "http://localhost:5000/api";
-  
+  const apiUrl = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
+
   const { data } = await axios.get(
     `${apiUrl}/cloudinary/signature`,
     {
@@ -35,7 +35,7 @@ const uploadToCloudinary = async (file) => {
       withCredentials: false,
     }
   );
-  
+
   const imageUrl = response.data.secure_url;
   const deleteToken = response.data.delete_token;
   const publicId = response.data.public_id;
