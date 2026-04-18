@@ -222,8 +222,9 @@ export default function RegisterSeller() {
                                     </select>
                                 </div>
                             </div>
-                        </div>
                     </section>
+
+
 
                     {/* SECTION 2: LOCATION DETAILS */}
                     <section className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden group">
