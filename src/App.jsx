@@ -14,6 +14,7 @@ import {
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import Inventory from './pages/Inventory';
+import StockAdjustment from './pages/StockAdjustment';
 import Orders from './pages/Orders';
 import OrderDetails from './pages/OrderDetails';
 import AssignCourier from './pages/AssignCourier';
@@ -242,6 +243,7 @@ function App() {
                <Route path="/login" element={<Login />} />
                <Route path="/" element={<PrivateRoute resource="Workbench"><Dashboard /></PrivateRoute>} />
                <Route path="/inventory" element={<PrivateRoute resource="Inbound & Stocks"><Inventory /></PrivateRoute>} />
+               <Route path="/stock-adjustment/:id" element={<PrivateRoute resource="Inbound & Stocks"><StockAdjustment /></PrivateRoute>} />
                <Route path="/orders" element={<PrivateRoute resource="Order Fulfillment"><Orders /></PrivateRoute>} />
                <Route path="/orders/:id" element={<PrivateRoute resource="Order Fulfillment"><OrderDetails /></PrivateRoute>} />
                <Route path="/assign-courier/:shippingAddressId/:orderProductId" element={<PrivateRoute resource="Order Fulfillment"><AssignCourier /></PrivateRoute>} />

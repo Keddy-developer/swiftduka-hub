@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import axiosInstance from '../services/axiosConfig';
 import {
@@ -34,95 +35,8 @@ const StatTile = ({ label, value, icon: Icon, color }) => {
   );
 };
 
-// ─── Adjust Units Modal ──────────────────────────────────────────────────
-const AdjustModal = ({ item, hub, onClose, onSuccess }) => {
-  const [qty, setQty] = useState('');
-  const [mode, setMode] = useState('add');
-  const [reason, setReason] = useState('');
-  const [loading, setLoading] = useState(false);
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    const q = parseInt(qty);
-    if (!q || q <= 0) return toast.error('Invalid delta');
-    setLoading(true);
-    try {
-      await axiosInstance.patch(`/delivery/hubs/${hub.id}/inventory`, {
-        productId: item.productId,
-        quantity: q,
-        mode,
-        notes: `ADJUSTMENT: ${reason}`
-      });
-      toast.success('Stock updated');
-      // Audit log
-      AuditService.logAction(hub.id, 'STOCK_ADJUSTMENT', {
-        message: `${mode === 'add' ? 'Added' : 'Removed'} ${q} units of ${item.product?.name}`,
-        sku: item.product?.sku,
-        newQuantity: mode === 'add' ? item.quantity + q : item.quantity - q,
-        reason: reason
-      });
-      onSuccess();
-      onClose();
-    } catch (err) {
-      toast.error(err?.response?.data?.message || 'Adjustment failed');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-300">
-      <div className="bg-white rounded-xl shadow-2xl w-full max-w-sm p-8 overflow-hidden animate-in zoom-in-95 duration-200">
-        <div className="flex items-center justify-between mb-8">
-          <div className="min-w-0 flex-1">
-            <h3 className="text-lg font-black text-slate-900 tracking-tight">Adjust Stock</h3>
-            <p className="text-[10px] font-bold text-slate-400 tracking-widest mt-1 truncate">{item.product?.name}</p>
-          </div>
-          <button onClick={onClose} className="p-2 text-slate-300 hover:text-slate-900 transition-colors">
-            <X size={20} />
-          </button>
-        </div>
-
-        <div className="bg-slate-900 rounded-xl p-5 mb-8 text-center border-4 border-slate-800 shadow-xl">
-          <span className="text-[10px] font-black text-slate-400 tracking-[0.2em] block mb-1">Available Stock</span>
-          <span className="text-4xl font-black text-white tracking-tighter">{item.quantity}</span>
-          <span className="text-[12px] font-black text-slate-500 ml-2 tracking-widest">PCS</span>
-        </div>
-
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="flex p-1 bg-slate-100 rounded-lg">
-            <button type="button" onClick={() => setMode('add')} className={`flex-1 py-2 text-[10px] font-black tracking-widest rounded-md transition-all ${mode === 'add' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>
-              Stock In
-            </button>
-            <button type="button" onClick={() => setMode('subtract')} className={`flex-1 py-2 text-[10px] font-black tracking-widest rounded-md transition-all ${mode === 'subtract' ? 'bg-rose-600 text-white shadow-sm' : 'text-slate-500 hover:text-rose-600'}`}>
-              Stock Out
-            </button>
-          </div>
-
-          <div className="space-y-2">
-            <label className="text-[10px] font-black text-slate-400 tracking-widest ml-1">Adjustment Delta</label>
-            <input type="number" min="1" placeholder="Units to sync..." value={qty} onChange={e => setQty(e.target.value)}
-              className={`w-full border-2 rounded-lg px-4 py-3 text-2xl font-black outline-none transition-all text-center ${mode === 'add' ? 'border-slate-100 focus:border-slate-900' : 'border-rose-100 focus:border-rose-600'
-                }`} required />
-          </div>
-
-          <div className="space-y-2">
-            <label className="text-[10px] font-black text-slate-400 tracking-widest ml-1">Reason</label>
-            <input type="text" placeholder="e.g. Damage, Transfer, Shrinkage" value={reason} onChange={e => setReason(e.target.value)}
-              className="w-full border border-slate-200 rounded-lg px-4 py-2.5 text-xs font-bold outline-none focus:border-slate-900 shadow-sm" />
-          </div>
-
-          <button type="submit" disabled={loading}
-            className={`w-full py-4 mt-2 rounded-lg text-white text-[11px] font-black tracking-widest shadow-xl transition-all ${mode === 'add' ? 'bg-slate-900 hover:bg-slate-800' : 'bg-rose-600 hover:bg-rose-700'
-              } disabled:opacity-50`}
-          >
-            {loading ? 'SAVING...' : `${mode === 'add' ? 'Add to Stock' : 'Remove from Stock'}`}
-          </button>
-        </form>
-      </div>
-    </div>
-  );
-};
+// ─── Adjust Units Modal REMOVED ──────────────────────────────────────────
+// (Logically replaced by /stock-adjustment/:id page)
 
 // ─── QR Code Modal ──────────────────────────────────────────────────────
 const QRModal = ({ item, onClose }) => {
@@ -443,6 +357,7 @@ const ReceiveShipmentModal = ({ hub, onClose, onSuccess }) => {
 // ─── Main Inventory Page ─────────────────────────────────────────────────────
 const Inventory = ({ readOnly }) => {
   const { hub } = useAuth();
+  const navigate = useNavigate();
   const [inventory, setInventory] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -516,7 +431,6 @@ const Inventory = ({ readOnly }) => {
   return (
     <div className="space-y-6 md:space-y-10 animate-in fade-in duration-500">
       {showReceiveModal && <ReceiveShipmentModal hub={hub} onClose={() => setShowReceiveModal(false)} onSuccess={() => fetchData(true)} readOnly={readOnly} />}
-      {adjustItem && <AdjustModal item={adjustItem} hub={hub} onClose={() => setAdjustItem(null)} onSuccess={() => fetchData(true)} readOnly={readOnly} />}
       {qrItem && <QRModal item={qrItem} onClose={() => setQrItem(null)} />}
       {showScanner && <ScannerModal onClose={() => setShowScanner(false)} onScan={(res) => setSearch(res)} />}
 
@@ -574,7 +488,7 @@ const Inventory = ({ readOnly }) => {
           <InventoryCard
             key={item.id}
             item={item}
-            onAdjust={() => setAdjustItem(item)}
+            onAdjust={() => navigate('/stock-adjustment/' + item.id)}
             onQR={() => setQrItem(item)}
             readOnly={readOnly}
           />
