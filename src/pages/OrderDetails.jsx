@@ -690,7 +690,9 @@ const OrderDetailsPage = () => {
                                        product.deliveryStatus !== "Shipped" &&
                                        product.deliveryStatus !== "Delivered" &&
                                        product.deliveryStatus !== "ReadyForLogistics" &&
-                                       product.deliveryStatus !== "ReadyForPickup" && (
+                                       product.deliveryStatus !== "ReadyForPickup" &&
+                                       product.deliveryStatus !== "ArrivedAtStation"
+                                       && (
                                           <span className="px-3 py-1.5 bg-amber-100 text-amber-800 text-xs font-medium rounded-lg">
                                              Waiting Seller to Process
                                           </span>
@@ -715,7 +717,7 @@ const OrderDetailsPage = () => {
                                     )}
 
                                     {/* Mark Ready For Pickup - Manual Toggle */}
-                                    {product.adminReceived && order.pickUpStation?.isPickupStation && product.deliveryStatus !== "ReadyForPickup" && product.deliveryStatus !== "Delivered" && product.deliveryStatus !== "Cancelled" && product.deliveryType !== "NATIONWIDE" && (
+                                    {product.adminReceived && product.deliveryStatus === "ArrivedAtStation" && order.pickUpStation?.isPickupStation && product.deliveryStatus !== "ReadyForPickup" && product.deliveryStatus !== "Delivered" && product.deliveryStatus !== "Cancelled" && product.deliveryType !== "NATIONWIDE" && (
                                        <ActionButton
                                           onClick={() => handleMarkReadyForPickup(product.id)}
                                           loading={loadingMarkReadyForPickup}
