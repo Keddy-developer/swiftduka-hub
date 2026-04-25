@@ -520,11 +520,11 @@ const OrderDetailsPage = () => {
                         <div className="space-y-2 text-sm">
                            <p><span className="text-gray-500">Town:</span> <span className="font-medium text-gray-900">{order.shippingAddress?.town || "N/A"}</span></p>
                            <p><span className="text-gray-500">Address:</span> <span className="font-medium text-gray-900">{order.shippingAddress?.address || "N/A"}</span></p>
-                            {(order.deliveryArea || order.shippingAddress?.deliveryArea || order.shippingAddress?.town) && (
-                               <p><span className="text-gray-500">Area:</span> <span className="font-medium text-gray-900">
-                                  {order.deliveryArea?.name || order.shippingAddress?.deliveryArea?.name || order.shippingAddress?.town || "N/A"}
-                               </span></p>
-                            )}
+                           {(order.deliveryArea || order.shippingAddress?.deliveryArea || order.shippingAddress?.town) && (
+                              <p><span className="text-gray-500">Area:</span> <span className="font-medium text-gray-900">
+                                 {order.deliveryArea?.name || order.shippingAddress?.deliveryArea?.name || order.shippingAddress?.town || "N/A"}
+                              </span></p>
+                           )}
                         </div>
                      </div>
 
@@ -543,11 +543,11 @@ const OrderDetailsPage = () => {
                            <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wider flex items-center gap-2">
                               <FiMapPin className="text-gray-400" /> Delivery Area
                            </h3>
-                            <div className="space-y-2 text-sm">
-                               <p><span className="text-gray-500">Delivery Area:</span> <span className="font-medium text-gray-900">
-                                  {order.deliveryArea?.name || order.shippingAddress?.deliveryArea?.name || order.shippingAddress?.town || "N/A"}
-                               </span></p>
-                            </div>
+                           <div className="space-y-2 text-sm">
+                              <p><span className="text-gray-500">Delivery Area:</span> <span className="font-medium text-gray-900">
+                                 {order.deliveryArea?.name || order.shippingAddress?.deliveryArea?.name || order.shippingAddress?.town || "N/A"}
+                              </span></p>
+                           </div>
                         </div>
                      )}
 
@@ -839,7 +839,7 @@ const OrderDetailsPage = () => {
                      )}
 
                      {/* Voucher Details */}
-                     {order.voucherCode && (
+                     {order.voucherCode && order.discount > 0 && (
                         <div className="pt-2 border-t border-dashed border-gray-100 mt-2">
                            <div className="flex justify-between items-center text-xs">
                               <span className="text-blue-600 font-medium flex items-center gap-1">
@@ -853,20 +853,15 @@ const OrderDetailsPage = () => {
                            </div>
                         </div>
                      )}
+                     {order.loyaltyDiscountAmount && order.loyaltyDiscountAmount > 0 && (
+                        <div className="flex justify-between text-orange-600 font-medium">
+                           <span>Platform Loyalty ({order.loyaltyDiscountCode})</span>
+                           <span>- Ksh {order.loyaltyDiscountAmount.toLocaleString()}</span>
+                        </div>
+                     )}
                      <div className="pt-3 border-t border-gray-100 flex justify-between text-base font-bold text-gray-900">
                         <span>Total Customer Pay</span>
                         <span>Ksh {order.totalCost.toLocaleString()}</span>
-                     </div>
-
-                     <div className="pt-4 mt-2 border-t border-gray-100 space-y-2">
-                        <div className="flex justify-between text-xs text-gray-500">
-                           <span>Total Seller Earnings</span>
-                           <span className="font-medium text-green-600">Ksh {(order.totalSellerEarnings || 0).toLocaleString()}</span>
-                        </div>
-                        <div className="flex justify-between text-xs text-gray-500">
-                           <span>Total Commission</span>
-                           <span className="font-medium text-red-600">Ksh {(order.totalCommission || 0).toLocaleString()}</span>
-                        </div>
                      </div>
 
                      <div className="pt-3">

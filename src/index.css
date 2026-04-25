@@ -21,13 +21,19 @@
   --color-secondary: #f59e0b;
 }
 
-h1, h2, h3, h4, h5, h6 {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
   font-family: 'Outfit', sans-serif;
   letter-spacing: -0.02em;
 }
 
 body {
-  background-color: #f0f2f5; /* Standard Alibaba gray background */
+  background-color: #f0f2f5;
+  /* Standard gray background */
   color: #334155;
   margin: 0;
   -webkit-font-smoothing: antialiased;
@@ -38,13 +44,16 @@ body {
   width: 6px;
   height: 6px;
 }
+
 ::-webkit-scrollbar-track {
   background: #f1f1f1;
 }
+
 ::-webkit-scrollbar-thumb {
   background: #ccc;
   border-radius: 3px;
 }
+
 ::-webkit-scrollbar-thumb:hover {
   background: #999;
 }
@@ -58,12 +67,12 @@ body {
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: rgba(0,0,0,0.1);
+  background: rgba(0, 0, 0, 0.1);
   border-radius: 10px;
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: rgba(0,0,0,0.2);
+  background: rgba(0, 0, 0, 0.2);
 }
 
 /* High-Density Workbench Styles */
@@ -79,11 +88,11 @@ body {
   @apply px-2 py-0.5 bg-rose-50 text-rose-600 text-[10px] font-bold rounded uppercase border border-rose-100;
 }
 
-.alibaba-btn {
+.ikosoko-btn {
   @apply px-4 py-2 bg-primary text-white text-sm font-semibold rounded hover:bg-primary-900 transition-all shadow-sm;
 }
 
-.alibaba-input {
+.ikosoko-input {
   @apply w-full bg-white border border-slate-300 rounded px-4 py-2 text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 transition-all;
 }
 
@@ -91,9 +100,11 @@ body {
 table {
   @apply w-full border-collapse;
 }
+
 th {
   @apply bg-slate-50 text-slate-500 text-xs font-bold uppercase tracking-tight px-6 py-4 border-b border-slate-200 text-left;
 }
+
 td {
   @apply px-6 py-4 border-b border-slate-100 text-sm align-middle;
 }

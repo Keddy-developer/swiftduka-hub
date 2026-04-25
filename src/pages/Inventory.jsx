@@ -458,7 +458,7 @@ const Inventory = ({ readOnly }) => {
     if (!inventory.length) return toast.error("No inventory to export");
     setDownloading(true);
     toast.info("Generating inventory report...");
-    
+
     const exportData = inventory.map(item => ({
       Product: item.product?.name || 'N/A',
       SKU: item.product?.sku || 'N/A',
@@ -473,7 +473,7 @@ const Inventory = ({ readOnly }) => {
     exportToCSV(exportData, `Inventory_Report_${hub?.name || 'Hub'}`, [
       "Product", "SKU", "Seller", "Stock", "Price", "TotalValue", "LowStockLimit", "LastUpdate"
     ]);
-    
+
     setDownloading(false);
     toast.success("Download started");
   };
@@ -520,7 +520,7 @@ const Inventory = ({ readOnly }) => {
       {qrItem && <QRModal item={qrItem} onClose={() => setQrItem(null)} />}
       {showScanner && <ScannerModal onClose={() => setShowScanner(false)} onScan={(res) => setSearch(res)} />}
 
-      {/* ── ALIBABA STYLE TOP NAV ── */}
+      {/* ── TOP NAV ── */}
       <div className="flex flex-col md:flex-row md:items-end justify-between border-b border-slate-200 pb-6 gap-6">
         <div>
           <h1 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight">Inventory</h1>

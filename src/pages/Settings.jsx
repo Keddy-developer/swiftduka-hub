@@ -152,7 +152,7 @@ const SettingsPage = () => {
       </div>
 
       <div className="flex flex-col lg:flex-row gap-8">
-        {/* ── VERTICAL NAVIGATION (ALIBABA STYLE) ── */}
+        {/* ── VERTICAL NAVIGATION ── */}
         <aside className="w-full lg:w-64 shrink-0">
           <nav className="flex flex-row lg:flex-col gap-1 overflow-x-auto lg:overflow-visible no-scrollbar p-1 bg-slate-100/50 rounded-lg lg:bg-transparent">
             {tabs.map((tab) => (
@@ -160,8 +160,8 @@ const SettingsPage = () => {
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
                 className={`flex items-center gap-3 px-4 py-3 rounded text-xs font-bold  tracking-widest transition-all whitespace-nowrap lg:w-full ${activeTab === tab.id
-                    ? 'bg-white text-slate-900 shadow-md shadow-slate-200/50 border border-slate-100'
-                    : 'text-slate-500 hover:text-slate-900 hover:bg-white/50'
+                  ? 'bg-white text-slate-900 shadow-md shadow-slate-200/50 border border-slate-100'
+                  : 'text-slate-500 hover:text-slate-900 hover:bg-white/50'
                   }`}
               >
                 <tab.icon className={`w-4 h-4 ${activeTab === tab.id ? 'text-blue-600' : 'text-slate-400'}`} />
