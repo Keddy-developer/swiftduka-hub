@@ -61,13 +61,18 @@ axiosInstance.interceptors.response.use(
             }
         }
         if (error.response?.status === 403) {
+            // Clear tokens to prevent persistent loop of invalid requests
+            localStorage.removeItem('fulfillment_token');
+            accessToken = '';
+
             toast.error(
-                "Access Denied (403): Your security token may be invalid. Please clear your browsing data (cookies/cache) and refresh the page to continue.",
+                "Access Denied (403): Your security token may be invalid. Please log in again.",
                 { 
                     position: "top-center",
-                    autoClose: false,
-                    closeOnClick: false,
-                    draggable: false
+                    autoClose: 3000,
+                    onClose: () => {
+                        window.location.href = '/login';
+                    }
                 }
             );
         }

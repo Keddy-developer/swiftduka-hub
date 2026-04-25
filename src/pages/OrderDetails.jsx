@@ -360,6 +360,7 @@ const OrderDetailsPage = () => {
          Shipped: { color: "bg-purple-100 text-purple-800 border-purple-200", icon: FiTruck },
          Delivered: { color: "bg-green-100 text-green-800 border-green-200", icon: FiCheckCircle },
          ReadyForPickup: { color: "bg-orange-100 text-orange-800 border-orange-200", icon: FiPackage },
+         ArrivedAtStation: { color: "bg-teal-100 text-teal-800 border-teal-200", icon: FiMapPin },
          Cancelled: { color: "bg-red-100 text-red-800 border-red-200", icon: FiXCircle },
          Pending: { color: "bg-yellow-100 text-yellow-800 border-yellow-200", icon: FiClock }
       };
@@ -717,7 +718,7 @@ const OrderDetailsPage = () => {
                                     )}
 
                                     {/* Mark Ready For Pickup - Manual Toggle */}
-                                    {product.adminReceived && product.deliveryStatus === "ArrivedAtStation" && order.pickUpStation?.isPickupStation && product.deliveryStatus !== "ReadyForPickup" && product.deliveryStatus !== "Delivered" && product.deliveryStatus !== "Cancelled" && product.deliveryType !== "NATIONWIDE" && (
+                                    {product.deliveryStatus === "ArrivedAtStation" && (
                                        <ActionButton
                                           onClick={() => handleMarkReadyForPickup(product.id)}
                                           loading={loadingMarkReadyForPickup}
