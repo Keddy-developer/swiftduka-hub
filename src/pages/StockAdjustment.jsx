@@ -49,6 +49,30 @@ const StockAdjustment = () => {
         }
     };
 
+    const handleDelete = async () => {
+        if (!window.confirm(`Are you sure you want to remove ${item.product?.name} from hub inventory? This will decommission the stock record.`)) return;
+        
+        setSaving(true);
+        try {
+            await axiosInstance.delete(`/delivery/hubs/${hub.id}/inventory`, {
+                params: { productId: item.productId }
+            });
+            
+            toast.success('Product decommissioned from hub');
+            
+            AuditService.logAction(hub.id, 'INVENTORY_DECOMMISSION', {
+                message: `Decommissioned ${item.product?.name} via Adjustment Page`,
+                sku: item.product?.sku
+            });
+
+            navigate('/inventory');
+        } catch (err) {
+            toast.error(err?.response?.data?.message || 'Deletion failure');
+        } finally {
+            setSaving(false);
+        }
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         const q = parseInt(qty);
@@ -265,6 +289,15 @@ const StockAdjustment = () => {
                                         <Save className="w-4 h-4" /> COMMIT ADJUSTMENT
                                     </>
                                 )}
+                            </button>
+
+                            <button 
+                                type="button" 
+                                onClick={handleDelete}
+                                disabled={saving}
+                                className="w-full py-4 mt-4 bg-white border border-rose-100 text-rose-500 rounded-2xl text-[10px] font-black tracking-[0.3em] hover:bg-rose-50 transition-all flex items-center justify-center gap-3 uppercase disabled:opacity-50"
+                            >
+                                <Trash2 className="w-4 h-4" /> DECOMMISSION PRODUCT
                             </button>
                         </div>
 

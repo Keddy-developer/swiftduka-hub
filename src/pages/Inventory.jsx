@@ -151,7 +151,7 @@ const ScannerModal = ({ onClose, onScan }) => {
 };
 
 // ─── Inventory Card Component ─────────────────────────────────────────────────────
-const InventoryCard = ({ item, onAdjust, onQR, readOnly }) => {
+const InventoryCard = ({ item, onAdjust, onQR, onDelete, onQuickAdd, readOnly }) => {
   const isLow = (item.quantity ?? 0) <= (item.lowStockAlert ?? 10);
   const lastDate = item.lastRestocked ? new Date(item.lastRestocked).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : 'INITIAL';
 
@@ -178,9 +178,17 @@ const InventoryCard = ({ item, onAdjust, onQR, readOnly }) => {
                 <Zap className="w-3 h-3" />
               </button>
               {!readOnly && (
-                <button onClick={onAdjust} className="text-slate-300 hover:text-slate-900 transition-colors">
-                  <MoreVertical className="w-4 h-4" />
-                </button>
+                <>
+                  <button onClick={onQuickAdd} title="Quick Add Stock" className="p-1 px-2 border border-slate-100 rounded text-slate-400 hover:text-green-600 hover:bg-green-50 transition-all">
+                    <Plus className="w-3.5 h-3.5" />
+                  </button>
+                  <button onClick={onAdjust} title="Adjust Stock" className="p-1 px-2 border border-slate-100 rounded text-slate-400 hover:text-slate-900 hover:bg-slate-50 transition-all">
+                    <Edit2 className="w-3.5 h-3.5" />
+                  </button>
+                  <button onClick={onDelete} className="p-1 px-2 border border-slate-100 rounded text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-all">
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+                </>
               )}
             </div>
           </div>
@@ -208,11 +216,11 @@ const InventoryCard = ({ item, onAdjust, onQR, readOnly }) => {
 };
 
 // ─── Receive Shipment Modal ──────────────────────────────────────────────────
-const ReceiveShipmentModal = ({ hub, onClose, onSuccess }) => {
+const ReceiveShipmentModal = ({ hub, onClose, onSuccess, preSelectedProduct }) => {
   const [productSearch, setProductSearch] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const [searching, setSearching] = useState(false);
-  const [selected, setSelected] = useState(null);
+  const [selected, setSelected] = useState(preSelectedProduct || null);
   const [quantity, setQuantity] = useState('');
   const [supplier, setSupplier] = useState('');
   const [notes, setNotes] = useState('');
@@ -368,6 +376,7 @@ const Inventory = ({ readOnly }) => {
   const [showScanner, setShowScanner] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [downloading, setDownloading] = useState(false);
+  const [quickAddProduct, setQuickAddProduct] = useState(null);
 
   const handleDownloadInventory = () => {
     if (!inventory.length) return toast.error("No inventory to export");
@@ -408,6 +417,30 @@ const Inventory = ({ readOnly }) => {
     }
   }, [hub]);
 
+  const handleDelete = async (productId, productName) => {
+    if (!window.confirm(`Are you sure you want to remove ${productName} from hub inventory? This action will decommission the product from this hub.`)) return;
+    
+    try {
+      setRefreshing(true);
+      await axiosInstance.delete(`/delivery/hubs/${hub.id}/inventory`, {
+        params: { productId }
+      });
+      toast.success(`${productName} decommissioned successfully`);
+      
+      // Audit log
+      AuditService.logAction(hub.id, 'INVENTORY_DECOMMISSION', {
+        message: `Decommissioned ${productName} from hub inventory`,
+        productId: productId
+      });
+
+      fetchData(true);
+    } catch (err) {
+      toast.error(err?.response?.data?.message || "Failed to remove product from inventory");
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
   useEffect(() => { fetchData(); }, [fetchData]);
 
   const lowStockCount = inventory.filter(i => i.quantity <= (i.lowStockAlert ?? 10)).length;
@@ -431,6 +464,7 @@ const Inventory = ({ readOnly }) => {
   return (
     <div className="space-y-6 md:space-y-10 animate-in fade-in duration-500">
       {showReceiveModal && <ReceiveShipmentModal hub={hub} onClose={() => setShowReceiveModal(false)} onSuccess={() => fetchData(true)} readOnly={readOnly} />}
+      {quickAddProduct && <ReceiveShipmentModal hub={hub} preSelectedProduct={quickAddProduct} onClose={() => setQuickAddProduct(null)} onSuccess={() => fetchData(true)} />}
       {qrItem && <QRModal item={qrItem} onClose={() => setQrItem(null)} />}
       {showScanner && <ScannerModal onClose={() => setShowScanner(false)} onScan={(res) => setSearch(res)} />}
 
@@ -490,6 +524,8 @@ const Inventory = ({ readOnly }) => {
             item={item}
             onAdjust={() => navigate('/stock-adjustment/' + item.id)}
             onQR={() => setQrItem(item)}
+            onDelete={() => handleDelete(item.productId, item.product?.name)}
+            onQuickAdd={() => setQuickAddProduct(item.product)}
             readOnly={readOnly}
           />
         ))}
