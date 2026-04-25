@@ -93,7 +93,31 @@ const LogisticsAuditTrail = ({ hubId, staffId, filterType }) => {
                                         <span className={`text-[8px] font-black  tracking-widest ${log.type === 'INVENTORY' ? 'text-blue-600' : 'text-indigo-600'}`}>{log.type}</span>
                                     </div>
                                 </div>
-                                <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center">
+                                <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-2">
+                                    {log.type === 'INVENTORY' && log.id && log.approvalStatus === 'APPROVED' && (
+                                        <button 
+                                            onClick={async (e) => {
+                                                e.stopPropagation();
+                                                if (window.confirm("Request seller to reverse this stock addition?")) {
+                                                    try {
+                                                        await axiosInstance.post(`/delivery/hubs/${hubId}/reversal-request`, { logId: log.id });
+                                                        toast.success("Reversal request sent to seller");
+                                                        fetchLogs(true);
+                                                    } catch (err) {
+                                                        toast.error("Failed to send request");
+                                                    }
+                                                }
+                                            }}
+                                            className="px-2 py-1 bg-red-50 text-red-600 rounded text-[8px] font-black tracking-widest hover:bg-red-600 hover:text-white transition-all shadow-sm active:scale-95"
+                                        >
+                                            REVERSE
+                                        </button>
+                                    )}
+                                    {log.approvalStatus === 'PENDING_REVERSAL' && (
+                                        <span className="px-2 py-1 bg-amber-50 text-amber-600 rounded text-[8px] font-black tracking-widest border border-amber-100">
+                                            WAITING SELLER
+                                        </span>
+                                    )}
                                     <ChevronRight size={14} className="text-slate-300" />
                                 </div>
                             </div>
