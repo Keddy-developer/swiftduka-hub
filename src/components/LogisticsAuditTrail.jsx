@@ -79,13 +79,16 @@ const LogisticsAuditTrail = ({ hubId, staffId, filterType }) => {
                                     <div className="flex items-start justify-between gap-4 mb-0.5">
                                         <p className="text-[10px] font-black text-slate-900  tracking-tight truncate">{log.title}</p>
                                         <div className="flex items-center gap-1.5 shrink-0 opacity-40 group-hover:opacity-100 transition-opacity">
-                                            <Clock size={10} />
-                                            <span className="text-[9px] font-bold text-slate-500 ">{new Date(log.time).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })}</span>
+                                            <span className="text-[9px] font-bold text-slate-500 ">
+                                                {log.time ? new Date(log.time).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' }) : '...'}
+                                            </span>
                                         </div>
                                     </div>
                                     <p className="text-[11px] text-slate-500 font-medium leading-relaxed  tracking-tight">{log.message}</p>
                                     <div className="mt-2 flex items-center gap-3">
-                                        <span className="text-[8px] font-black text-slate-400  tracking-widest">{new Date(log.time).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                                        <span className="text-[8px] font-black text-slate-400  tracking-widest">
+                                            {log.time ? new Date(log.time).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }) : 'Recent'}
+                                        </span>
                                         <div className="w-1 h-1 rounded-full bg-slate-200" />
                                         <span className={`text-[8px] font-black  tracking-widest ${log.type === 'INVENTORY' ? 'text-blue-600' : 'text-indigo-600'}`}>{log.type}</span>
                                     </div>
@@ -110,7 +113,7 @@ const LogisticsAuditTrail = ({ hubId, staffId, filterType }) => {
                   onClick={() => {
                     if (!logs.length) return toast.error("No logs to download");
                     const exportData = logs.map(l => ({
-                        Time: new Date(l.time).toLocaleString(),
+                        Time: l.time ? new Date(l.time).toLocaleString() : 'N/A',
                         Type: l.type,
                         Title: l.title,
                         Message: l.message,

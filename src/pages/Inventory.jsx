@@ -238,7 +238,7 @@ const ScannerModal = ({ onClose, onScan }) => {
 
 // ─── Inventory Card Component ─────────────────────────────────────────────────────
 const InventoryCard = ({ item, onAdjust, onQR, readOnly }) => {
-  const isLow = item.quantity <= (item.lowStockAlert ?? 10);
+  const isLow = (item.quantity ?? 0) <= (item.lowStockAlert ?? 10);
   const lastDate = item.lastRestocked ? new Date(item.lastRestocked).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : 'INITIAL';
 
   return (
@@ -279,7 +279,7 @@ const InventoryCard = ({ item, onAdjust, onQR, readOnly }) => {
         <div className="flex flex-col">
           <span className="text-[8px] font-black text-slate-400 tracking-widest leading-none">Stock</span>
           <span className={`text-xl font-black tracking-tighter ${isLow ? 'text-rose-600' : 'text-slate-900'}`}>
-            {item.quantity.toLocaleString()} <span className="text-[10px] font-bold text-slate-400">Pcs</span>
+            {(item.quantity ?? 0).toLocaleString()} <span className="text-[10px] font-bold text-slate-400">Pcs</span>
           </span>
         </div>
         <div className="text-right">
@@ -463,9 +463,9 @@ const Inventory = ({ readOnly }) => {
       Product: item.product?.name || 'N/A',
       SKU: item.product?.sku || 'N/A',
       Seller: item.product?.seller?.storeName || 'Platform',
-      Stock: item.quantity,
+      Stock: item.quantity ?? 0,
       Price: item.product?.price || 0,
-      TotalValue: item.quantity * (item.product?.price || 0),
+      TotalValue: (item.quantity ?? 0) * (item.product?.price || 0),
       LowStockLimit: item.lowStockAlert || 10,
       LastUpdate: item.lastRestocked ? new Date(item.lastRestocked).toLocaleString() : 'N/A'
     }));

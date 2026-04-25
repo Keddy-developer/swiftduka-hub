@@ -95,7 +95,7 @@ const Orders = () => {
     
     const exportData = orders.map(sellerOrder => ({
       Tracking: sellerOrder.order?.trackingNumber || 'N/A',
-      Date: new Date(sellerOrder.order?.createdAt || sellerOrder.createdAt).toLocaleString(),
+      Date: (sellerOrder.order?.createdAt || sellerOrder.createdAt) ? new Date(sellerOrder.order?.createdAt || sellerOrder.createdAt).toLocaleString() : 'N/A',
       Customer: sellerOrder.order?.user?.username || 'Guest',
       Phone: sellerOrder.order?.user?.phone || 'N/A',
       Product: sellerOrder.product?.name || 'Unknown',

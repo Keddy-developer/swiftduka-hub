@@ -466,7 +466,7 @@ const OrderDetailsPage = () => {
             </button>
             <div className="flex items-center gap-3">
                <span className="text-sm text-gray-500">
-                  Ordered on {new Date(order.createdAt).toLocaleDateString()}
+                  Ordered on {order.createdAt ? new Date(order.createdAt).toLocaleDateString() : "Recent"}
                </span>
                <StatusBadge status={order.products[0]?.deliveryStatus || "Pending"} />
             </div>
@@ -483,7 +483,7 @@ const OrderDetailsPage = () => {
                         <div>
                            <h1 className="text-2xl font-bold text-gray-900 truncate max-w-[300px]" title={order.trackingNumber}>#{order.trackingNumber}</h1>
                            <p className="text-sm text-gray-500 mt-1">
-                              {order.products.length} Items • Total: Ksh {(order.totalCost + order.creditApplied).toLocaleString()}
+                              {order.products.length} Items • Total: Ksh {((order.totalCost ?? 0) + (order.creditApplied ?? 0)).toLocaleString()}
                            </p>
                         </div>
                         {order.deliveryType && (
@@ -635,10 +635,10 @@ const OrderDetailsPage = () => {
                                        <h4 className="font-medium text-gray-900">{product.product.name}</h4>
                                        <div className="mt-1 flex flex-wrap gap-4 text-sm text-gray-500">
                                           <span>Qty: {product.quantity}</span>
-                                          <span>Price: Ksh {product.priceAtPurchase?.toLocaleString()}</span>
+                                          <span>Price: Ksh {(product.priceAtPurchase ?? 0).toLocaleString()}</span>
                                           {product.giftWrappingFee > 0 && (
                                              <span className="text-pink-600 font-medium flex items-center gap-1">
-                                                <FiGift className="w-3 h-3" /> Wrapping: Ksh {product.giftWrappingFee.toLocaleString()}
+                                                <FiGift className="w-3 h-3" /> Wrapping: Ksh {(product.giftWrappingFee ?? 0).toLocaleString()}
                                              </span>
                                           )}
                                        </div>
@@ -829,12 +829,12 @@ const OrderDetailsPage = () => {
                      )}
                      <div className="flex justify-between">
                         <span className="text-gray-600">Delivery Fee</span>
-                        <span className="font-medium">Ksh {(order.deliveryFee || 0).toLocaleString()}</span>
+                        <span className="font-medium">Ksh {(order.deliveryFee ?? 0).toLocaleString()}</span>
                      </div>
                      {order.discount > 0 && (
                         <div className="flex justify-between text-gray-600">
                            <span>Discount</span>
-                           <span>- Ksh {(order.discount).toLocaleString()}</span>
+                           <span>- Ksh {(order.discount ?? 0).toLocaleString()}</span>
                         </div>
                      )}
 
@@ -849,19 +849,19 @@ const OrderDetailsPage = () => {
                            </div>
                            <div className="flex justify-between mt-1 text-gray-500 text-xs italic">
                               <span>Voucher Discount ({order.voucherType})</span>
-                              <span>- Ksh {(order.discountAmount || 0).toLocaleString()}</span>
+                              <span>- Ksh {(order.discountAmount ?? 0).toLocaleString()}</span>
                            </div>
                         </div>
                      )}
                      {order.loyaltyDiscountAmount && order.loyaltyDiscountAmount > 0 && (
                         <div className="flex justify-between text-orange-600 font-medium">
                            <span>Platform Loyalty ({order.loyaltyDiscountCode})</span>
-                           <span>- Ksh {order.loyaltyDiscountAmount.toLocaleString()}</span>
+                           <span>- Ksh {(order.loyaltyDiscountAmount ?? 0).toLocaleString()}</span>
                         </div>
                      )}
                      <div className="pt-3 border-t border-gray-100 flex justify-between text-base font-bold text-gray-900">
                         <span>Total Customer Pay</span>
-                        <span>Ksh {order.totalCost.toLocaleString()}</span>
+                        <span>Ksh {(order.totalCost ?? 0).toLocaleString()}</span>
                      </div>
 
                      <div className="pt-3">
@@ -1087,7 +1087,7 @@ const OrderDetailsPage = () => {
                                              </p>
                                              <div className="mt-1 space-y-1">
                                                 <p className="text-xs text-gray-500 flex items-center gap-1">
-                                                   <FiClock className="w-3 h-3" /> {new Date(ro.createdAt).toLocaleString()}
+                                                   <FiClock className="w-3 h-3" /> {ro.createdAt ? new Date(ro.createdAt).toLocaleString() : "Recent"}
                                                 </p>
                                                 {ro.rider?.phone && (
                                                    <p className="text-xs text-gray-500 flex items-center gap-1">
