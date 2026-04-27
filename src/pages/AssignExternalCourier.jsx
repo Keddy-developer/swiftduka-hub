@@ -81,12 +81,13 @@ export default function AssignExternalCourier() {
    };
 
    const filteredCouriers = couriers.filter(c => {
+      const isActive = c.status === 'ONLINE' || c.status === 'AVAILABLE' || c.isAvailable === true;
       const matchesSearch = 
          c.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
          c.phone?.includes(searchQuery) ||
          c.plateNumber?.toLowerCase().includes(searchQuery.toLowerCase());
           
-      return matchesSearch;
+      return matchesSearch && isActive;
    });
 
    if (loading) {
@@ -197,19 +198,23 @@ export default function AssignExternalCourier() {
 
                         <button 
                            onClick={() => handleAssign(courier.id)}
-                           disabled={assigning !== null}
+                           disabled={assigning !== null || !(courier.status === 'ONLINE' || courier.status === 'AVAILABLE' || courier.isAvailable === true)}
                            className={`w-full mt-8 py-4 rounded-2xl text-[10px] font-black tracking-widest transition-all uppercase flex items-center justify-center gap-3 ${
-                              assigning === courier.id
-                                 ? 'bg-slate-100 text-slate-400 cursor-not-allowed'
+                              assigning === courier.id || !(courier.status === 'ONLINE' || courier.status === 'AVAILABLE' || courier.isAvailable === true)
+                                 ? 'bg-slate-100 text-slate-400 cursor-not-allowed border border-slate-200'
                                  : 'bg-emerald-600 text-white hover:bg-emerald-700 shadow-lg shadow-emerald-200'
                            }`}
                         >
                            {assigning === courier.id ? (
                               <Loader2 size={16} className="animate-spin" />
                            ) : (
-                              <>
-                                 <Zap size={16} className="fill-white" /> Initiate Dispatch
-                              </>
+                              !(courier.status === 'ONLINE' || courier.status === 'AVAILABLE' || courier.isAvailable === true) ? (
+                                 <>Offline Assets</>
+                              ) : (
+                                 <>
+                                    <Zap size={16} className="fill-white" /> Initiate Dispatch
+                                 </>
+                              )
                            )}
                         </button>
                      </div>
