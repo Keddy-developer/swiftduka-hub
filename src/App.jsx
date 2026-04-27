@@ -33,6 +33,7 @@ import Logistics from './pages/Logistics';
 import NotificationsPage from './pages/Notifications';
 import StaffManagement from './pages/StaffManagement';
 import StaffDetails from './pages/StaffDetails';
+import CourierFinance from './pages/CourierFinance';
 import Home from './pages/Home';
 
 import NotificationDropdown from './components/NotificationDropdown';
@@ -52,6 +53,7 @@ const MainLayout = ({ children }) => {
       { name: 'Track Order', icon: Search, path: '/tracking' },
       { name: 'Returns Management', icon: Warehouse, path: '/returns' },
       { name: 'Last-Mile Fleet', icon: Truck, path: '/fleet' },
+      { name: 'Courier Finance', icon: Banknote, path: '/finance' },
       { name: 'Hub Logistics', icon: Navigation, path: '/logistics' },
       { name: 'Zone Logistics', icon: Globe, path: '/zone-info' },
       { name: 'Hub Settings', icon: Settings, path: '/settings' },
@@ -254,6 +256,7 @@ function App() {
                <Route path="/register-seller" element={<PrivateRoute resource="Seller Network"><RegisterSeller /></PrivateRoute>} />
                <Route path="/fleet" element={<PrivateRoute resource="Last-Mile Fleet"><Fleet /></PrivateRoute>} />
                <Route path="/fleet/:id" element={<PrivateRoute resource="Last-Mile Fleet"><RiderDetails /></PrivateRoute>} />
+               <Route path="/finance" element={<PrivateRoute resource="Courier Finance"><CourierFinance /></PrivateRoute>} />
                <Route path="/register-a-rider/:id" element={<PrivateRoute resource="Last-Mile Fleet"><RegisterRider /></PrivateRoute>} />
                <Route path="/settings" element={<PrivateRoute resource="Hub Settings"><SettingsPage /></PrivateRoute>} />
                <Route path="/logs" element={<PrivateRoute resource="System Logs"><LogsPage /></PrivateRoute>} />
