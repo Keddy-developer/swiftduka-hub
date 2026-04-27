@@ -24,6 +24,15 @@ const CourierFinance = () => {
   const [settlingCourier, setSettlingCourier] = useState(null);
   const [settleAmount, setSettleAmount] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
+  const [showRuleModal, setShowRuleModal] = useState(false);
+  const [submittingRule, setSubmittingRule] = useState(false);
+  const [ruleForm, setRuleForm] = useState({
+    name: "",
+    type: "FIXED_PER_DELIVERY",
+    value: "",
+    priority: 0,
+    isActive: true
+  });
 
   useEffect(() => {
     if (courierIdParam) {
@@ -87,6 +96,25 @@ const CourierFinance = () => {
       fetchData();
     } catch (err) {
       toast.error("Action failed");
+    }
+  };
+
+  const handleAddRule = async (e) => {
+    e.preventDefault();
+    setSubmittingRule(true);
+    try {
+      await axiosInstance.post(`/delivery/compensation-rules`, {
+        ...ruleForm,
+        value: parseFloat(ruleForm.value)
+      });
+      toast.success("Compensation rule established");
+      setShowRuleModal(false);
+      setRuleForm({ name: "", type: "FIXED_PER_DELIVERY", value: "", priority: 0, isActive: true });
+      fetchData();
+    } catch (err) {
+      toast.error("Failed to create rule");
+    } finally {
+      setSubmittingRule(false);
     }
   };
 
@@ -285,14 +313,82 @@ const CourierFinance = () => {
                   </div>
                 </div>
               ))}
-              <button className="border-2 border-dashed border-slate-200 rounded-3xl p-6 flex flex-col items-center justify-center gap-2 hover:border-primary hover:bg-slate-50 transition-all group">
-                <div className="w-12 h-12 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 group-hover:bg-primary group-hover:text-white transition-all">
+              <button 
+                onClick={() => setShowRuleModal(true)}
+                className="border-2 border-dashed border-slate-200 rounded-3xl p-6 flex flex-col items-center justify-center gap-2 hover:border-emerald-500 hover:bg-slate-50 transition-all group"
+              >
+                <div className="w-12 h-12 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 group-hover:bg-emerald-600 group-hover:text-white transition-all">
                   <TrendingUp size={24} />
                 </div>
-                <p className="text-[10px] font-black tracking-widest text-slate-400 group-hover:text-primary">ADD NEW RULE</p>
+                <p className="text-[10px] font-black tracking-widest text-slate-400 group-hover:text-emerald-600">ADD NEW RULE</p>
               </button>
             </div>
           )}
+        </div>
+      )}
+
+      {/* Add Rule Modal */}
+      {showRuleModal && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-[100] p-4 animate-in fade-in duration-300">
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md p-8 space-y-6 animate-in zoom-in-95 duration-200">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 bg-emerald-50 rounded-2xl flex items-center justify-center border border-emerald-100 shrink-0">
+                <Gavel className="text-emerald-600 w-6 h-6" />
+              </div>
+              <div>
+                <h3 className="text-base font-black text-slate-900 tracking-tight">Create Compensation Rule</h3>
+                <p className="text-[10px] font-bold text-slate-400 tracking-widest mt-0.5 uppercase">Define Payment Logic</p>
+              </div>
+            </div>
+
+            <form onSubmit={handleAddRule} className="space-y-4">
+              <div className="space-y-2">
+                <label className="text-[10px] font-black text-slate-400 tracking-widest uppercase ml-1">Rule Name</label>
+                <input 
+                  required
+                  value={ruleForm.name}
+                  onChange={(e) => setRuleForm({...ruleForm, name: e.target.value})}
+                  placeholder="e.g. Standard Bike Delivery"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-xs font-black outline-none focus:border-emerald-500 transition-all"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-slate-400 tracking-widest uppercase ml-1">Type</label>
+                  <select 
+                    value={ruleForm.type}
+                    onChange={(e) => setRuleForm({...ruleForm, type: e.target.value})}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-[10px] font-black outline-none focus:border-emerald-500 transition-all uppercase"
+                  >
+                    <option value="FIXED_PER_DELIVERY">Fixed / Delivery</option>
+                    <option value="DISTANCE_BASED">Distance Based</option>
+                    <option value="ZONE_BASED">Zone Based</option>
+                    <option value="PEAK_HOUR_BONUS">Peak Bonus</option>
+                  </select>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-slate-400 tracking-widest uppercase ml-1">Value (KSh)</label>
+                  <input 
+                    required
+                    type="number"
+                    value={ruleForm.value}
+                    onChange={(e) => setRuleForm({...ruleForm, value: e.target.value})}
+                    placeholder="0.00"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-xs font-black outline-none focus:border-emerald-500 transition-all"
+                  />
+                </div>
+              </div>
+
+              <div className="flex gap-3 pt-4">
+                <button type="button" onClick={() => setShowRuleModal(false)} className="flex-1 py-3.5 bg-slate-50 border border-slate-200 rounded-xl text-[10px] font-black tracking-widest hover:bg-slate-100 transition-all uppercase">Cancel</button>
+                <button type="submit" disabled={submittingRule} className="flex-1 py-3.5 bg-slate-900 text-white rounded-xl text-[10px] font-black tracking-widest hover:bg-emerald-600 transition-all shadow-xl shadow-slate-200 uppercase flex items-center justify-center gap-2">
+                  {submittingRule ? <RefreshCw size={14} className="animate-spin" /> : <TrendingUp size={14} />}
+                  ESTABLISH RULE
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
       )}
 
