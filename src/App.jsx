@@ -36,6 +36,7 @@ import StaffManagement from './pages/StaffManagement';
 import StaffDetails from './pages/StaffDetails';
 import CourierManagement from './pages/CourierManagement';
 import CourierFinance from './pages/CourierFinance';
+import CompensationRuleForm from './pages/CompensationRuleForm';
 import RegisterCourier from './pages/RegisterCourier';
 import Home from './pages/Home';
 
@@ -262,6 +263,7 @@ function App() {
                <Route path="/fleet" element={<PrivateRoute resource="Last-Mile Fleet"><Fleet /></PrivateRoute>} />
                <Route path="/fleet/:id" element={<PrivateRoute resource="Last-Mile Fleet"><RiderDetails /></PrivateRoute>} />
                <Route path="/finance" element={<PrivateRoute resource="Courier Finance"><CourierFinance /></PrivateRoute>} />
+               <Route path="/finance/rules/:id" element={<PrivateRoute resource="Courier Finance"><CompensationRuleForm /></PrivateRoute>} />
                 <Route path="/couriers" element={<PrivateRoute resource="Courier Management"><CourierManagement /></PrivateRoute>} />
                 <Route path="/register-courier/:id" element={<PrivateRoute resource="Courier Management"><RegisterCourier /></PrivateRoute>} />
                <Route path="/register-a-rider/:id" element={<PrivateRoute resource="Last-Mile Fleet"><RegisterRider /></PrivateRoute>} />
