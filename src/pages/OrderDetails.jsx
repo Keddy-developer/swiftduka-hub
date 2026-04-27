@@ -59,6 +59,25 @@ const OrderDetailsPage = () => {
    const [returnModalOpen, setReturnModalOpen] = useState(false);
    const [selectedProductForReturn, setSelectedProductForReturn] = useState(null);
 
+   const [revokingProductId, setRevokingProductId] = useState(null);
+
+   const handleRevokeAssignment = async (productId, orderId, reassignCourierId = null) => {
+      setRevokingProductId(productId);
+      try {
+         await axiosInstance.post(`/delivery/hubs/${hub?.id}/couriers/revoke-assignment`, {
+            orderProductId: productId,
+            orderId,
+            reassignToCourierId: reassignCourierId || undefined
+         });
+         toast.success(reassignCourierId ? 'Assignment revoked and reassigned' : 'Assignment revoked — courier notified');
+         fetchOrderDetails();
+      } catch (err) {
+         toast.error(err.response?.data?.message || 'Failed to revoke assignment');
+      } finally {
+         setRevokingProductId(null);
+      }
+   };
+
    const fetchOrderDetails = async () => {
       try {
          const res = await axiosInstance.get(`/order/admin/${id}`);
@@ -397,43 +416,33 @@ const OrderDetailsPage = () => {
       );
    };
 
-   const CountdownTimer = ({ targetDate, onExpire }) => {
-      const [timeLeft, setTimeLeft] = useState("");
+   // Elapsed time since assignment was made (counts UP). expiresAt = assignedAt + 20min
+   const ElapsedTimer = ({ assignmentExpiresAt }) => {
+      const WINDOW_MS = 20 * 60 * 1000;
+      const assignedAt = new Date(new Date(assignmentExpiresAt).getTime() - WINDOW_MS);
+      const [elapsed, setElapsed] = useState(Math.max(0, Date.now() - assignedAt.getTime()));
 
       useEffect(() => {
-         const calculateTime = () => {
-            const now = new Date().getTime();
-            const distance = new Date(targetDate).getTime() - now;
-
-            if (distance < 0) {
-               setTimeLeft("Expired");
-               if (onExpire) onExpire();
-               return false;
-            } else {
-               const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-               const seconds = Math.floor((distance % (1000 * 60)) / 1000);
-               setTimeLeft(`${minutes}m ${seconds}s`);
-               return true;
-            }
-         };
-
-         if (!calculateTime()) return;
-
          const interval = setInterval(() => {
-            if (!calculateTime()) {
-               clearInterval(interval);
-            }
+            setElapsed(Math.max(0, Date.now() - assignedAt.getTime()));
          }, 1000);
-
          return () => clearInterval(interval);
-      }, [targetDate]);
+      }, [assignmentExpiresAt]);
 
-      if (timeLeft === "Expired") return null;
+      const totalSeconds = Math.floor(elapsed / 1000);
+      const mins = Math.floor(totalSeconds / 60);
+      const secs = totalSeconds % 60;
+      const isOverdue = elapsed >= WINDOW_MS;
 
       return (
-         <span className="px-3 py-1.5 bg-blue-50 text-blue-600 text-xs font-medium rounded-lg flex items-center gap-1 border border-blue-100">
-            <FiClock className="w-3.5 h-3.5 animate-pulse" />
-            <span className="font-mono">{timeLeft}</span>
+         <span className={`px-3 py-1.5 text-xs font-medium rounded-lg flex items-center gap-1.5 border ${
+            isOverdue
+               ? 'bg-red-50 text-red-600 border-red-200 animate-pulse'
+               : 'bg-amber-50 text-amber-600 border-amber-200'
+         }`}>
+            <FiClock className="w-3.5 h-3.5" />
+            <span className="font-mono">{String(mins).padStart(2,'0')}:{String(secs).padStart(2,'0')}</span>
+            <span className="font-normal">{isOverdue ? '— OVERDUE' : ' elapsed'}</span>
          </span>
       );
    };
@@ -628,7 +637,10 @@ const OrderDetailsPage = () => {
                         const sellerEarnings = product.calculatedSellerEarnings || 0;
                         const commissionAmount = product.calculatedCommission || 0;
                         const commissionRate = product.calculatedCommissionRate || 0;
-                        const isAssignmentActive = product.assignmentExpiresAt && new Date(product.assignmentExpiresAt) > new Date();
+                        const isAssignmentActive = product.assignmentExpiresAt &&
+                            new Date(product.assignmentExpiresAt) > new Date() &&
+                            product.assignmentStatus !== 'EXPIRED' &&
+                            product.assignmentStatus !== 'ACCEPTED';
 
                         return (
                            <div key={index} className="p-6 hover:bg-gray-50 transition-colors">
@@ -702,30 +714,51 @@ const OrderDetailsPage = () => {
                                           </span>
                                        )}
 
-                                    {/* Assign Courier - After Hub Receipt */}
-                                    {product.adminReceived && !product.courierAccepted && product.deliveryStatus === "ReadyForLogistics" && !order.pickUpStation?.isPickupStation && (
-                                       isAssignmentActive ? (
-                                          <CountdownTimer
-                                             targetDate={product.assignmentExpiresAt}
-                                             onExpire={fetchOrderDetails}
-                                          />
-                                       ) : (
-                                          <ActionButton
-                                             onClick={() => {
-                                                setAssignmentData({
-                                                   addressId: order.shippingAddress?.id,
-                                                   productId: product.id,
-                                                   orderId: order.id
-                                                });
-                                                setIsAssignSelectionModalOpen(true);
-                                             }}
-                                             variant="warning"
-                                             className="bg-amber-500 hover:bg-amber-600"
-                                          >
-                                             Assign Courier
-                                          </ActionButton>
-                                       )
-                                    )}
+                                    {/* Courier Assignment Block */}
+                                     {product.adminReceived && !product.courierAccepted && product.deliveryStatus === "ReadyForLogistics" && !order.pickUpStation?.isPickupStation && (
+                                        isAssignmentActive ? (
+                                           <div className="flex flex-wrap items-center gap-2 w-full mt-1">
+                                              <ElapsedTimer assignmentExpiresAt={product.assignmentExpiresAt} />
+                                              <span className="px-2.5 py-1.5 bg-orange-50 text-orange-700 text-[10px] font-bold rounded-lg border border-orange-200 uppercase tracking-wider">
+                                                 Awaiting Courier Acceptance
+                                              </span>
+                                              <div className="flex gap-2 ml-auto">
+                                                 <button
+                                                    disabled={revokingProductId === product.id}
+                                                    onClick={() => handleRevokeAssignment(product.id, order.id)}
+                                                    className="px-3 py-1.5 bg-red-50 hover:bg-red-100 text-red-600 text-xs font-semibold rounded-lg border border-red-200 transition-colors disabled:opacity-50"
+                                                 >
+                                                    {revokingProductId === product.id ? 'Revoking...' : 'Revoke'}
+                                                 </button>
+                                                 <button
+                                                    disabled={revokingProductId === product.id}
+                                                    onClick={async () => {
+                                                       await handleRevokeAssignment(product.id, order.id);
+                                                       navigate(`/assign-courier/${product.id}?orderId=${order.id}&productId=${product.productId}`);
+                                                    }}
+                                                    className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg transition-colors disabled:opacity-50"
+                                                 >
+                                                    Revoke &amp; Reassign
+                                                 </button>
+                                              </div>
+                                           </div>
+                                        ) : (
+                                           <ActionButton
+                                              onClick={() => {
+                                                 setAssignmentData({
+                                                    addressId: order.shippingAddress?.id,
+                                                    productId: product.id,
+                                                    orderId: order.id
+                                                 });
+                                                 setIsAssignSelectionModalOpen(true);
+                                              }}
+                                              variant="warning"
+                                              className="bg-amber-500 hover:bg-amber-600"
+                                           >
+                                              Assign Courier
+                                           </ActionButton>
+                                        )
+                                     )}
 
                                     {/* Mark Ready For Pickup - Manual Toggle */}
                                     {product.deliveryStatus === "ArrivedAtStation" && (
@@ -746,11 +779,12 @@ const OrderDetailsPage = () => {
                                        </span>
                                     )}
 
-                                    {product.courierAccepted && product.deliveryStatus === "Processing" && (
-                                       <span className="px-3 py-1.5 bg-blue-100 text-blue-800 text-xs font-medium rounded-lg">
-                                          Courier Assigned
-                                       </span>
-                                    )}
+                                    {product.courierAccepted && (
+                                        <span className="px-3 py-1.5 bg-emerald-50 text-emerald-700 text-xs font-semibold rounded-lg border border-emerald-200 flex items-center gap-1.5">
+                                           <FiCheckCircle className="w-3.5 h-3.5" />
+                                           Courier Accepted — En Route
+                                        </span>
+                                     )}
 
                                     {/* Mark Received */}
                                     {product.deliveryStatus === "ReadyForLogistics" && !product.adminReceived && (
