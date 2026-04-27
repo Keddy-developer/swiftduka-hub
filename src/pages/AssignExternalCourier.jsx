@@ -61,7 +61,7 @@ export default function AssignExternalCourier() {
       try {
          // We use the same assignment endpoint but the ID passed is a courier's ID
          // Backend should handle the differentiation or we use a specific courier endpoint
-         await axiosInstance.post('/delivery/hubs/couriers/assign', {
+         await axiosInstance.post(`/delivery/hubs/${hub.id}/couriers/assign`, {
             orderProductId,
             orderId,
             courierId,
