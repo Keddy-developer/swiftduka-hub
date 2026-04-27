@@ -101,9 +101,9 @@ export default function CourierManagement({ readOnly }) {
          {/* 📊 LOGISTICS METRICS */}
          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
             <KPICard label="Total Assets" value={couriers.length} icon={User} color="blue" />
-            <KPICard label="COD Liability" value={`KSh ${couriers.reduce((acc, c) => acc + (c.wallet?.codLiability || 0), 0).toLocaleString()}`} icon={Wallet} color="slate" />
-            <KPICard label="Wallet Balance" value={`KSh ${couriers.reduce((acc, c) => acc + (c.wallet?.availableBalance || 0), 0).toLocaleString()}`} icon={TrendingUp} color="emerald" />
-            <KPICard label="Active Capacity" value={`${couriers.filter(c => c.status !== 'OFFLINE').length} Ready`} icon={Zap} color="amber" />
+            <KPICard label="COD Liability" value={`KSh ${Array.isArray(couriers) ? couriers.reduce((acc, c) => acc + (c.wallet?.codLiability || 0), 0).toLocaleString() : '0'}`} icon={Wallet} color="slate" />
+            <KPICard label="Wallet Balance" value={`KSh ${Array.isArray(couriers) ? couriers.reduce((acc, c) => acc + (c.wallet?.availableBalance || 0), 0).toLocaleString() : '0'}`} icon={TrendingUp} color="emerald" />
+            <KPICard label="Active Capacity" value={`${Array.isArray(couriers) ? couriers.filter(c => c.status !== 'OFFLINE').length : '0'} Ready`} icon={Zap} color="amber" />
          </div>
 
          <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">

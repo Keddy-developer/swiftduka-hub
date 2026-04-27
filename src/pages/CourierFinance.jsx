@@ -41,8 +41,8 @@ const CourierFinance = () => {
     try {
       if (activeTab === "wallets") {
         const res = await axiosInstance.get(`/delivery/hubs/${hub.id}/couriers`);
-        // Note: We'll need to fetch detailed wallet info for each if the basic endpoint doesn't have it
-        setCouriers(res.data.riders || res.data || []);
+        const extractedCouriers = res.data?.couriers || res.data?.riders || (Array.isArray(res.data) ? res.data : []);
+        setCouriers(extractedCouriers);
       } else if (activeTab === "payouts") {
         // Mocking for now as we might need a specific endpoint
         const res = await axiosInstance.get(`/delivery/hubs/${hub.id}/payouts`).catch(() => ({ data: { data: [] } }));
@@ -147,7 +147,7 @@ const CourierFinance = () => {
                 <div className="flex items-center gap-4">
                    <div className="text-right">
                       <p className="text-[10px] font-black text-slate-400 tracking-widest leading-none mb-1">TOTAL LIABILITY</p>
-                      <p className="text-xl font-black text-slate-900 tracking-tighter">KSh {couriers.reduce((acc, c) => acc + (c.wallet?.codLiability || 0), 0).toLocaleString()}</p>
+                      <p className="text-xl font-black text-slate-900 tracking-tighter">KSh {Array.isArray(couriers) ? couriers.reduce((acc, c) => acc + (c.wallet?.codLiability || 0), 0).toLocaleString() : '0'}</p>
                    </div>
                 </div>
               </div>

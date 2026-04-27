@@ -7,7 +7,7 @@ import 'react-toastify/dist/ReactToastify.css';
 
 import {
    Package, Users, ClipboardList, Search, Warehouse, Truck, Navigation, Globe,
-   Settings, RotateCw, LogOut, Menu, X, BarChart3, ChevronDown, Check, Banknote
+   Settings, RotateCw, LogOut, Menu, X, BarChart3, ChevronDown, Check, Banknote, Zap
 } from 'lucide-react';
 
 // Pages
