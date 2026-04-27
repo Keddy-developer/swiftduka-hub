@@ -18,6 +18,7 @@ import StockAdjustment from './pages/StockAdjustment';
 import Orders from './pages/Orders';
 import OrderDetails from './pages/OrderDetails';
 import AssignCourier from './pages/AssignCourier';
+import AssignExternalCourier from './pages/AssignExternalCourier';
 import TrackingPage from './pages/TrackingPage';
 import Returns from './pages/Returns';
 import Sellers from './pages/Sellers';
@@ -252,6 +253,7 @@ function App() {
                <Route path="/orders" element={<PrivateRoute resource="Order Fulfillment"><Orders /></PrivateRoute>} />
                <Route path="/orders/:id" element={<PrivateRoute resource="Order Fulfillment"><OrderDetails /></PrivateRoute>} />
                <Route path="/assign-courier/:shippingAddressId/:orderProductId" element={<PrivateRoute resource="Order Fulfillment"><AssignCourier /></PrivateRoute>} />
+               <Route path="/assign-external-courier/:shippingAddressId/:orderProductId" element={<PrivateRoute resource="Order Fulfillment"><AssignExternalCourier /></PrivateRoute>} />
                <Route path="/tracking" element={<PrivateRoute resource="Track Order"><TrackingPage /></PrivateRoute>} />
                <Route path="/returns" element={<PrivateRoute resource="Returns Management"><Returns /></PrivateRoute>} />
                <Route path="/sellers" element={<PrivateRoute resource="Seller Network"><Sellers /></PrivateRoute>} />

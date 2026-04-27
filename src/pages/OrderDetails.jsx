@@ -46,8 +46,11 @@ const OrderDetailsPage = () => {
    const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
    const [cancelReason, setCancelReason] = useState("");
    const [selectedProductId, setSelectedProductId] = useState(null);
-
    const [showSellerModal, setShowSellerModal] = useState(false);
+   
+   // Assignment Selection Modal States
+   const [isAssignSelectionModalOpen, setIsAssignSelectionModalOpen] = useState(false);
+   const [assignmentData, setAssignmentData] = useState(null);
    const [sellerDetails, setSellerDetails] = useState(null);
 
    const [showQRModal, setShowQRModal] = useState(false);
@@ -708,7 +711,14 @@ const OrderDetailsPage = () => {
                                           />
                                        ) : (
                                           <ActionButton
-                                             onClick={() => navigate(`/assign-courier/${order.shippingAddress?.id}/${product.id}?productId=${product.id}&orderId=${order.id}`)}
+                                             onClick={() => {
+                                                setAssignmentData({
+                                                   addressId: order.shippingAddress?.id,
+                                                   productId: product.id,
+                                                   orderId: order.id
+                                                });
+                                                setIsAssignSelectionModalOpen(true);
+                                             }}
                                              variant="warning"
                                              className="bg-amber-500 hover:bg-amber-600"
                                           >
@@ -1130,6 +1140,76 @@ const OrderDetailsPage = () => {
                      <p className="text-gray-500 text-sm">No rider assignments or detailed logs for this order yet.</p>
                   </div>
                )}
+            </div>
+         </div>
+
+         <AssignmentSelectionModal
+            isOpen={isAssignSelectionModalOpen}
+            onClose={() => setIsAssignSelectionModalOpen(false)}
+            onSelect={(type) => {
+               setIsAssignSelectionModalOpen(false);
+               if (type === 'internal') {
+                  navigate(`/assign-courier/${assignmentData.addressId}/${assignmentData.productId}?productId=${assignmentData.productId}&orderId=${assignmentData.orderId}`);
+               } else {
+                  navigate(`/assign-external-courier/${assignmentData.addressId}/${assignmentData.productId}?productId=${assignmentData.productId}&orderId=${assignmentData.orderId}`);
+               }
+            }}
+         />
+      </div>
+   );
+};
+
+// --- Selection Modal Component ---
+const AssignmentSelectionModal = ({ isOpen, onClose, onSelect }) => {
+   if (!isOpen) return null;
+
+   return (
+      <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
+         <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden animate-in zoom-in-95 duration-200">
+            <div className="p-8">
+               <div className="flex items-center justify-between mb-8">
+                  <div>
+                     <h3 className="text-xl font-black text-slate-900 tracking-tight">Dispatch Strategy</h3>
+                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">Select Fulfillment Method</p>
+                  </div>
+                  <button onClick={onClose} className="w-10 h-10 bg-slate-50 rounded-xl flex items-center justify-center text-slate-400 hover:text-slate-900 transition-colors">
+                     <FiXCircle size={20} />
+                  </button>
+               </div>
+
+               <div className="space-y-4">
+                  <button
+                     onClick={() => onSelect('internal')}
+                     className="w-full group p-6 bg-slate-50 border border-slate-100 rounded-2xl text-left hover:border-blue-500 hover:bg-blue-50/50 transition-all flex items-center gap-6"
+                  >
+                     <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform">
+                        <FiTruck size={28} className="text-blue-600" />
+                     </div>
+                     <div>
+                        <h4 className="font-black text-slate-900 uppercase tracking-tight text-sm mb-1">Internal Rider</h4>
+                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">Assign to hub-managed fleet</p>
+                     </div>
+                  </button>
+
+                  <button
+                     onClick={() => onSelect('external')}
+                     className="w-full group p-6 bg-slate-50 border border-slate-100 rounded-2xl text-left hover:border-emerald-500 hover:bg-emerald-50/50 transition-all flex items-center gap-6"
+                  >
+                     <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform">
+                        <FiPackage size={28} className="text-emerald-600" />
+                     </div>
+                     <div>
+                        <h4 className="font-black text-slate-900 uppercase tracking-tight text-sm mb-1">Courier Service</h4>
+                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">Outsource to 3rd party providers</p>
+                     </div>
+                  </button>
+               </div>
+
+               <div className="mt-8 pt-6 border-t border-slate-50">
+                  <p className="text-[10px] text-slate-400 font-bold text-center uppercase tracking-widest italic opacity-60">
+                     Verification required for all external dispatch
+                  </p>
+               </div>
             </div>
          </div>
       </div>
