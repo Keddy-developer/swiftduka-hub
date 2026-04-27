@@ -5,7 +5,7 @@ import {
   Wallet, DollarSign, ArrowUpRight, ArrowDownLeft, 
   History, Clock, CheckCircle2, XCircle, Settings,
   Users, TrendingUp, AlertCircle, RefreshCw, ChevronRight,
-  Search, Filter, Banknote, Gavel, FileText
+  Search, Filter, Banknote, Gavel, FileText, Trash2
 } from "lucide-react";
 import { toast } from "react-toastify";
 import { useAuth } from "../contexts/AuthContext";
@@ -26,6 +26,26 @@ const CourierFinance = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const navigate = useNavigate();
 
+  const handleDeleteRule = async (ruleId, ruleName) => {
+    if (!window.confirm(`Deactivate rule "${ruleName}"? Historical earnings will be preserved.`)) return;
+    try {
+      await axiosInstance.delete(`/delivery/compensation-rules/${ruleId}`);
+      toast.success('Rule removed');
+      fetchData();
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to remove rule');
+    }
+  };
+
+  const toggleRuleActive = async (rule) => {
+    try {
+      await axiosInstance.put(`/delivery/compensation-rules/${rule.id}`, { ...rule, isActive: !rule.isActive });
+      toast.success(`Rule ${rule.isActive ? 'deactivated' : 'activated'}`);
+      fetchData();
+    } catch (err) {
+      toast.error('Failed to toggle rule status');
+    }
+  };
 
   useEffect(() => {
     if (courierIdParam) {
@@ -285,9 +305,24 @@ const CourierFinance = () => {
                         </p>
                       </div>
 
-                      <Link to={`/finance/rules/${rule.id}`} className="p-2 text-slate-400 hover:text-primary transition-colors inline-block">
-                        <Settings size={18} />
-                      </Link>
+                      <div className="flex items-center gap-1">
+                        <button
+                          onClick={() => toggleRuleActive(rule)}
+                          title={rule.isActive ? 'Deactivate' : 'Activate'}
+                          className={`p-2 rounded-lg transition-colors ${rule.isActive ? 'text-emerald-600 hover:bg-emerald-50' : 'text-slate-400 hover:bg-slate-50'}`}
+                        >
+                          <CheckCircle2 size={16} />
+                        </button>
+                        <Link to={`/finance/rules/${rule.id}`} className="p-2 text-slate-400 hover:text-primary hover:bg-slate-50 rounded-lg transition-colors inline-block">
+                          <Settings size={16} />
+                        </Link>
+                        <button
+                          onClick={() => handleDeleteRule(rule.id, rule.name)}
+                          className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>
