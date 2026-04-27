@@ -8,6 +8,7 @@ export const STAFF_PERMISSIONS = {
     'Seller Network': 'READ_ONLY',
     'Returns Management': 'READ_ONLY',
     'Last-Mile Fleet': 'READ_ONLY',
+    'Courier Management': 'NONE',
     'Hub Logistics': 'READ_ONLY',
     'Zone Logistics': 'NONE',
     'Hub Settings': 'NONE',

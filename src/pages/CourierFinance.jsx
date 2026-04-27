@@ -9,9 +9,13 @@ import {
 } from "lucide-react";
 import { toast } from "react-toastify";
 import { useAuth } from "../contexts/AuthContext";
+import { useSearchParams } from "react-router-dom";
 
 const CourierFinance = () => {
   const { hub } = useAuth();
+  const [searchParams] = useSearchParams();
+  const courierIdParam = searchParams.get('courierId');
+  
   const [activeTab, setActiveTab] = useState("wallets");
   const [couriers, setCouriers] = useState([]);
   const [payouts, setPayouts] = useState([]);
@@ -19,6 +23,13 @@ const CourierFinance = () => {
   const [loading, setLoading] = useState(true);
   const [settlingCourier, setSettlingCourier] = useState(null);
   const [settleAmount, setSettleAmount] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
+
+  useEffect(() => {
+    if (courierIdParam) {
+      setSearchQuery(courierIdParam); // Using ID as search query temporarily or I can implement specific filter
+    }
+  }, [courierIdParam]);
 
   useEffect(() => {
     fetchData();
@@ -126,7 +137,12 @@ const CourierFinance = () => {
               <div className="flex items-center justify-between bg-white p-4 rounded-2xl border border-slate-200 border-dashed mb-2">
                 <div className="relative flex-1 max-w-md">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
-                  <input placeholder="Search courier balances..." className="w-full bg-slate-50 border border-slate-100 rounded-xl pl-10 pr-4 py-2.5 text-xs font-bold outline-none" />
+                  <input 
+                    placeholder="Search courier balances..." 
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full bg-slate-50 border border-slate-100 rounded-xl pl-10 pr-4 py-2.5 text-xs font-bold outline-none" 
+                  />
                 </div>
                 <div className="flex items-center gap-4">
                    <div className="text-right">
@@ -137,8 +153,12 @@ const CourierFinance = () => {
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                {couriers.map(courier => (
-                  <div key={courier.id} className="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm hover:shadow-xl transition-all group overflow-hidden relative">
+                {couriers.filter(c => 
+                  c.name?.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                  c.phone?.includes(searchQuery) ||
+                  c.id === searchQuery
+                ).map(courier => (
+                  <div key={courier.id} className={`bg-white border rounded-3xl p-6 shadow-sm hover:shadow-xl transition-all group overflow-hidden relative ${courier.id === courierIdParam ? 'border-emerald-500 ring-2 ring-emerald-500/10' : 'border-slate-200'}`}>
                     <div className="flex items-center gap-4 mb-6">
                       <div className="w-12 h-12 rounded-2xl bg-slate-50 flex items-center justify-center border border-slate-100 text-slate-400 group-hover:bg-primary group-hover:text-white transition-colors">
                         <Users size={24} />
