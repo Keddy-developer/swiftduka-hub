@@ -73,7 +73,7 @@ const MainLayout = ({ children }) => {
       <div className="flex min-h-screen bg-[#F0F2F5] font-sans">
          {/* ... side bar and other layout part remains similar ... */}
          {/* (Updating sidebar content to use filtered links) */}
-         <aside className={`fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-slate-200 transition-all duration-300 transform ${sidebarOpen ? 'translate-x-0 shadow-lg lg:shadow-none' : '-translate-x-full'} lg:translate-x-0 lg:static lg:block`}>
+         <aside className={`fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-slate-200 transition-all duration-300 transform ${sidebarOpen ? 'translate-x-0 shadow-lg lg:shadow-none' : '-translate-x-full'} lg:translate-x-0 lg:sticky lg:top-0 lg:h-screen lg:block`}>
             <div className="flex flex-col h-full">
                <div className="h-16 flex items-center px-6 border-b border-slate-100 bg-white">
                   <div className="flex items-center gap-2">
