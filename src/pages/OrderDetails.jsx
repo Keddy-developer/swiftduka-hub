@@ -60,6 +60,16 @@ const OrderDetailsPage = () => {
 
    const [revokingProductId, setRevokingProductId] = useState(null);
 
+   const formatImgSrc = (src) => {
+      if (!src) return "";
+      if (src.startsWith('http') || src.startsWith('data:')) return src;
+      // Detection for common base64 patterns
+      if (src.startsWith('/9j/')) return `data:image/jpeg;base64,${src}`;
+      if (src.startsWith('iVBOR')) return `data:image/png;base64,${src}`;
+      if (src.startsWith('PHN2')) return `data:image/svg+xml;base64,${src}`;
+      return `data:image/png;base64,${src}`;
+   };
+
    const handleRevokeAssignment = async (productId, orderId, reassignCourierId = null) => {
       setRevokingProductId(productId);
       try {
@@ -736,7 +746,7 @@ const OrderDetailsPage = () => {
                                           <div className="flex gap-2 p-2 bg-emerald-50 border border-emerald-100 rounded-xl">
                                              {deliveryAssignment.proofOfDelivery && (
                                                 <div className="group relative">
-                                                   <img src={deliveryAssignment.proofOfDelivery} className="w-10 h-10 object-cover rounded-lg shadow-sm border border-white" alt="POD" />
+                                                   <img src={formatImgSrc(deliveryAssignment.proofOfDelivery)} className="w-10 h-10 object-cover rounded-lg shadow-sm border border-white" alt="POD" />
                                                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center cursor-pointer" onClick={() => window.open(deliveryAssignment.proofOfDelivery, '_blank')}>
                                                       <FiEye className="text-white w-4 h-4" />
                                                    </div>
@@ -744,7 +754,7 @@ const OrderDetailsPage = () => {
                                              )}
                                              {deliveryAssignment.signature && (
                                                 <div className="group relative">
-                                                   <img src={deliveryAssignment.signature} className="w-10 h-10 object-contain bg-white rounded-lg shadow-sm border border-white" alt="Signature" />
+                                                   <img src={formatImgSrc(deliveryAssignment.signature)} className="w-10 h-10 object-contain bg-white rounded-lg shadow-sm border border-white" alt="Signature" />
                                                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center cursor-pointer" onClick={() => window.open(deliveryAssignment.signature, '_blank')}>
                                                       <FiEye className="text-white w-4 h-4" />
                                                    </div>

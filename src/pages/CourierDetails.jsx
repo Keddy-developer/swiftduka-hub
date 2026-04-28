@@ -33,6 +33,16 @@ export default function CourierDetails() {
     const [activeTab, setActiveTab] = useState('DELIVERED');
     const [showPODModal, setShowPODModal] = useState(null);
 
+    const formatImgSrc = (src) => {
+        if (!src) return "";
+        if (src.startsWith('http') || src.startsWith('data:')) return src;
+        // Detection for common base64 patterns
+        if (src.startsWith('/9j/')) return `data:image/jpeg;base64,${src}`;
+        if (src.startsWith('iVBOR')) return `data:image/png;base64,${src}`;
+        if (src.startsWith('PHN2')) return `data:image/svg+xml;base64,${src}`;
+        return `data:image/png;base64,${src}`;
+    };
+
     const fetchData = async () => {
         if (!hub?.id) return;
         setLoading(true);
@@ -275,7 +285,7 @@ export default function CourierDetails() {
                                 <p className="text-[10px] font-black text-slate-400 tracking-widest uppercase">Delivery Snapshot</p>
                                 <div className="aspect-square rounded-3xl bg-slate-100 border border-slate-200 overflow-hidden relative group cursor-pointer shadow-inner">
                                     {showPODModal.proofOfDelivery ? (
-                                        <img src={showPODModal.proofOfDelivery} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000" alt="POD" />
+                                        <img src={formatImgSrc(showPODModal.proofOfDelivery)} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000" alt="POD" />
                                     ) : (
                                         <div className="w-full h-full flex flex-col items-center justify-center text-slate-300">
                                             <ImageIcon size={48} className="mb-2" />
@@ -288,7 +298,7 @@ export default function CourierDetails() {
                                 <p className="text-[10px] font-black text-slate-400 tracking-widest uppercase">Customer Signature</p>
                                 <div className="aspect-square rounded-3xl bg-slate-100 border border-slate-200 overflow-hidden relative group cursor-pointer shadow-inner">
                                     {showPODModal.signature ? (
-                                        <img src={showPODModal.signature} className="w-full h-full object-contain p-4 group-hover:scale-105 transition-transform" alt="Signature" />
+                                        <img src={formatImgSrc(showPODModal.signature)} className="w-full h-full object-contain p-4 group-hover:scale-105 transition-transform" alt="Signature" />
                                     ) : (
                                         <div className="w-full h-full flex flex-col items-center justify-center text-slate-300">
                                             <FileText size={48} className="mb-2" />
