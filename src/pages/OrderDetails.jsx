@@ -665,7 +665,10 @@ const OrderDetailsPage = () => {
                            product.assignmentStatus !== 'EXPIRED' &&
                            product.assignmentStatus !== 'ACCEPTED';
 
-                        const deliveryAssignment = product.deliveryAssignment || order.deliveryAssignment;
+                        const deliveryAssignment = product.deliveryAssignment || 
+                           (product.deliveryAssignments && product.deliveryAssignments[0]) || 
+                           order.deliveryAssignment || 
+                           (order.deliveryAssignments && order.deliveryAssignments[0]);
                         const cashCollection = product.cashCollection || order.cashCollection;
 
                         return (
