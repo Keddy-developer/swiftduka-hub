@@ -908,425 +908,426 @@ const OrderDetailsPage = () => {
                                     </div>
                                  </div>
                               </div>
-                              );
+                           </div>
+                        );
                      })}
-                           </div>
-               </div>
-               </div>
-
-               {/* Sidebar - Summary & Actions */}
-               <div className="space-y-6">
-                  <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                     <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wider mb-4 flex items-center gap-2">
-                        <FaMoneyBillWave className="text-gray-400" /> Financial Summary
-                     </h3>
-                     <div className="space-y-3 text-sm">
-                        <div className="flex justify-between">
-                           <span className="text-gray-600">Products</span>
-                           <span className="font-medium">Ksh {((order.totalCost + order.creditApplied) - (order.deliveryFee || 0) + (order.discount || 0) - (order.giftWrappingFee || 0)).toFixed(2)}</span>
-                        </div>
-                        {
-                           order.creditApplied > 0 && (
-                              <div className="flex justify-between text-green-600 font-medium">
-                                 <span>Credit Applied</span>
-                                 <span>Ksh {(order.creditApplied || 0).toFixed(2)}</span>
-                              </div>
-                           )
-                        }
-                        {(order.giftWrappingFee || 0) > 0 && (
-                           <div className="flex justify-between text-pink-600 font-medium">
-                              <span>Gift Wrapping</span>
-                              <span>Ksh {(order.giftWrappingFee || 0).toFixed(2)}</span>
-                           </div>
-                        )}
-                        <div className="flex justify-between">
-                           <span className="text-gray-600">Delivery Fee</span>
-                           <span className="font-medium">Ksh {(order.deliveryFee ?? 0).toLocaleString()}</span>
-                        </div>
-                        {order.discount > 0 && (
-                           <div className="flex justify-between text-gray-600">
-                              <span>Discount</span>
-                              <span>- Ksh {(order.discount ?? 0).toLocaleString()}</span>
-                           </div>
-                        )}
-
-                        {/* Voucher Details */}
-                        {order.voucherCode && order.discount > 0 && (
-                           <div className="pt-2 border-t border-dashed border-gray-100 mt-2">
-                              <div className="flex justify-between items-center text-xs">
-                                 <span className="text-blue-600 font-medium flex items-center gap-1">
-                                    <FiPackage className="w-3 h-3" /> Voucher Applied
-                                 </span>
-                                 <span className="bg-blue-50 text-blue-700 px-2 py-0.5 rounded font-bold uppercase">{order.voucherCode}</span>
-                              </div>
-                              <div className="flex justify-between mt-1 text-gray-500 text-xs italic">
-                                 <span>Voucher Discount ({order.voucherType})</span>
-                                 <span>- Ksh {(order.discountAmount ?? 0).toLocaleString()}</span>
-                              </div>
-                           </div>
-                        )}
-                        {order.loyaltyDiscountAmount && order.loyaltyDiscountAmount > 0 && (
-                           <div className="flex justify-between text-orange-600 font-medium">
-                              <span>Platform Loyalty ({order.loyaltyDiscountCode})</span>
-                              <span>- Ksh {(order.loyaltyDiscountAmount ?? 0).toLocaleString()}</span>
-                           </div>
-                        )}
-                        <div className="pt-3 border-t border-gray-100 flex justify-between text-base font-bold text-gray-900">
-                           <span>Total Customer Pay</span>
-                           <span>Ksh {(order.totalCost ?? 0).toLocaleString()}</span>
-                        </div>
-
-                        <div className="pt-3">
-                           <span className={`block w-full text-center py-2 rounded-lg text-xs font-bold uppercase ${order.paymentStatus === "Paid" ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700"
-                              }`}>
-                              Payment {order.paymentStatus}
-                           </span>
-                        </div>
-                     </div>
                   </div>
                </div>
             </div>
 
-            {/* Cancel Modal */}
-            <AnimatePresence>
-               {isCancelModalOpen && (
-                  <motion.div
-                     initial={{ opacity: 0 }}
-                     animate={{ opacity: 1 }}
-                     exit={{ opacity: 0 }}
-                     className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
-                     onClick={() => setIsCancelModalOpen(false)}
-                  >
-                     <motion.div
-                        initial={{ scale: 0.95 }}
-                        animate={{ scale: 1 }}
-                        exit={{ scale: 0.95 }}
-                        className="bg-white rounded-xl shadow-xl w-full max-w-md p-6"
-                        onClick={(e) => e.stopPropagation()}
-                     >
-                        <h3 className="text-lg font-bold text-gray-900 mb-4">Cancel Product/Order</h3>
-                        <textarea
-                           value={cancelReason}
-                           onChange={(e) => setCancelReason(e.target.value)}
-                           placeholder="Reason for cancellation..."
-                           className="w-full p-3 border border-gray-200 rounded-lg mb-4 focus:ring-2 focus:ring-red-500 outline-none"
-                           rows={4}
-                        />
-                        <div className="flex justify-end gap-3">
-                           <button
-                              onClick={() => {
-                                 setIsCancelModalOpen(false);
-                                 setCancelReason("");
-                              }}
-                              className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg font-medium"
-                           >
-                              Close
-                           </button>
-                           <button
-                              onClick={handleConfirmCancel}
-                              disabled={loadingCancel}
-                              className="px-4 py-2 bg-red-600 text-white rounded-lg font-medium hover:bg-red-700 disabled:opacity-50"
-                           >
-                              {loadingCancel ? "Cancelling..." : "Confirm Cancel"}
-                           </button>
+            {/* Sidebar - Summary & Actions */}
+            <div className="space-y-6">
+               <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                  <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wider mb-4 flex items-center gap-2">
+                     <FaMoneyBillWave className="text-gray-400" /> Financial Summary
+                  </h3>
+                  <div className="space-y-3 text-sm">
+                     <div className="flex justify-between">
+                        <span className="text-gray-600">Products</span>
+                        <span className="font-medium">Ksh {((order.totalCost + order.creditApplied) - (order.deliveryFee || 0) + (order.discount || 0) - (order.giftWrappingFee || 0)).toFixed(2)}</span>
+                     </div>
+                     {
+                        order.creditApplied > 0 && (
+                           <div className="flex justify-between text-green-600 font-medium">
+                              <span>Credit Applied</span>
+                              <span>Ksh {(order.creditApplied || 0).toFixed(2)}</span>
+                           </div>
+                        )
+                     }
+                     {(order.giftWrappingFee || 0) > 0 && (
+                        <div className="flex justify-between text-pink-600 font-medium">
+                           <span>Gift Wrapping</span>
+                           <span>Ksh {(order.giftWrappingFee || 0).toFixed(2)}</span>
                         </div>
-                     </motion.div>
-                  </motion.div>
-               )}
-            </AnimatePresence>
-
-            {/* Seller Modal */}
-            <AnimatePresence>
-               {showSellerModal && sellerDetails && (
-                  <motion.div
-                     initial={{ opacity: 0 }}
-                     animate={{ opacity: 1 }}
-                     exit={{ opacity: 0 }}
-                     className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
-                     onClick={() => setShowSellerModal(false)}
-                  >
-                     <motion.div
-                        initial={{ scale: 0.95 }}
-                        animate={{ scale: 1 }}
-                        exit={{ scale: 0.95 }}
-                        className="bg-white rounded-xl shadow-xl w-full max-w-sm p-6"
-                        onClick={(e) => e.stopPropagation()}
-                     >
-                        <div className="flex items-center gap-3 mb-4">
-                           <FaStore className="w-6 h-6 text-blue-600" />
-                           <h3 className="text-lg font-bold text-gray-900">Seller Details</h3>
+                     )}
+                     <div className="flex justify-between">
+                        <span className="text-gray-600">Delivery Fee</span>
+                        <span className="font-medium">Ksh {(order.deliveryFee ?? 0).toLocaleString()}</span>
+                     </div>
+                     {order.discount > 0 && (
+                        <div className="flex justify-between text-gray-600">
+                           <span>Discount</span>
+                           <span>- Ksh {(order.discount ?? 0).toLocaleString()}</span>
                         </div>
+                     )}
 
-                        <div className="space-y-3 text-sm">
-                           <p><span className="text-gray-500 font-medium">Store Name:</span> <span className="text-gray-900 block font-semibold text-lg">{sellerDetails.storeName || "N/A"}</span></p>
-                           <p><span className="text-gray-500 font-medium">Email:</span> <span className="text-gray-900 block">{sellerDetails.email || "N/A"}</span></p>
-                           <p><span className="text-gray-500 font-medium">Phone:</span> <span className="text-gray-900 block">{sellerDetails.phone || "N/A"}</span></p>
-                           <p><span className="text-gray-500 font-medium">Address:</span> <span className="text-gray-900 block">{sellerDetails.address || "N/A"}</span></p>
-                           <p><span className="text-gray-500 font-medium">Description:</span> <span className="text-gray-700 block italic">{sellerDetails.storeDescription || "N/A"}</span></p>
+                     {/* Voucher Details */}
+                     {order.voucherCode && order.discount > 0 && (
+                        <div className="pt-2 border-t border-dashed border-gray-100 mt-2">
+                           <div className="flex justify-between items-center text-xs">
+                              <span className="text-blue-600 font-medium flex items-center gap-1">
+                                 <FiPackage className="w-3 h-3" /> Voucher Applied
+                              </span>
+                              <span className="bg-blue-50 text-blue-700 px-2 py-0.5 rounded font-bold uppercase">{order.voucherCode}</span>
+                           </div>
+                           <div className="flex justify-between mt-1 text-gray-500 text-xs italic">
+                              <span>Voucher Discount ({order.voucherType})</span>
+                              <span>- Ksh {(order.discountAmount ?? 0).toLocaleString()}</span>
+                           </div>
                         </div>
-
-                        <div className="flex justify-end mt-6">
-                           <button
-                              onClick={() => setShowSellerModal(false)}
-                              className="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700"
-                           >
-                              Close
-                           </button>
+                     )}
+                     {order.loyaltyDiscountAmount && order.loyaltyDiscountAmount > 0 && (
+                        <div className="flex justify-between text-orange-600 font-medium">
+                           <span>Platform Loyalty ({order.loyaltyDiscountCode})</span>
+                           <span>- Ksh {(order.loyaltyDiscountAmount ?? 0).toLocaleString()}</span>
                         </div>
-                     </motion.div>
-                  </motion.div>
-               )}
-            </AnimatePresence>
+                     )}
+                     <div className="pt-3 border-t border-gray-100 flex justify-between text-base font-bold text-gray-900">
+                        <span>Total Customer Pay</span>
+                        <span>Ksh {(order.totalCost ?? 0).toLocaleString()}</span>
+                     </div>
 
-            {/* QR Code Modal */}
-            <AnimatePresence>
-               {showQRModal && qrData && (
-                  <motion.div
-                     initial={{ opacity: 0 }}
-                     animate={{ opacity: 1 }}
-                     exit={{ opacity: 0 }}
-                     className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
-                     onClick={() => setShowQRModal(false)}
-                  >
-                     <motion.div
-                        initial={{ scale: 0.95, y: 20 }}
-                        animate={{ scale: 1, y: 0 }}
-                        exit={{ scale: 0.95, y: 20 }}
-                        className="bg-white rounded-2xl shadow-2xl w-full max-w-xs p-8 flex flex-col items-center"
-                        onClick={(e) => e.stopPropagation()}
-                     >
-                        <div className="w-full flex justify-between items-center mb-6">
-                           <h3 className="text-lg font-bold text-gray-900">Product QR Code</h3>
-                           <button
-                              onClick={() => setShowQRModal(false)}
-                              className="p-1 hover:bg-gray-100 rounded-full transition-colors"
-                           >
-                              <FiXCircle className="w-6 h-6 text-gray-400" />
-                           </button>
-                        </div>
-
-                        <div id="qr-code-to-print" className="bg-white p-4 rounded-xl border border-gray-100 shadow-inner mb-6">
-                           <QRCode value={qrData} size={200} />
-                        </div>
-
-                        <p className="text-sm text-gray-500 text-center mb-2 px-4">
-                           Scan this code at the agent station to process this product.
-                        </p>
-                        <code className="text-[10px] bg-gray-50 px-2 py-1 rounded text-gray-400 break-all w-full text-center">
-                           {qrData}
-                        </code>
-
-                        <div className="w-full flex gap-3 mt-8">
-                           <button
-                              onClick={handlePrintQR}
-                              className="flex-1 py-3 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
-                           >
-                              <FaPrint className="w-4 h-4" />
-                              Print QR
-                           </button>
-                           <button
-                              onClick={() => setShowQRModal(false)}
-                              className="flex-1 py-3 bg-gray-900 text-white rounded-xl font-semibold hover:bg-black transition-colors"
-                           >
-                              Done
-                           </button>
-                        </div>
-                     </motion.div>
-                  </motion.div>
-               )}
-            </AnimatePresence>
-
-            {/* Return Initiation Modal */}
-            <AnimatePresence>
-               {returnModalOpen && selectedProductForReturn && (
-                  <motion.div
-                     initial={{ opacity: 0 }}
-                     animate={{ opacity: 1 }}
-                     exit={{ opacity: 0 }}
-                     className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
-                     onClick={() => setReturnModalOpen(false)}
-                  >
-                     <motion.div
-                        initial={{ scale: 0.95, y: 20 }}
-                        animate={{ scale: 1, y: 0 }}
-                        exit={{ scale: 0.95, y: 20 }}
-                        className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl p-6 overflow-y-auto max-h-[95vh]"
-                        onClick={(e) => e.stopPropagation()}
-                     >
-                        <div className="flex justify-between items-center mb-4">
-                           <h3 className="text-xl font-bold text-gray-900">Return Management</h3>
-                           <button
-                              onClick={() => setReturnModalOpen(false)}
-                              className="p-1 hover:bg-gray-100 rounded-full transition-colors"
-                           >
-                              <FiXCircle className="w-6 h-6 text-gray-400" />
-                           </button>
-                        </div>
-                        {ReturnForm && (
-                           <ReturnForm
-                              product={selectedProductForReturn}
-                              fetchOrders={fetchOrderDetails}
-                              setOpenModal={setReturnModalOpen}
-                           />
-                        )}
-                     </motion.div>
-                  </motion.div>
-               )}
-            </AnimatePresence>
-
-            {/* Hidden QR Generator for Background Printing */}
-            <div style={{ display: 'none' }} aria-hidden="true">
-               <div id="hidden-qr-print-container">
-                  {qrData && <QRCode value={qrData} size={256} />}
+                     <div className="pt-3">
+                        <span className={`block w-full text-center py-2 rounded-lg text-xs font-bold uppercase ${order.paymentStatus === "Paid" ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700"
+                           }`}>
+                           Payment {order.paymentStatus}
+                        </span>
+                     </div>
+                  </div>
                </div>
             </div>
+         </div>
 
-            {/* Tracking & Logistics Trail */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-               <div className="p-6 border-b border-gray-100 bg-gray-50/50">
-                  <h3 className="font-semibold text-gray-900 flex items-center gap-2">
-                     <FiTruck className="text-gray-400" /> Tracking & Logistics Trail
-                  </h3>
-               </div>
-               <div className="p-6">
-                  {order.products.some(p => p.riderOrders && p.riderOrders.length > 0) ? (
-                     <div className="space-y-8">
-                        {order.products.map((product, pIdx) => (
-                           product.riderOrders && product.riderOrders.length > 0 && (
-                              <div key={pIdx} className="space-y-4">
-                                 <div className="flex items-center gap-2">
-                                    <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold text-xs">
-                                       {pIdx + 1}
-                                    </div>
-                                    <h4 className="font-medium text-gray-800 text-sm">{product.product?.name || "Product"}</h4>
+         {/* Cancel Modal */}
+         <AnimatePresence>
+            {isCancelModalOpen && (
+               <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+                  onClick={() => setIsCancelModalOpen(false)}
+               >
+                  <motion.div
+                     initial={{ scale: 0.95 }}
+                     animate={{ scale: 1 }}
+                     exit={{ scale: 0.95 }}
+                     className="bg-white rounded-xl shadow-xl w-full max-w-md p-6"
+                     onClick={(e) => e.stopPropagation()}
+                  >
+                     <h3 className="text-lg font-bold text-gray-900 mb-4">Cancel Product/Order</h3>
+                     <textarea
+                        value={cancelReason}
+                        onChange={(e) => setCancelReason(e.target.value)}
+                        placeholder="Reason for cancellation..."
+                        className="w-full p-3 border border-gray-200 rounded-lg mb-4 focus:ring-2 focus:ring-red-500 outline-none"
+                        rows={4}
+                     />
+                     <div className="flex justify-end gap-3">
+                        <button
+                           onClick={() => {
+                              setIsCancelModalOpen(false);
+                              setCancelReason("");
+                           }}
+                           className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg font-medium"
+                        >
+                           Close
+                        </button>
+                        <button
+                           onClick={handleConfirmCancel}
+                           disabled={loadingCancel}
+                           className="px-4 py-2 bg-red-600 text-white rounded-lg font-medium hover:bg-red-700 disabled:opacity-50"
+                        >
+                           {loadingCancel ? "Cancelling..." : "Confirm Cancel"}
+                        </button>
+                     </div>
+                  </motion.div>
+               </motion.div>
+            )}
+         </AnimatePresence>
+
+         {/* Seller Modal */}
+         <AnimatePresence>
+            {showSellerModal && sellerDetails && (
+               <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+                  onClick={() => setShowSellerModal(false)}
+               >
+                  <motion.div
+                     initial={{ scale: 0.95 }}
+                     animate={{ scale: 1 }}
+                     exit={{ scale: 0.95 }}
+                     className="bg-white rounded-xl shadow-xl w-full max-w-sm p-6"
+                     onClick={(e) => e.stopPropagation()}
+                  >
+                     <div className="flex items-center gap-3 mb-4">
+                        <FaStore className="w-6 h-6 text-blue-600" />
+                        <h3 className="text-lg font-bold text-gray-900">Seller Details</h3>
+                     </div>
+
+                     <div className="space-y-3 text-sm">
+                        <p><span className="text-gray-500 font-medium">Store Name:</span> <span className="text-gray-900 block font-semibold text-lg">{sellerDetails.storeName || "N/A"}</span></p>
+                        <p><span className="text-gray-500 font-medium">Email:</span> <span className="text-gray-900 block">{sellerDetails.email || "N/A"}</span></p>
+                        <p><span className="text-gray-500 font-medium">Phone:</span> <span className="text-gray-900 block">{sellerDetails.phone || "N/A"}</span></p>
+                        <p><span className="text-gray-500 font-medium">Address:</span> <span className="text-gray-900 block">{sellerDetails.address || "N/A"}</span></p>
+                        <p><span className="text-gray-500 font-medium">Description:</span> <span className="text-gray-700 block italic">{sellerDetails.storeDescription || "N/A"}</span></p>
+                     </div>
+
+                     <div className="flex justify-end mt-6">
+                        <button
+                           onClick={() => setShowSellerModal(false)}
+                           className="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700"
+                        >
+                           Close
+                        </button>
+                     </div>
+                  </motion.div>
+               </motion.div>
+            )}
+         </AnimatePresence>
+
+         {/* QR Code Modal */}
+         <AnimatePresence>
+            {showQRModal && qrData && (
+               <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
+                  onClick={() => setShowQRModal(false)}
+               >
+                  <motion.div
+                     initial={{ scale: 0.95, y: 20 }}
+                     animate={{ scale: 1, y: 0 }}
+                     exit={{ scale: 0.95, y: 20 }}
+                     className="bg-white rounded-2xl shadow-2xl w-full max-w-xs p-8 flex flex-col items-center"
+                     onClick={(e) => e.stopPropagation()}
+                  >
+                     <div className="w-full flex justify-between items-center mb-6">
+                        <h3 className="text-lg font-bold text-gray-900">Product QR Code</h3>
+                        <button
+                           onClick={() => setShowQRModal(false)}
+                           className="p-1 hover:bg-gray-100 rounded-full transition-colors"
+                        >
+                           <FiXCircle className="w-6 h-6 text-gray-400" />
+                        </button>
+                     </div>
+
+                     <div id="qr-code-to-print" className="bg-white p-4 rounded-xl border border-gray-100 shadow-inner mb-6">
+                        <QRCode value={qrData} size={200} />
+                     </div>
+
+                     <p className="text-sm text-gray-500 text-center mb-2 px-4">
+                        Scan this code at the agent station to process this product.
+                     </p>
+                     <code className="text-[10px] bg-gray-50 px-2 py-1 rounded text-gray-400 break-all w-full text-center">
+                        {qrData}
+                     </code>
+
+                     <div className="w-full flex gap-3 mt-8">
+                        <button
+                           onClick={handlePrintQR}
+                           className="flex-1 py-3 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
+                        >
+                           <FaPrint className="w-4 h-4" />
+                           Print QR
+                        </button>
+                        <button
+                           onClick={() => setShowQRModal(false)}
+                           className="flex-1 py-3 bg-gray-900 text-white rounded-xl font-semibold hover:bg-black transition-colors"
+                        >
+                           Done
+                        </button>
+                     </div>
+                  </motion.div>
+               </motion.div>
+            )}
+         </AnimatePresence>
+
+         {/* Return Initiation Modal */}
+         <AnimatePresence>
+            {returnModalOpen && selectedProductForReturn && (
+               <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
+                  onClick={() => setReturnModalOpen(false)}
+               >
+                  <motion.div
+                     initial={{ scale: 0.95, y: 20 }}
+                     animate={{ scale: 1, y: 0 }}
+                     exit={{ scale: 0.95, y: 20 }}
+                     className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl p-6 overflow-y-auto max-h-[95vh]"
+                     onClick={(e) => e.stopPropagation()}
+                  >
+                     <div className="flex justify-between items-center mb-4">
+                        <h3 className="text-xl font-bold text-gray-900">Return Management</h3>
+                        <button
+                           onClick={() => setReturnModalOpen(false)}
+                           className="p-1 hover:bg-gray-100 rounded-full transition-colors"
+                        >
+                           <FiXCircle className="w-6 h-6 text-gray-400" />
+                        </button>
+                     </div>
+                     {ReturnForm && (
+                        <ReturnForm
+                           product={selectedProductForReturn}
+                           fetchOrders={fetchOrderDetails}
+                           setOpenModal={setReturnModalOpen}
+                        />
+                     )}
+                  </motion.div>
+               </motion.div>
+            )}
+         </AnimatePresence>
+
+         {/* Hidden QR Generator for Background Printing */}
+         <div style={{ display: 'none' }} aria-hidden="true">
+            <div id="hidden-qr-print-container">
+               {qrData && <QRCode value={qrData} size={256} />}
+            </div>
+         </div>
+
+         {/* Tracking & Logistics Trail */}
+         <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+            <div className="p-6 border-b border-gray-100 bg-gray-50/50">
+               <h3 className="font-semibold text-gray-900 flex items-center gap-2">
+                  <FiTruck className="text-gray-400" /> Tracking & Logistics Trail
+               </h3>
+            </div>
+            <div className="p-6">
+               {order.products.some(p => p.riderOrders && p.riderOrders.length > 0) ? (
+                  <div className="space-y-8">
+                     {order.products.map((product, pIdx) => (
+                        product.riderOrders && product.riderOrders.length > 0 && (
+                           <div key={pIdx} className="space-y-4">
+                              <div className="flex items-center gap-2">
+                                 <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold text-xs">
+                                    {pIdx + 1}
                                  </div>
+                                 <h4 className="font-medium text-gray-800 text-sm">{product.product?.name || "Product"}</h4>
+                              </div>
 
-                                 <div className="ml-4 border-l-2 border-gray-100 pl-8 space-y-6">
-                                    {product.riderOrders.map((ro, roIdx) => (
-                                       <div key={ro.id || roIdx} className="relative">
-                                          <div className="absolute -left-[41px] top-0 w-4 h-4 rounded-full bg-white border-2 border-blue-500 z-10"></div>
-                                          <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2">
-                                             <div>
-                                                <p className="text-sm font-bold text-gray-900">
-                                                   Rider: {ro.rider?.name || "Unassigned"} ({ro.status})
+                              <div className="ml-4 border-l-2 border-gray-100 pl-8 space-y-6">
+                                 {product.riderOrders.map((ro, roIdx) => (
+                                    <div key={ro.id || roIdx} className="relative">
+                                       <div className="absolute -left-[41px] top-0 w-4 h-4 rounded-full bg-white border-2 border-blue-500 z-10"></div>
+                                       <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2">
+                                          <div>
+                                             <p className="text-sm font-bold text-gray-900">
+                                                Rider: {ro.rider?.name || "Unassigned"} ({ro.status})
+                                             </p>
+                                             <div className="mt-1 space-y-1">
+                                                <p className="text-xs text-gray-500 flex items-center gap-1">
+                                                   <FiClock className="w-3 h-3" /> {ro.createdAt ? new Date(ro.createdAt).toLocaleString() : "Recent"}
                                                 </p>
-                                                <div className="mt-1 space-y-1">
+                                                {ro.rider?.phone && (
                                                    <p className="text-xs text-gray-500 flex items-center gap-1">
-                                                      <FiClock className="w-3 h-3" /> {ro.createdAt ? new Date(ro.createdAt).toLocaleString() : "Recent"}
+                                                      <FiUser className="w-3 h-3" /> Phone: {ro.rider.phone} | Plate: {ro.rider.numberPlate}
                                                    </p>
-                                                   {ro.rider?.phone && (
-                                                      <p className="text-xs text-gray-500 flex items-center gap-1">
-                                                         <FiUser className="w-3 h-3" /> Phone: {ro.rider.phone} | Plate: {ro.rider.numberPlate}
-                                                      </p>
-                                                   )}
-                                                </div>
-                                             </div>
-                                             <div className="text-right">
-                                                <span className={`inline-block px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${ro.status === "COMPLETED" ? "bg-green-100 text-green-700" :
-                                                   ro.status === "CANCELLED" ? "bg-red-100 text-red-700" :
-                                                      "bg-blue-100 text-blue-700"
-                                                   }`}>
-                                                   {ro.status}
-                                                </span>
+                                                )}
                                              </div>
                                           </div>
+                                          <div className="text-right">
+                                             <span className={`inline-block px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${ro.status === "COMPLETED" ? "bg-green-100 text-green-700" :
+                                                ro.status === "CANCELLED" ? "bg-red-100 text-red-700" :
+                                                   "bg-blue-100 text-blue-700"
+                                                }`}>
+                                                {ro.status}
+                                             </span>
+                                          </div>
                                        </div>
-                                    ))}
+                                    </div>
+                                 ))}
 
-                                    {/* Static logs for statuses that don't have riderOrders yet */}
-                                    {product.adminReceived && (
-                                       <div className="relative">
-                                          <div className="absolute -left-[41px] top-0 w-4 h-4 rounded-full bg-white border-2 border-green-500 z-10"></div>
-                                          <p className="text-sm font-bold text-gray-900">Received at Hub / Agent Station</p>
-                                          <p className="text-xs text-gray-500">The product has been physically received and scanned.</p>
-                                       </div>
-                                    )}
-                                 </div>
+                                 {/* Static logs for statuses that don't have riderOrders yet */}
+                                 {product.adminReceived && (
+                                    <div className="relative">
+                                       <div className="absolute -left-[41px] top-0 w-4 h-4 rounded-full bg-white border-2 border-green-500 z-10"></div>
+                                       <p className="text-sm font-bold text-gray-900">Received at Hub / Agent Station</p>
+                                       <p className="text-xs text-gray-500">The product has been physically received and scanned.</p>
+                                    </div>
+                                 )}
                               </div>
-                           )
-                        ))}
-                     </div>
-                  ) : (
-                     <div className="text-center py-12">
-                        <FiClock className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-                        <p className="text-gray-500 text-sm">No rider assignments or detailed logs for this order yet.</p>
-                     </div>
-                  )}
-               </div>
+                           </div>
+                        )
+                     ))}
+                  </div>
+               ) : (
+                  <div className="text-center py-12">
+                     <FiClock className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+                     <p className="text-gray-500 text-sm">No rider assignments or detailed logs for this order yet.</p>
+                  </div>
+               )}
             </div>
-
-            {/* Assignment Selection Modal */}
-            <AssignmentSelectionModal
-               isOpen={isAssignSelectionModalOpen}
-               onClose={() => setIsAssignSelectionModalOpen(false)}
-               onSelect={(type) => {
-                  setIsAssignSelectionModalOpen(false);
-                  if (type === 'internal') {
-                     navigate(`/assign-courier/${assignmentData?.addressId}/${assignmentData?.productId}?productId=${assignmentData?.productId}&orderId=${assignmentData?.orderId}`);
-                  } else {
-                     navigate(`/assign-external-courier/${assignmentData?.addressId}/${assignmentData?.productId}?productId=${assignmentData?.productId}&orderId=${assignmentData?.orderId}`);
-                  }
-               }}
-            />
          </div>
-         );
+
+         {/* Assignment Selection Modal */}
+         <AssignmentSelectionModal
+            isOpen={isAssignSelectionModalOpen}
+            onClose={() => setIsAssignSelectionModalOpen(false)}
+            onSelect={(type) => {
+               setIsAssignSelectionModalOpen(false);
+               if (type === 'internal') {
+                  navigate(`/assign-courier/${assignmentData?.addressId}/${assignmentData?.productId}?productId=${assignmentData?.productId}&orderId=${assignmentData?.orderId}`);
+               } else {
+                  navigate(`/assign-external-courier/${assignmentData?.addressId}/${assignmentData?.productId}?productId=${assignmentData?.productId}&orderId=${assignmentData?.orderId}`);
+               }
+            }}
+         />
+      </div>
+   );
 };
 
-         // --- Selection Modal Component ---
-         const AssignmentSelectionModal = ({isOpen, onClose, onSelect}) => {
+// --- Selection Modal Component ---
+const AssignmentSelectionModal = ({ isOpen, onClose, onSelect }) => {
    if (!isOpen) return null;
 
-         return (
-         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
-            <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden">
-               <div className="p-8">
-                  <div className="flex items-center justify-between mb-8">
-                     <div>
-                        <h3 className="text-xl font-black text-slate-900 tracking-tight">Dispatch Strategy</h3>
-                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">Select Fulfillment Method</p>
+   return (
+      <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+         <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden">
+            <div className="p-8">
+               <div className="flex items-center justify-between mb-8">
+                  <div>
+                     <h3 className="text-xl font-black text-slate-900 tracking-tight">Dispatch Strategy</h3>
+                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">Select Fulfillment Method</p>
+                  </div>
+                  <button onClick={onClose} className="w-10 h-10 bg-slate-50 rounded-xl flex items-center justify-center text-slate-400 hover:text-slate-900 transition-colors">
+                     <FiXCircle size={20} />
+                  </button>
+               </div>
+
+               <div className="space-y-4">
+                  <button
+                     onClick={() => onSelect('internal')}
+                     className="w-full group p-6 bg-slate-50 border border-slate-100 rounded-2xl text-left hover:border-blue-500 hover:bg-blue-50/50 transition-all flex items-center gap-6"
+                  >
+                     <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform">
+                        <FiTruck size={28} className="text-blue-600" />
                      </div>
-                     <button onClick={onClose} className="w-10 h-10 bg-slate-50 rounded-xl flex items-center justify-center text-slate-400 hover:text-slate-900 transition-colors">
-                        <FiXCircle size={20} />
-                     </button>
-                  </div>
+                     <div>
+                        <h4 className="font-black text-slate-900 uppercase tracking-tight text-sm mb-1">Internal Rider</h4>
+                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">Assign to hub-managed fleet</p>
+                     </div>
+                  </button>
 
-                  <div className="space-y-4">
-                     <button
-                        onClick={() => onSelect('internal')}
-                        className="w-full group p-6 bg-slate-50 border border-slate-100 rounded-2xl text-left hover:border-blue-500 hover:bg-blue-50/50 transition-all flex items-center gap-6"
-                     >
-                        <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform">
-                           <FiTruck size={28} className="text-blue-600" />
-                        </div>
-                        <div>
-                           <h4 className="font-black text-slate-900 uppercase tracking-tight text-sm mb-1">Internal Rider</h4>
-                           <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">Assign to hub-managed fleet</p>
-                        </div>
-                     </button>
+                  <button
+                     onClick={() => onSelect('external')}
+                     className="w-full group p-6 bg-slate-50 border border-slate-100 rounded-2xl text-left hover:border-emerald-500 hover:bg-emerald-50/50 transition-all flex items-center gap-6"
+                  >
+                     <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform">
+                        <FiPackage size={28} className="text-emerald-600" />
+                     </div>
+                     <div>
+                        <h4 className="font-black text-slate-900 uppercase tracking-tight text-sm mb-1">Courier Service</h4>
+                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">Outsource to 3rd party providers</p>
+                     </div>
+                  </button>
+               </div>
 
-                     <button
-                        onClick={() => onSelect('external')}
-                        className="w-full group p-6 bg-slate-50 border border-slate-100 rounded-2xl text-left hover:border-emerald-500 hover:bg-emerald-50/50 transition-all flex items-center gap-6"
-                     >
-                        <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform">
-                           <FiPackage size={28} className="text-emerald-600" />
-                        </div>
-                        <div>
-                           <h4 className="font-black text-slate-900 uppercase tracking-tight text-sm mb-1">Courier Service</h4>
-                           <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">Outsource to 3rd party providers</p>
-                        </div>
-                     </button>
-                  </div>
-
-                  <div className="mt-8 pt-6 border-t border-slate-50">
-                     <p className="text-[10px] text-slate-400 font-bold text-center uppercase tracking-widest italic opacity-60">
-                        Verification required for all external dispatch
-                     </p>
-                  </div>
+               <div className="mt-8 pt-6 border-t border-slate-50">
+                  <p className="text-[10px] text-slate-400 font-bold text-center uppercase tracking-widest italic opacity-60">
+                     Verification required for all external dispatch
+                  </p>
                </div>
             </div>
          </div>
-         );
+      </div>
+   );
 };
 
-         export default OrderDetailsPage;
+export default OrderDetailsPage;
