@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Gavel, TrendingUp, RefreshCw, ArrowLeft, Save, Shield } from 'lucide-react';
+import { Gavel, TrendingUp, RefreshCw, ArrowLeft, Save, Shield, Plus, Trash2 } from 'lucide-react';
 import { toast } from 'react-toastify';
 import axiosInstance from '../services/axiosConfig';
 
@@ -23,7 +23,8 @@ const CompensationRuleForm = () => {
       baseFee: '',
       perKmRate: '',
       perOrderBonus: '',
-      zones: []
+      zones: [],
+      tiers: []
     }
   });
 
@@ -74,6 +75,8 @@ const CompensationRuleForm = () => {
          config = { amount: parseFloat(ruleForm.config.amount || ruleForm.value || 0) };
       } else if (ruleForm.type === 'ZONE_BASED') {
          config = { zones: ruleForm.config.zones || [] };
+      } else if (ruleForm.type === 'WEIGHT_BASED') {
+         config = { tiers: ruleForm.config.tiers || [] };
       }
 
       const payload = {
@@ -162,6 +165,7 @@ const CompensationRuleForm = () => {
               <optgroup label="Primary Earning Modes">
                 <option value="PER_ORDER">Per Order (Flat Fee)</option>
                 <option value="DISTANCE_BASED">Distance Based (Per KM)</option>
+                <option value="WEIGHT_BASED">Weight Based (Tiers)</option>
                 <option value="HYBRID">Hybrid (Base + Per KM)</option>
                 <option value="ZONE_BASED">Zone Based (By Town/City)</option>
               </optgroup>
@@ -268,6 +272,97 @@ const CompensationRuleForm = () => {
                   className="w-full bg-white border border-slate-200 rounded-lg px-4 py-3 text-xs font-mono outline-none focus:border-emerald-500 shadow-inner"
                 />
                 <p className="text-[10px] text-slate-400 font-bold">Ensure the JSON is strictly formatted with a "zones" array.</p>
+              </div>
+          )}
+
+          {ruleForm.type === 'WEIGHT_BASED' && (
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <label className="text-[10px] font-black text-slate-500 tracking-widest uppercase ml-1">Weight Tiers (kg)</label>
+                  <button 
+                    type="button"
+                    onClick={() => {
+                      const tiers = ruleForm.config.tiers || [];
+                      setRuleForm({
+                        ...ruleForm,
+                        config: {
+                          ...ruleForm.config,
+                          tiers: [...tiers, { minWeight: 0, maxWeight: 5, price: 0 }]
+                        }
+                      });
+                    }}
+                    className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 text-emerald-600 rounded-lg text-[10px] font-black hover:bg-emerald-100 transition-colors"
+                  >
+                    <Plus size={12} /> ADD TIER
+                  </button>
+                </div>
+                
+                <div className="space-y-3">
+                  {(ruleForm.config.tiers || []).map((tier, idx) => (
+                    <div key={idx} className="grid grid-cols-1 md:grid-cols-4 gap-3 bg-white p-4 rounded-xl border border-slate-100 shadow-sm relative group">
+                      <div className="space-y-1">
+                        <label className="text-[9px] font-black text-slate-400 uppercase">Min Weight</label>
+                        <input 
+                          type="number"
+                          step="0.1"
+                          value={tier.minWeight}
+                          onChange={(e) => {
+                            const newTiers = [...ruleForm.config.tiers];
+                            newTiers[idx].minWeight = parseFloat(e.target.value);
+                            setRuleForm({...ruleForm, config: {...ruleForm.config, tiers: newTiers}});
+                          }}
+                          className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs font-bold outline-none focus:border-emerald-500"
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-[9px] font-black text-slate-400 uppercase">Max Weight</label>
+                        <input 
+                          type="number"
+                          step="0.1"
+                          value={tier.maxWeight}
+                          onChange={(e) => {
+                            const newTiers = [...ruleForm.config.tiers];
+                            newTiers[idx].maxWeight = parseFloat(e.target.value);
+                            setRuleForm({...ruleForm, config: {...ruleForm.config, tiers: newTiers}});
+                          }}
+                          className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs font-bold outline-none focus:border-emerald-500"
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-[9px] font-black text-slate-400 uppercase">Payout (KSh)</label>
+                        <input 
+                          type="number"
+                          value={tier.price}
+                          onChange={(e) => {
+                            const newTiers = [...ruleForm.config.tiers];
+                            newTiers[idx].price = parseFloat(e.target.value);
+                            setRuleForm({...ruleForm, config: {...ruleForm.config, tiers: newTiers}});
+                          }}
+                          className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs font-bold outline-none focus:border-emerald-500"
+                        />
+                      </div>
+                      <div className="flex items-end pb-1">
+                        <button 
+                          type="button"
+                          onClick={() => {
+                            const newTiers = ruleForm.config.tiers.filter((_, i) => i !== idx);
+                            setRuleForm({...ruleForm, config: {...ruleForm.config, tiers: newTiers}});
+                          }}
+                          className="p-2 text-rose-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                  
+                  {(!ruleForm.config.tiers || ruleForm.config.tiers.length === 0) && (
+                    <div className="py-8 text-center bg-white border border-dashed border-slate-200 rounded-2xl">
+                      <p className="text-[10px] font-black text-slate-400 uppercase">No tiers defined yet</p>
+                    </div>
+                  )}
+                </div>
+                <p className="text-[10px] text-slate-400 font-bold">Use 9999 for Max Weight to create an open-ended top tier.</p>
               </div>
           )}
         </div>

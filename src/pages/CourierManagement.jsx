@@ -6,7 +6,7 @@ import {
    Phone, IdCard, Wallet, TrendingUp, RefreshCw, X, AlertTriangle,
    Activity, Shield, Navigation, Smartphone, CheckCircle2, Zap,
    Search, Filter, ChevronRight, User, MoreVertical,
-   Compass, DollarSign
+   Compass, DollarSign, History, ClipboardList
 } from "lucide-react";
 import { toast } from "react-toastify";
 import { useAuth } from "../contexts/AuthContext";
@@ -216,7 +216,10 @@ const CourierCard = ({ courier, onDelete, navigate, readOnly }) => (
                <span className="text-[9px] font-black text-slate-500 tracking-widest uppercase">{courier.status || 'OFFLINE'}</span>
             </div>
          </div>
-         <div className="relative">
+         <div className="relative flex gap-2">
+            <button onClick={(e) => { e.stopPropagation(); navigate(`/couriers/${courier.id}`); }} className="p-2 bg-slate-50 text-slate-600 rounded-xl hover:bg-slate-900 hover:text-white transition-all shadow-sm" title="Order History">
+               <History size={16} />
+            </button>
             <button onClick={(e) => { e.stopPropagation(); navigate(`/finance?courierId=${courier.id}`); }} className="p-2 bg-emerald-50 text-emerald-600 rounded-xl hover:bg-emerald-600 hover:text-white transition-all shadow-sm" title="Financial Ledger">
                <Wallet size={16} />
             </button>
@@ -248,6 +251,7 @@ const CourierCard = ({ courier, onDelete, navigate, readOnly }) => (
       <div className="flex gap-2 pt-2 relative z-10">
          {!readOnly && (
             <>
+               <button onClick={() => navigate(`/couriers/${courier.id}`)} className="flex-[2] py-3.5 bg-slate-50 text-slate-900 rounded-2xl text-[10px] font-black tracking-widest hover:bg-slate-200 transition-all shadow-xl shadow-slate-100 border border-slate-200 uppercase">View Asset Records</button>
                <button onClick={() => navigate(`/register-courier/${courier.id}`)} className="flex-[2] py-3.5 bg-slate-900 text-white rounded-2xl text-[10px] font-black tracking-widest hover:bg-emerald-600 transition-all shadow-xl shadow-slate-200 uppercase">Configure Asset</button>
                <button onClick={onDelete} className="flex-1 py-3.5 bg-rose-50 text-rose-600 border border-rose-100 rounded-2xl text-[10px] font-black hover:bg-rose-600 hover:text-white transition-all uppercase">Decommission</button>
             </>

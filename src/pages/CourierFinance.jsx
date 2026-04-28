@@ -301,6 +301,7 @@ const CourierFinance = () => {
                           {rule.type === 'DISTANCE_BASED' ? `KSh ${rule.config?.perKmRate || rule.value || 0}/KM` 
                            : rule.type === 'HYBRID' ? `Base KSh ${rule.config?.baseFee || 0} + KSh ${rule.config?.perKmRate || 0}/KM`
                            : rule.type === 'ZONE_BASED' ? 'Zone Configured'
+                           : rule.type === 'WEIGHT_BASED' ? 'Weight Tiered'
                            : `KSh ${(rule.config?.amount || rule.value || 0).toLocaleString()}`}
                         </p>
                       </div>

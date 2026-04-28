@@ -38,6 +38,7 @@ import CourierManagement from './pages/CourierManagement';
 import CourierFinance from './pages/CourierFinance';
 import CompensationRuleForm from './pages/CompensationRuleForm';
 import RegisterCourier from './pages/RegisterCourier';
+import CourierDetails from './pages/CourierDetails';
 import Home from './pages/Home';
 
 import NotificationDropdown from './components/NotificationDropdown';
@@ -265,6 +266,7 @@ function App() {
                <Route path="/finance" element={<PrivateRoute resource="Courier Finance"><CourierFinance /></PrivateRoute>} />
                <Route path="/finance/rules/:id" element={<PrivateRoute resource="Courier Finance"><CompensationRuleForm /></PrivateRoute>} />
                 <Route path="/couriers" element={<PrivateRoute resource="Courier Management"><CourierManagement /></PrivateRoute>} />
+                <Route path="/couriers/:id" element={<PrivateRoute resource="Courier Management"><CourierDetails /></PrivateRoute>} />
                 <Route path="/register-courier/:id" element={<PrivateRoute resource="Courier Management"><RegisterCourier /></PrivateRoute>} />
                <Route path="/register-a-rider/:id" element={<PrivateRoute resource="Last-Mile Fleet"><RegisterRider /></PrivateRoute>} />
                <Route path="/settings" element={<PrivateRoute resource="Hub Settings"><SettingsPage /></PrivateRoute>} />

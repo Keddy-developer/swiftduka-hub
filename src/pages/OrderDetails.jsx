@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import axiosInstance from "../services/axiosConfig";
@@ -47,7 +46,7 @@ const OrderDetailsPage = () => {
    const [cancelReason, setCancelReason] = useState("");
    const [selectedProductId, setSelectedProductId] = useState(null);
    const [showSellerModal, setShowSellerModal] = useState(false);
-   
+
    // Assignment Selection Modal States
    const [isAssignSelectionModalOpen, setIsAssignSelectionModalOpen] = useState(false);
    const [assignmentData, setAssignmentData] = useState(null);
@@ -70,7 +69,7 @@ const OrderDetailsPage = () => {
             reassignToCourierId: reassignCourierId || undefined
          });
          toast.success(reassignCourierId ? 'Assignment revoked and reassigned' : 'Assignment revoked — courier notified');
-         fetchOrderDetails();
+         await fetchOrderDetails();
       } catch (err) {
          toast.error(err.response?.data?.message || 'Failed to revoke assignment');
       } finally {
@@ -105,6 +104,7 @@ const OrderDetailsPage = () => {
       if (id) {
          fetchOrderDetails();
       }
+      // eslint-disable-next-line react-hooks/exhaustive-deps
    }, [id]);
 
    // Handlers
@@ -113,7 +113,7 @@ const OrderDetailsPage = () => {
       try {
          await axiosInstance.patch(`/order/${trackingNumber}/processing`, {});
          toast.success("Order marked as processing!");
-         fetchOrderDetails();
+         await fetchOrderDetails();
       } catch (err) {
          toast.error("Failed to update order status.");
       } finally {
@@ -127,12 +127,14 @@ const OrderDetailsPage = () => {
          await axiosInstance.patch(`/order/${trackingNumber}/mark-received`, { orderProductId });
          toast.success("Order marked as received!");
          // Audit Log
-         AuditService.logAction(hub?.id, 'HUB_RECEIPT', {
-            message: `Handover received for Order #${trackingNumber}`,
-            trackingNumber: trackingNumber,
-            orderProductId: orderProductId
-         });
-         fetchOrderDetails();
+         if (AuditService && hub?.id) {
+            AuditService.logAction(hub?.id, 'HUB_RECEIPT', {
+               message: `Handover received for Order #${trackingNumber}`,
+               trackingNumber: trackingNumber,
+               orderProductId: orderProductId
+            });
+         }
+         await fetchOrderDetails();
       } catch (err) {
          toast.error("Failed to update order status.");
       } finally {
@@ -146,12 +148,14 @@ const OrderDetailsPage = () => {
          await axiosInstance.patch(`/order/${trackingNumber}/admin-ready-for-pickup`, { orderProductId });
          toast.success("Order marked as ready for pickup!");
          // Audit Log
-         AuditService.logAction(hub?.id, 'READY_FOR_PICKUP_UPDATE', {
-            message: `Order #${trackingNumber} moved to Ready for Pickup`,
-            trackingNumber: trackingNumber,
-            orderProductId: orderProductId
-         });
-         fetchOrderDetails();
+         if (AuditService && hub?.id) {
+            AuditService.logAction(hub?.id, 'READY_FOR_PICKUP_UPDATE', {
+               message: `Order #${trackingNumber} moved to Ready for Pickup`,
+               trackingNumber: trackingNumber,
+               orderProductId: orderProductId
+            });
+         }
+         await fetchOrderDetails();
       } catch (err) {
          toast.error(`Failed to update order status: ${err.response?.data?.message || err.message}`);
       } finally {
@@ -164,7 +168,7 @@ const OrderDetailsPage = () => {
       try {
          await axiosInstance.patch(`/order/${trackingNumber}/delivered`, {});
          toast.success("Order marked as delivered!");
-         fetchOrderDetails();
+         await fetchOrderDetails();
       } catch (err) {
          toast.error("Failed to update order status.");
       } finally {
@@ -190,13 +194,16 @@ const OrderDetailsPage = () => {
          });
          toast.success("Product/Order cancelled.");
          // Audit Log
-         AuditService.logAction(hub?.id, 'ORDER_CANCELLATION', {
-            message: `Cancelled item in Order #${trackingNumber}. Reason: ${cancelReason}`,
-            trackingNumber: trackingNumber,
-            reason: cancelReason
-         });
+         if (AuditService && hub?.id) {
+            AuditService.logAction(hub?.id, 'ORDER_CANCELLATION', {
+               message: `Cancelled item in Order #${trackingNumber}. Reason: ${cancelReason}`,
+               trackingNumber: trackingNumber,
+               reason: cancelReason
+            });
+         }
          setIsCancelModalOpen(false);
-         fetchOrderDetails();
+         setCancelReason("");
+         await fetchOrderDetails();
       } catch (err) {
          toast.error("Failed to cancel order.");
       } finally {
@@ -216,7 +223,13 @@ const OrderDetailsPage = () => {
 
    const handlePrintQR = () => {
       const printWindow = window.open('', '_blank');
-      const qrSvg = document.querySelector('#qr-code-to-print').innerHTML;
+      const qrElement = document.querySelector('#qr-code-to-print');
+      if (!qrElement || !printWindow) {
+         toast.error("Failed to generate QR for printing");
+         return;
+      }
+
+      const qrSvg = qrElement.innerHTML;
 
       printWindow.document.write(`
             <html>
@@ -260,7 +273,7 @@ const OrderDetailsPage = () => {
                             window.print();
                             window.onafterprint = () => window.close();
                         };
-                    </script>
+                    <\/script>
                 </body>
             </html>
         `);
@@ -274,14 +287,25 @@ const OrderDetailsPage = () => {
 
       // Wait a tiny bit for the hidden QR component to render/update
       setTimeout(() => {
-         const qrSvg = document.getElementById('hidden-qr-print-container')?.innerHTML;
+         const qrContainer = document.getElementById('hidden-qr-print-container');
+         if (!qrContainer) {
+            toast.error("Failed to generate QR for label");
+            return;
+         }
+
+         const qrSvg = qrContainer.innerHTML;
          if (!qrSvg) {
             toast.error("Failed to generate QR for label");
             return;
          }
 
          const printWindow = window.open('', '_blank');
-         const productName = product.product.name;
+         if (!printWindow) {
+            toast.error("Failed to open print window");
+            return;
+         }
+
+         const productName = product.product?.name || "N/A";
          const variant = product.variant && typeof product.variant === 'object'
             ? Object.values(product.variant).map(v => v.combo?.key || v.key).join(", ")
             : "Standard";
@@ -366,15 +390,13 @@ const OrderDetailsPage = () => {
                                 window.print();
                                 setTimeout(() => window.close(), 1000);
                             };
-                        </script>
+                        <\/script>
                     </body>
                 </html>
             `);
          printWindow.document.close();
       }, 100);
    };
-
-   console.log("order", order);
 
    const StatusBadge = ({ status }) => {
       const config = {
@@ -384,7 +406,8 @@ const OrderDetailsPage = () => {
          ReadyForPickup: { color: "bg-orange-100 text-orange-800 border-orange-200", icon: FiPackage },
          ArrivedAtStation: { color: "bg-teal-100 text-teal-800 border-teal-200", icon: FiMapPin },
          Cancelled: { color: "bg-red-100 text-red-800 border-red-200", icon: FiXCircle },
-         Pending: { color: "bg-yellow-100 text-yellow-800 border-yellow-200", icon: FiClock }
+         Pending: { color: "bg-yellow-100 text-yellow-800 border-yellow-200", icon: FiClock },
+         ReadyForLogistics: { color: "bg-indigo-100 text-indigo-800 border-indigo-200", icon: FiTruck }
       };
       const style = config[status] || config.Pending;
       const Icon = style.icon;
@@ -397,7 +420,7 @@ const OrderDetailsPage = () => {
       );
    };
 
-   const ActionButton = ({ onClick, loading, variant = "primary", children, className }) => {
+   const ActionButton = ({ onClick, loading, variant = "primary", children, className, disabled = false }) => {
       const variants = {
          primary: "bg-blue-600 hover:bg-blue-700 text-white",
          warning: "bg-orange-500 hover:bg-orange-600 text-white",
@@ -410,7 +433,7 @@ const OrderDetailsPage = () => {
       const btnClass = `px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors disabled:opacity-50 ${variants[variant] || variants.primary} ${className || ""}`;
 
       return (
-         <button onClick={onClick} disabled={loading} className={btnClass}>
+         <button onClick={onClick} disabled={loading || disabled} className={btnClass}>
             {loading ? "Updating..." : children}
          </button>
       );
@@ -435,13 +458,12 @@ const OrderDetailsPage = () => {
       const isOverdue = elapsed >= WINDOW_MS;
 
       return (
-         <span className={`px-3 py-1.5 text-xs font-medium rounded-lg flex items-center gap-1.5 border ${
-            isOverdue
-               ? 'bg-red-50 text-red-600 border-red-200 animate-pulse'
-               : 'bg-amber-50 text-amber-600 border-amber-200'
-         }`}>
+         <span className={`px-3 py-1.5 text-xs font-medium rounded-lg flex items-center gap-1.5 border ${isOverdue
+            ? 'bg-red-50 text-red-600 border-red-200 animate-pulse'
+            : 'bg-amber-50 text-amber-600 border-amber-200'
+            }`}>
             <FiClock className="w-3.5 h-3.5" />
-            <span className="font-mono">{String(mins).padStart(2,'0')}:{String(secs).padStart(2,'0')}</span>
+            <span className="font-mono">{String(mins).padStart(2, '0')}:{String(secs).padStart(2, '0')}</span>
             <span className="font-normal">{isOverdue ? '— OVERDUE' : ' elapsed'}</span>
          </span>
       );
@@ -499,16 +521,18 @@ const OrderDetailsPage = () => {
                               {order.products.length} Items • Total: Ksh {((order.totalCost ?? 0) + (order.creditApplied ?? 0)).toLocaleString()}
                            </p>
                         </div>
-                        {order.deliveryType && (
-                           <span className="px-3 py-1 bg-blue-50 text-blue-700 text-xs font-semibold rounded-lg border border-blue-100">
-                              {order.deliveryType}
-                           </span>
-                        )}
-                        {order.isGiftOrder && (
-                           <span className="ml-2 px-3 py-1 bg-pink-100 text-pink-700 text-xs font-semibold rounded-lg border border-pink-200 flex items-center gap-1">
-                              <FiGift /> Gift Order
-                           </span>
-                        )}
+                        <div className="flex items-center gap-2">
+                           {order.deliveryType && (
+                              <span className="px-3 py-1 bg-blue-50 text-blue-700 text-xs font-semibold rounded-lg border border-blue-100">
+                                 {order.deliveryType}
+                              </span>
+                           )}
+                           {order.isGiftOrder && (
+                              <span className="px-3 py-1 bg-pink-100 text-pink-700 text-xs font-semibold rounded-lg border border-pink-200 flex items-center gap-1">
+                                 <FiGift /> Gift Order
+                              </span>
+                           )}
+                        </div>
                      </div>
                   </div>
 
@@ -548,7 +572,7 @@ const OrderDetailsPage = () => {
                               <FiMapPin className="text-gray-400" /> Pickup Station
                            </h3>
                            <div className="space-y-2 text-sm">
-                              <p><span className="text-gray-500">Pickup Station:</span> <span className="font-medium text-gray-900">{order.pickupStation?.name}</span></p>
+                              <p><span className="text-gray-500">Pickup Station:</span> <span className="font-medium text-gray-900">{order.pickupStation?.name || "N/A"}</span></p>
                            </div>
                         </div>
                      ) : (
@@ -563,7 +587,6 @@ const OrderDetailsPage = () => {
                            </div>
                         </div>
                      )}
-
                   </div>
 
                   {/* Gift Details */}
@@ -578,9 +601,9 @@ const OrderDetailsPage = () => {
                            <div className="space-y-4">
                               <h4 className="text-sm font-semibold text-gray-900 uppercase tracking-wider">Recipient Info</h4>
                               <div className="space-y-2 text-sm">
-                                 <p><span className="text-gray-500">Recipient Name:</span> <span className="font-medium text-gray-900">{order.giftDetails.recipientName}</span></p>
+                                 <p><span className="text-gray-500">Recipient Name:</span> <span className="font-medium text-gray-900">{order.giftDetails.recipientName || "N/A"}</span></p>
                                  <p><span className="text-gray-500">Recipient Phone:</span> <span className="font-medium text-gray-900">{order.recipientPhone || order.giftDetails.recipientPhone || "N/A"}</span></p>
-                                 <p><span className="text-gray-500">Sender Name:</span> <span className="font-medium text-gray-900">{order.giftDetails.senderName}</span></p>
+                                 <p><span className="text-gray-500">Sender Name:</span> <span className="font-medium text-gray-900">{order.giftDetails.senderName || "N/A"}</span></p>
                                  <p><span className="text-gray-500">Relationship:</span> <span className="font-medium text-gray-900">{order.giftDetails.relationship || "N/A"}</span></p>
                               </div>
                            </div>
@@ -588,7 +611,7 @@ const OrderDetailsPage = () => {
                               <h4 className="text-sm font-semibold text-gray-900 uppercase tracking-wider">Gift Meta</h4>
                               <div className="space-y-2 text-sm">
                                  <p><span className="text-gray-500">Occasion:</span> <span className="font-medium text-gray-900">{order.giftDetails.occasion || "None"}</span></p>
-                                 <p><span className="text-gray-500">Wrapping:</span> <span className="font-medium text-gray-900">{order.giftDetails.wrappingType}</span></p>
+                                 <p><span className="text-gray-500">Wrapping:</span> <span className="font-medium text-gray-900">{order.giftDetails.wrappingType || "None"}</span></p>
                                  <p><span className="text-gray-500">Scheduled:</span> <span className="font-medium text-gray-900">{order.giftDetails.scheduledDate ? new Date(order.giftDetails.scheduledDate).toLocaleDateString() : "Immediate"}</span></p>
                                  <p><span className="text-gray-500">Hide Prices:</span> <span className={`font-medium ${order.giftDetails.hidePrice ? 'text-green-600' : 'text-gray-900'}`}>{order.giftDetails.hidePrice ? 'Yes' : 'No'}</span></p>
                                  <p><span className="text-gray-500">Send Anonymously:</span> <span className={`font-medium ${order.giftDetails.isAnonymous ? 'text-green-600' : 'text-gray-900'}`}>{order.giftDetails.isAnonymous ? 'Yes' : 'No'}</span></p>
@@ -602,14 +625,14 @@ const OrderDetailsPage = () => {
                                  {order.giftDetails.giftShipmentAddress ? (
                                     <div className="space-y-1 text-sm">
                                        <p><span className="text-gray-500">Type:</span> <span className="font-medium">Direct Delivery</span></p>
-                                       <p><span className="text-gray-500">Address:</span> <span className="font-medium">{order.giftDetails.giftShipmentAddress.address}</span></p>
-                                       <p><span className="text-gray-500">Town:</span> <span className="font-medium">{order.giftDetails.giftShipmentAddress.town}, {order.giftDetails.giftShipmentAddress.county}</span></p>
+                                       <p><span className="text-gray-500">Address:</span> <span className="font-medium">{order.giftDetails.giftShipmentAddress.address || "N/A"}</span></p>
+                                       <p><span className="text-gray-500">Town:</span> <span className="font-medium">{order.giftDetails.giftShipmentAddress.town || "N/A"}, {order.giftDetails.giftShipmentAddress.county || "N/A"}</span></p>
                                     </div>
-                                 ) : (
+                                 ) : order.giftDetails.giftPickupAddress && (
                                     <div className="space-y-1 text-sm">
                                        <p><span className="text-gray-500">Type:</span> <span className="font-medium">Pickup Station</span></p>
-                                       <p><span className="text-gray-500">Station:</span> <span className="font-medium">{order.giftDetails.giftPickupAddress.name}</span></p>
-                                       <p><span className="text-gray-500">Location:</span> <span className="font-medium">{order.giftDetails.giftPickupAddress.address}, {order.giftDetails.giftPickupAddress.town}</span></p>
+                                       <p><span className="text-gray-500">Station:</span> <span className="font-medium">{order.giftDetails.giftPickupAddress.name || "N/A"}</span></p>
+                                       <p><span className="text-gray-500">Location:</span> <span className="font-medium">{order.giftDetails.giftPickupAddress.address || "N/A"}, {order.giftDetails.giftPickupAddress.town || "N/A"}</span></p>
                                     </div>
                                  )}
                               </div>
@@ -638,17 +661,20 @@ const OrderDetailsPage = () => {
                         const commissionAmount = product.calculatedCommission || 0;
                         const commissionRate = product.calculatedCommissionRate || 0;
                         const isAssignmentActive = product.assignmentExpiresAt &&
-                            new Date(product.assignmentExpiresAt) > new Date() &&
-                            product.assignmentStatus !== 'EXPIRED' &&
-                            product.assignmentStatus !== 'ACCEPTED';
+                           new Date(product.assignmentExpiresAt) > new Date() &&
+                           product.assignmentStatus !== 'EXPIRED' &&
+                           product.assignmentStatus !== 'ACCEPTED';
+
+                        const deliveryAssignment = product.deliveryAssignment || order.deliveryAssignment;
+                        const cashCollection = product.cashCollection || order.cashCollection;
 
                         return (
-                           <div key={index} className="p-6 hover:bg-gray-50 transition-colors">
+                           <div key={product.id || index} className="p-6 hover:bg-gray-50 transition-colors">
                               <div className="flex flex-col gap-4">
                                  {/* Top Row: Product Info & Actions */}
                                  <div className="flex flex-col sm:flex-row justify-between gap-4">
                                     <div className="flex-1">
-                                       <h4 className="font-medium text-gray-900">{product.product.name}</h4>
+                                       <h4 className="font-medium text-gray-900">{product.product?.name || "Product Name Unavailable"}</h4>
                                        <div className="mt-1 flex flex-wrap gap-4 text-sm text-gray-500">
                                           <span>Qty: {product.quantity}</span>
                                           <span>Price: Ksh {(product.priceAtPurchase ?? 0).toLocaleString()}</span>
@@ -660,17 +686,19 @@ const OrderDetailsPage = () => {
                                        </div>
                                        {product.variant && Object.keys(product.variant).length > 0 && (
                                           <div className="mt-2 text-xs bg-gray-100 p-2 rounded text-gray-600 inline-block">
-                                             Variations: {Object.values(product.variant).map(v => v.combo?.key).join(", ")}
+                                             Variations: {Object.values(product.variant).map(v => v.combo?.key || v.key).join(", ")}
                                           </div>
                                        )}
                                        <div className="mt-2 flex items-center gap-2">
-                                          <span className="text-sm text-gray-600">Seller: {product.product.seller?.storeName}</span>
-                                          <button
-                                             onClick={() => handleViewSeller(product.product.seller)}
-                                             className="text-xs text-blue-600 hover:underline flex items-center gap-1"
-                                          >
-                                             <FiEye /> View
-                                          </button>
+                                          <span className="text-sm text-gray-600">Seller: {product.product?.seller?.storeName || "N/A"}</span>
+                                          {product.product?.seller && (
+                                             <button
+                                                onClick={() => handleViewSeller(product.product.seller)}
+                                                className="text-xs text-blue-600 hover:underline flex items-center gap-1"
+                                             >
+                                                <FiEye /> View
+                                             </button>
+                                          )}
                                        </div>
                                     </div>
                                     <div className="flex flex-col items-end gap-2">
@@ -698,556 +726,607 @@ const OrderDetailsPage = () => {
                                     </div>
                                  </div>
 
-                                 {/* Bottom Row: Actions */}
-                                 <div className="flex flex-wrap gap-2 justify-end mt-2">
-                                    {/* Mark Processing (Waiting Seller) */}
-                                    {product.deliveryStatus !== "Cancelled" &&
-                                       product.deliveryStatus !== "Processing" &&
-                                       product.deliveryStatus !== "Shipped" &&
-                                       product.deliveryStatus !== "Delivered" &&
-                                       product.deliveryStatus !== "ReadyForLogistics" &&
-                                       product.deliveryStatus !== "ReadyForPickup" &&
-                                       product.deliveryStatus !== "ArrivedAtStation"
-                                       && (
-                                          <span className="px-3 py-1.5 bg-amber-100 text-amber-800 text-xs font-medium rounded-lg">
-                                             Waiting Seller to Process
+                                 {/* Bottom Row: Actions & Proofs */}
+                                 <div className="flex flex-wrap items-center justify-between gap-4 mt-2">
+                                    <div className="flex flex-wrap gap-3">
+                                       {deliveryAssignment?.status === 'DELIVERED' && (deliveryAssignment.proofOfDelivery || deliveryAssignment.signature) && (
+                                          <div className="flex gap-2 p-2 bg-emerald-50 border border-emerald-100 rounded-xl">
+                                             {deliveryAssignment.proofOfDelivery && (
+                                                <div className="group relative">
+                                                   <img src={deliveryAssignment.proofOfDelivery} className="w-10 h-10 object-cover rounded-lg shadow-sm border border-white" alt="POD" />
+                                                   <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center cursor-pointer" onClick={() => window.open(deliveryAssignment.proofOfDelivery, '_blank')}>
+                                                      <FiEye className="text-white w-4 h-4" />
+                                                   </div>
+                                                </div>
+                                             )}
+                                             {deliveryAssignment.signature && (
+                                                <div className="group relative">
+                                                   <img src={deliveryAssignment.signature} className="w-10 h-10 object-contain bg-white rounded-lg shadow-sm border border-white" alt="Signature" />
+                                                   <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center cursor-pointer" onClick={() => window.open(deliveryAssignment.signature, '_blank')}>
+                                                      <FiEye className="text-white w-4 h-4" />
+                                                   </div>
+                                                </div>
+                                             )}
+                                             <div className="flex flex-col justify-center px-1">
+                                                <span className="text-[8px] font-black text-emerald-600 uppercase tracking-widest">POD ASSETS</span>
+                                                <span className="text-[9px] font-bold text-emerald-700">VERIFIED</span>
+                                             </div>
+                                          </div>
+                                       )}
+
+                                       {cashCollection && (
+                                          <div className={`flex flex-col justify-center px-3 py-1.5 rounded-xl border ${cashCollection.surrenderedStatus === 'SURRENDERED' ? 'bg-blue-50 border-blue-100 text-blue-600' : 'bg-rose-50 border-rose-100 text-rose-600'}`}>
+                                             <div className="flex items-center gap-1.5 mb-0.5">
+                                                <FaMoneyBillWave size={10} />
+                                                <span className="text-[8px] font-black uppercase tracking-widest">COD: KSh {cashCollection.cashAmount?.toLocaleString() || 0}</span>
+                                             </div>
+                                             <span className="text-[9px] font-black uppercase tracking-tighter">{cashCollection.surrenderedStatus?.replace('_', ' ') || "PENDING"}</span>
+                                          </div>
+                                       )}
+                                    </div>
+
+                                    <div className="flex flex-wrap gap-2 justify-end">
+                                       {/* Mark Processing (Waiting Seller) */}
+                                       {product.deliveryStatus !== "Cancelled" &&
+                                          product.deliveryStatus !== "Processing" &&
+                                          product.deliveryStatus !== "Shipped" &&
+                                          product.deliveryStatus !== "Delivered" &&
+                                          product.deliveryStatus !== "ReadyForLogistics" &&
+                                          product.deliveryStatus !== "ReadyForPickup" &&
+                                          product.deliveryStatus !== "ArrivedAtStation" && (
+                                             <span className="px-3 py-1.5 bg-amber-100 text-amber-800 text-xs font-medium rounded-lg">
+                                                Waiting Seller to Process
+                                             </span>
+                                          )}
+
+                                       {/* Courier Assignment Block */}
+                                       {product.adminReceived && !product.courierAccepted && product.deliveryStatus === "ReadyForLogistics" && !order.pickUpStation?.isPickupStation && (
+                                          isAssignmentActive ? (
+                                             <div className="flex flex-wrap items-center gap-2 w-full mt-1">
+                                                <ElapsedTimer assignmentExpiresAt={product.assignmentExpiresAt} />
+                                                <span className="px-2.5 py-1.5 bg-orange-50 text-orange-700 text-[10px] font-bold rounded-lg border border-orange-200 uppercase tracking-wider">
+                                                   Awaiting Courier Acceptance
+                                                </span>
+                                                <div className="flex gap-2 ml-auto">
+                                                   <button
+                                                      disabled={revokingProductId === product.id}
+                                                      onClick={() => handleRevokeAssignment(product.id, order.id)}
+                                                      className="px-3 py-1.5 bg-red-50 hover:bg-red-100 text-red-600 text-xs font-semibold rounded-lg border border-red-200 transition-colors disabled:opacity-50"
+                                                   >
+                                                      {revokingProductId === product.id ? 'Revoking...' : 'Revoke'}
+                                                   </button>
+                                                   <button
+                                                      disabled={revokingProductId === product.id}
+                                                      onClick={async () => {
+                                                         await handleRevokeAssignment(product.id, order.id);
+                                                         navigate(`/assign-courier/${product.id}?orderId=${order.id}&productId=${product.productId}`);
+                                                      }}
+                                                      className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg transition-colors disabled:opacity-50"
+                                                   >
+                                                      Revoke &amp; Reassign
+                                                   </button>
+                                                </div>
+                                             </div>
+                                          ) : (
+                                             <ActionButton
+                                                onClick={() => {
+                                                   setAssignmentData({
+                                                      addressId: order.shippingAddress?.id,
+                                                      productId: product.id,
+                                                      orderId: order.id
+                                                   });
+                                                   setIsAssignSelectionModalOpen(true);
+                                                }}
+                                                variant="warning"
+                                                className="bg-amber-500 hover:bg-amber-600"
+                                             >
+                                                Assign Courier
+                                             </ActionButton>
+                                          )
+                                       )}
+
+                                       {/* Mark Ready For Pickup - Manual Toggle */}
+                                       {product.deliveryStatus === "ArrivedAtStation" && (
+                                          <ActionButton
+                                             onClick={() => handleMarkReadyForPickup(product.id)}
+                                             loading={loadingMarkReadyForPickup}
+                                             variant="success"
+                                             className="bg-green-600 hover:bg-green-700"
+                                          >
+                                             Ready For Pickup
+                                          </ActionButton>
+                                       )}
+
+                                       {/* Ready For Pickup Status Label */}
+                                       {product.deliveryStatus === "ReadyForPickup" && (
+                                          <span className="px-3 py-1.5 bg-green-100 text-green-800 text-xs font-medium rounded-lg flex items-center gap-1">
+                                             <FiCheckCircle className="w-3 h-3" /> Ready For Pickup
                                           </span>
                                        )}
 
-                                    {/* Courier Assignment Block */}
-                                     {product.adminReceived && !product.courierAccepted && product.deliveryStatus === "ReadyForLogistics" && !order.pickUpStation?.isPickupStation && (
-                                        isAssignmentActive ? (
-                                           <div className="flex flex-wrap items-center gap-2 w-full mt-1">
-                                              <ElapsedTimer assignmentExpiresAt={product.assignmentExpiresAt} />
-                                              <span className="px-2.5 py-1.5 bg-orange-50 text-orange-700 text-[10px] font-bold rounded-lg border border-orange-200 uppercase tracking-wider">
-                                                 Awaiting Courier Acceptance
-                                              </span>
-                                              <div className="flex gap-2 ml-auto">
-                                                 <button
-                                                    disabled={revokingProductId === product.id}
-                                                    onClick={() => handleRevokeAssignment(product.id, order.id)}
-                                                    className="px-3 py-1.5 bg-red-50 hover:bg-red-100 text-red-600 text-xs font-semibold rounded-lg border border-red-200 transition-colors disabled:opacity-50"
-                                                 >
-                                                    {revokingProductId === product.id ? 'Revoking...' : 'Revoke'}
-                                                 </button>
-                                                 <button
-                                                    disabled={revokingProductId === product.id}
-                                                    onClick={async () => {
-                                                       await handleRevokeAssignment(product.id, order.id);
-                                                       navigate(`/assign-courier/${product.id}?orderId=${order.id}&productId=${product.productId}`);
-                                                    }}
-                                                    className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg transition-colors disabled:opacity-50"
-                                                 >
-                                                    Revoke &amp; Reassign
-                                                 </button>
-                                              </div>
-                                           </div>
-                                        ) : (
-                                           <ActionButton
-                                              onClick={() => {
-                                                 setAssignmentData({
-                                                    addressId: order.shippingAddress?.id,
-                                                    productId: product.id,
-                                                    orderId: order.id
-                                                 });
-                                                 setIsAssignSelectionModalOpen(true);
-                                              }}
-                                              variant="warning"
-                                              className="bg-amber-500 hover:bg-amber-600"
-                                           >
-                                              Assign Courier
-                                           </ActionButton>
-                                        )
-                                     )}
+                                       {product.courierAccepted && (
+                                          <span className="px-3 py-1.5 bg-emerald-50 text-emerald-700 text-xs font-semibold rounded-lg border border-emerald-200 flex items-center gap-1.5">
+                                             <FiCheckCircle className="w-3.5 h-3.5" />
+                                             Courier Accepted — En Route
+                                          </span>
+                                       )}
 
-                                    {/* Mark Ready For Pickup - Manual Toggle */}
-                                    {product.deliveryStatus === "ArrivedAtStation" && (
+                                       {/* Mark Received */}
+                                       {product.deliveryStatus === "ReadyForLogistics" && !product.adminReceived && (
+                                          <ActionButton
+                                             onClick={() => handleMarkReceived(product.id)}
+                                             loading={loadingMarkReceived}
+                                             variant="purple"
+                                          >
+                                             Mark Received
+                                          </ActionButton>
+                                       )}
+
+                                       {/* Show QR Code */}
                                        <ActionButton
-                                          onClick={() => handleMarkReadyForPickup(product.id)}
-                                          loading={loadingMarkReadyForPickup}
-                                          variant="success"
-                                          className="bg-green-600 hover:bg-green-700"
+                                          onClick={() => handleShowQR(product)}
+                                          variant="primary"
+                                          className="bg-gray-800 hover:bg-black"
                                        >
-                                          Ready For Pickup
+                                          Show QR
                                        </ActionButton>
-                                    )}
 
-                                    {/* Ready For Pickup Status Label */}
-                                    {product.deliveryStatus === "ReadyForPickup" && (
-                                       <span className="px-3 py-1.5 bg-green-100 text-green-800 text-xs font-medium rounded-lg flex items-center gap-1">
-                                          <FiCheckCircle className="w-3 h-3" /> Ready For Pickup
-                                       </span>
-                                    )}
-
-                                    {product.courierAccepted && (
-                                        <span className="px-3 py-1.5 bg-emerald-50 text-emerald-700 text-xs font-semibold rounded-lg border border-emerald-200 flex items-center gap-1.5">
-                                           <FiCheckCircle className="w-3.5 h-3.5" />
-                                           Courier Accepted — En Route
-                                        </span>
-                                     )}
-
-                                    {/* Mark Received */}
-                                    {product.deliveryStatus === "ReadyForLogistics" && !product.adminReceived && (
+                                       {/* Print QR Label */}
                                        <ActionButton
-                                          onClick={() => handleMarkReceived(product.id)}
-                                          loading={loadingMarkReceived}
-                                          variant="purple"
+                                          onClick={() => handlePrintLabel(product)}
+                                          variant="primary"
+                                          className="bg-blue-600 hover:bg-blue-700 font-bold"
                                        >
-                                          Mark Received
+                                          <FaPrint className="mr-1 inline-block" /> Print Label
                                        </ActionButton>
-                                    )}
 
-                                    {/* Show QR Code */}
-                                    <ActionButton
-                                       onClick={() => handleShowQR(product)}
-                                       variant="primary"
-                                       className="bg-gray-800 hover:bg-black"
-                                    >
-                                       Show QR
-                                    </ActionButton>
+                                       {/* Cancel Product */}
+                                       {product.deliveryStatus !== "Delivered" && product.deliveryStatus !== "Cancelled" && (
+                                          <ActionButton
+                                             onClick={() => handleCancelProductOrder(product.id)}
+                                             variant="danger"
+                                          >
+                                             Cancel Product
+                                          </ActionButton>
+                                       )}
 
-                                    {/* Print QR Label */}
-                                    <ActionButton
-                                       onClick={() => handlePrintLabel(product)}
-                                       variant="primary"
-                                       className="bg-blue-600 hover:bg-blue-700 font-bold"
-                                    >
-                                       <FaPrint className="mr-1 inline-block" /> Print Label
-                                    </ActionButton>
-
-                                    {/* Cancel Product */}
-                                    {product.deliveryStatus !== "Delivered" && product.deliveryStatus !== "Cancelled" && (
+                                       {/* Admin Initiate Return */}
                                        <ActionButton
-                                          onClick={() => handleCancelProductOrder(product.id)}
-                                          variant="danger"
+                                          onClick={() => {
+                                             setSelectedProductForReturn({
+                                                ...product,
+                                                orderId: order.trackId || order.id,
+                                                productId: product.productId || product.id,
+                                                priceAtPurchase: product.priceAtPurchase || (product.total / (product.quantity || 1))
+                                             });
+                                             setReturnModalOpen(true);
+                                          }}
+                                          variant="warning"
                                        >
-                                          Cancel Product
+                                          Initiate Return
                                        </ActionButton>
-                                    )}
-
-                                    {/* Admin Initiate Return */}
-                                    <ActionButton
-                                       onClick={() => {
-                                          setSelectedProductForReturn({
-                                             ...product,
-                                             orderId: order.trackId || order.id,
-                                             productId: product.productId || product.id,
-                                             priceAtPurchase: product.priceAtPurchase || (product.total / (product.quantity || 1))
-                                          });
-                                          setReturnModalOpen(true);
-                                       }}
-                                       variant="warning"
-                                    >
-                                       Initiate Return
-                                    </ActionButton>
+                                    </div>
                                  </div>
                               </div>
-                           </div>
-                        );
+                              );
                      })}
-                  </div>
+                           </div>
                </div>
-            </div>
-
-            {/* Sidebar - Summary & Actions */}
-            <div className="space-y-6">
-               <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                  <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wider mb-4 flex items-center gap-2">
-                     <FaMoneyBillWave className="text-gray-400" /> Financial Summary
-                  </h3>
-                  <div className="space-y-3 text-sm">
-                     <div className="flex justify-between">
-                        <span className="text-gray-600">Products</span>
-                        <span className="font-medium">Ksh {((order.totalCost + order.creditApplied) - (order.deliveryFee || 0) + (order.discount || 0) - (order.giftWrappingFee || 0)).toFixed(2)}</span>
-                     </div>
-                     {
-                        order.creditApplied > 0 && (
-                           <div className="flex justify-between text-green-600 font-medium">
-                              <span>Credit Applied</span>
-                              <span>Ksh {(order.creditApplied || 0).toFixed(2)}</span>
-                           </div>
-                        )
-                     }
-                     {(order.giftWrappingFee || 0) > 0 && (
-                        <div className="flex justify-between text-pink-600 font-medium">
-                           <span>Gift Wrapping</span>
-                           <span>Ksh {(order.giftWrappingFee || 0).toFixed(2)}</span>
-                        </div>
-                     )}
-                     <div className="flex justify-between">
-                        <span className="text-gray-600">Delivery Fee</span>
-                        <span className="font-medium">Ksh {(order.deliveryFee ?? 0).toLocaleString()}</span>
-                     </div>
-                     {order.discount > 0 && (
-                        <div className="flex justify-between text-gray-600">
-                           <span>Discount</span>
-                           <span>- Ksh {(order.discount ?? 0).toLocaleString()}</span>
-                        </div>
-                     )}
-
-                     {/* Voucher Details */}
-                     {order.voucherCode && order.discount > 0 && (
-                        <div className="pt-2 border-t border-dashed border-gray-100 mt-2">
-                           <div className="flex justify-between items-center text-xs">
-                              <span className="text-blue-600 font-medium flex items-center gap-1">
-                                 <FiPackage className="w-3 h-3" /> Voucher Applied
-                              </span>
-                              <span className="bg-blue-50 text-blue-700 px-2 py-0.5 rounded font-bold uppercase">{order.voucherCode}</span>
-                           </div>
-                           <div className="flex justify-between mt-1 text-gray-500 text-xs italic">
-                              <span>Voucher Discount ({order.voucherType})</span>
-                              <span>- Ksh {(order.discountAmount ?? 0).toLocaleString()}</span>
-                           </div>
-                        </div>
-                     )}
-                     {order.loyaltyDiscountAmount && order.loyaltyDiscountAmount > 0 && (
-                        <div className="flex justify-between text-orange-600 font-medium">
-                           <span>Platform Loyalty ({order.loyaltyDiscountCode})</span>
-                           <span>- Ksh {(order.loyaltyDiscountAmount ?? 0).toLocaleString()}</span>
-                        </div>
-                     )}
-                     <div className="pt-3 border-t border-gray-100 flex justify-between text-base font-bold text-gray-900">
-                        <span>Total Customer Pay</span>
-                        <span>Ksh {(order.totalCost ?? 0).toLocaleString()}</span>
-                     </div>
-
-                     <div className="pt-3">
-                        <span className={`block w-full text-center py-2 rounded-lg text-xs font-bold uppercase ${order.paymentStatus === "Paid" ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700"
-                           }`}>
-                           Payment {order.paymentStatus}
-                        </span>
-                     </div>
-                  </div>
                </div>
-            </div>
-         </div>
 
-         {/* Cancel Modal */}
-         <AnimatePresence>
-            {isCancelModalOpen && (
-               <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
-               >
-                  <motion.div
-                     initial={{ scale: 0.95 }}
-                     animate={{ scale: 1 }}
-                     exit={{ scale: 0.95 }}
-                     className="bg-white rounded-xl shadow-xl w-full max-w-md p-6"
-                  >
-                     <h3 className="text-lg font-bold text-gray-900 mb-4">Cancel Product/Order</h3>
-                     <textarea
-                        value={cancelReason}
-                        onChange={(e) => setCancelReason(e.target.value)}
-                        placeholder="Reason for cancellation..."
-                        className="w-full p-3 border border-gray-200 rounded-lg mb-4 focus:ring-2 focus:ring-red-500 outline-none"
-                        rows={4}
-                     />
-                     <div className="flex justify-end gap-3">
-                        <button
-                           onClick={() => setIsCancelModalOpen(false)}
-                           className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg font-medium"
-                        >
-                           Close
-                        </button>
-                        <button
-                           onClick={handleConfirmCancel}
-                           disabled={loadingCancel}
-                           className="px-4 py-2 bg-red-600 text-white rounded-lg font-medium hover:bg-red-700 disabled:opacity-50"
-                        >
-                           {loadingCancel ? "Cancelling..." : "Confirm Cancel"}
-                        </button>
-                     </div>
-                  </motion.div>
-               </motion.div>
-            )}
-         </AnimatePresence>
-
-         {/* Seller Modal */}
-         <AnimatePresence>
-            {showSellerModal && sellerDetails && (
-               <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
-               >
-                  <motion.div
-                     initial={{ scale: 0.95 }}
-                     animate={{ scale: 1 }}
-                     exit={{ scale: 0.95 }}
-                     className="bg-white rounded-xl shadow-xl w-full max-w-sm p-6"
-                  >
-                     <div className="flex items-center gap-3 mb-4">
-                        <FaStore className="w-6 h-6 text-blue-600" />
-                        <h3 className="text-lg font-bold text-gray-900">Seller Details</h3>
-                     </div>
-
+               {/* Sidebar - Summary & Actions */}
+               <div className="space-y-6">
+                  <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                     <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wider mb-4 flex items-center gap-2">
+                        <FaMoneyBillWave className="text-gray-400" /> Financial Summary
+                     </h3>
                      <div className="space-y-3 text-sm">
-                        <p><span className="text-gray-500 font-medium">Store Name:</span> <span className="text-gray-900 block font-semibold text-lg">{sellerDetails.storeName}</span></p>
-                        <p><span className="text-gray-500 font-medium">Email:</span> <span className="text-gray-900 block">{sellerDetails.email}</span></p>
-                        <p><span className="text-gray-500 font-medium">Phone:</span> <span className="text-gray-900 block">{sellerDetails.phone}</span></p>
-                        <p><span className="text-gray-500 font-medium">Address:</span> <span className="text-gray-900 block">{sellerDetails.address}</span></p>
-                        <p><span className="text-gray-500 font-medium">Description:</span> <span className="text-gray-700 block italic">{sellerDetails.storeDescription}</span></p>
-                     </div>
-
-                     <div className="flex justify-end mt-6">
-                        <button
-                           onClick={() => setShowSellerModal(false)}
-                           className="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700"
-                        >
-                           Close
-                        </button>
-                     </div>
-                  </motion.div>
-               </motion.div>
-            )}
-         </AnimatePresence>
-
-         {/* QR Code Modal */}
-         <AnimatePresence>
-            {showQRModal && qrData && (
-               <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
-               >
-                  <motion.div
-                     initial={{ scale: 0.95, y: 20 }}
-                     animate={{ scale: 1, y: 0 }}
-                     exit={{ scale: 0.95, y: 20 }}
-                     className="bg-white rounded-2xl shadow-2xl w-full max-w-xs p-8 flex flex-col items-center"
-                  >
-                     <div className="w-full flex justify-between items-center mb-6">
-                        <h3 className="text-lg font-bold text-gray-900">Product QR Code</h3>
-                        <button
-                           onClick={() => setShowQRModal(false)}
-                           className="p-1 hover:bg-gray-100 rounded-full transition-colors"
-                        >
-                           <FiXCircle className="w-6 h-6 text-gray-400" />
-                        </button>
-                     </div>
-
-                     <div id="qr-code-to-print" className="bg-white p-4 rounded-xl border border-gray-100 shadow-inner mb-6">
-                        <QRCode value={qrData} size={200} />
-                     </div>
-
-                     <p className="text-sm text-gray-500 text-center mb-2 px-4">
-                        Scan this code at the agent station to process this product.
-                     </p>
-                     <code className="text-[10px] bg-gray-50 px-2 py-1 rounded text-gray-400 break-all w-full text-center">
-                        {qrData}
-                     </code>
-
-                     <div className="w-full flex gap-3 mt-8">
-                        <button
-                           onClick={handlePrintQR}
-                           className="flex-1 py-3 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
-                        >
-                           <FaPrint className="w-4 h-4" />
-                           Print QR
-                        </button>
-                        <button
-                           onClick={() => setShowQRModal(false)}
-                           className="flex-1 py-3 bg-gray-900 text-white rounded-xl font-semibold hover:bg-black transition-colors"
-                        >
-                           Done
-                        </button>
-                     </div>
-                  </motion.div>
-               </motion.div>
-            )}
-         </AnimatePresence>
-
-         {/* Return Initiation Modal */}
-         <AnimatePresence>
-            {returnModalOpen && selectedProductForReturn && (
-               <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
-               >
-                  <motion.div
-                     initial={{ scale: 0.95, y: 20 }}
-                     animate={{ scale: 1, y: 0 }}
-                     exit={{ scale: 0.95, y: 20 }}
-                     className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl p-6 overflow-y-auto max-h-[95vh]"
-                  >
-                     <div className="flex justify-between items-center mb-4">
-                        <h3 className="text-xl font-bold text-gray-900">Return Management</h3>
-                        <button
-                           onClick={() => setReturnModalOpen(false)}
-                           className="p-1 hover:bg-gray-100 rounded-full transition-colors"
-                        >
-                           <FiXCircle className="w-6 h-6 text-gray-400" />
-                        </button>
-                     </div>
-                     <ReturnForm
-                        product={selectedProductForReturn}
-                        fetchOrders={fetchOrderDetails}
-                        setOpenModal={setReturnModalOpen}
-                     />
-                  </motion.div>
-               </motion.div>
-            )}
-         </AnimatePresence>
-
-         {/* Hidden QR Generator for Background Printing */}
-         <div style={{ display: 'none' }} aria-hidden="true">
-            <div id="hidden-qr-print-container">
-               {qrData && <QRCode value={qrData} size={256} />}
-            </div>
-         </div>
-
-         {/* Tracking & Logistics Trail */}
-         <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-            <div className="p-6 border-b border-gray-100 bg-gray-50/50">
-               <h3 className="font-semibold text-gray-900 flex items-center gap-2">
-                  <FiTruck className="text-gray-400" /> Tracking & Logistics Trail
-               </h3>
-            </div>
-            <div className="p-6">
-               {order.products.some(p => p.riderOrders && p.riderOrders.length > 0) ? (
-                  <div className="space-y-8">
-                     {order.products.map((product, pIdx) => (
-                        product.riderOrders && product.riderOrders.length > 0 && (
-                           <div key={pIdx} className="space-y-4">
-                              <div className="flex items-center gap-2">
-                                 <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold text-xs">
-                                    {pIdx + 1}
-                                 </div>
-                                 <h4 className="font-medium text-gray-800 text-sm">{product.product.name}</h4>
+                        <div className="flex justify-between">
+                           <span className="text-gray-600">Products</span>
+                           <span className="font-medium">Ksh {((order.totalCost + order.creditApplied) - (order.deliveryFee || 0) + (order.discount || 0) - (order.giftWrappingFee || 0)).toFixed(2)}</span>
+                        </div>
+                        {
+                           order.creditApplied > 0 && (
+                              <div className="flex justify-between text-green-600 font-medium">
+                                 <span>Credit Applied</span>
+                                 <span>Ksh {(order.creditApplied || 0).toFixed(2)}</span>
                               </div>
+                           )
+                        }
+                        {(order.giftWrappingFee || 0) > 0 && (
+                           <div className="flex justify-between text-pink-600 font-medium">
+                              <span>Gift Wrapping</span>
+                              <span>Ksh {(order.giftWrappingFee || 0).toFixed(2)}</span>
+                           </div>
+                        )}
+                        <div className="flex justify-between">
+                           <span className="text-gray-600">Delivery Fee</span>
+                           <span className="font-medium">Ksh {(order.deliveryFee ?? 0).toLocaleString()}</span>
+                        </div>
+                        {order.discount > 0 && (
+                           <div className="flex justify-between text-gray-600">
+                              <span>Discount</span>
+                              <span>- Ksh {(order.discount ?? 0).toLocaleString()}</span>
+                           </div>
+                        )}
 
-                              <div className="ml-4 border-l-2 border-gray-100 pl-8 space-y-6">
-                                 {product.riderOrders.map((ro, roIdx) => (
-                                    <div key={roIdx} className="relative">
-                                       <div className="absolute -left-[41px] top-0 w-4 h-4 rounded-full bg-white border-2 border-blue-500 z-10"></div>
-                                       <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2">
-                                          <div>
-                                             <p className="text-sm font-bold text-gray-900">
-                                                Rider: {ro.rider?.name || "Unassigned"} ({ro.status})
-                                             </p>
-                                             <div className="mt-1 space-y-1">
-                                                <p className="text-xs text-gray-500 flex items-center gap-1">
-                                                   <FiClock className="w-3 h-3" /> {ro.createdAt ? new Date(ro.createdAt).toLocaleString() : "Recent"}
+                        {/* Voucher Details */}
+                        {order.voucherCode && order.discount > 0 && (
+                           <div className="pt-2 border-t border-dashed border-gray-100 mt-2">
+                              <div className="flex justify-between items-center text-xs">
+                                 <span className="text-blue-600 font-medium flex items-center gap-1">
+                                    <FiPackage className="w-3 h-3" /> Voucher Applied
+                                 </span>
+                                 <span className="bg-blue-50 text-blue-700 px-2 py-0.5 rounded font-bold uppercase">{order.voucherCode}</span>
+                              </div>
+                              <div className="flex justify-between mt-1 text-gray-500 text-xs italic">
+                                 <span>Voucher Discount ({order.voucherType})</span>
+                                 <span>- Ksh {(order.discountAmount ?? 0).toLocaleString()}</span>
+                              </div>
+                           </div>
+                        )}
+                        {order.loyaltyDiscountAmount && order.loyaltyDiscountAmount > 0 && (
+                           <div className="flex justify-between text-orange-600 font-medium">
+                              <span>Platform Loyalty ({order.loyaltyDiscountCode})</span>
+                              <span>- Ksh {(order.loyaltyDiscountAmount ?? 0).toLocaleString()}</span>
+                           </div>
+                        )}
+                        <div className="pt-3 border-t border-gray-100 flex justify-between text-base font-bold text-gray-900">
+                           <span>Total Customer Pay</span>
+                           <span>Ksh {(order.totalCost ?? 0).toLocaleString()}</span>
+                        </div>
+
+                        <div className="pt-3">
+                           <span className={`block w-full text-center py-2 rounded-lg text-xs font-bold uppercase ${order.paymentStatus === "Paid" ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700"
+                              }`}>
+                              Payment {order.paymentStatus}
+                           </span>
+                        </div>
+                     </div>
+                  </div>
+               </div>
+            </div>
+
+            {/* Cancel Modal */}
+            <AnimatePresence>
+               {isCancelModalOpen && (
+                  <motion.div
+                     initial={{ opacity: 0 }}
+                     animate={{ opacity: 1 }}
+                     exit={{ opacity: 0 }}
+                     className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+                     onClick={() => setIsCancelModalOpen(false)}
+                  >
+                     <motion.div
+                        initial={{ scale: 0.95 }}
+                        animate={{ scale: 1 }}
+                        exit={{ scale: 0.95 }}
+                        className="bg-white rounded-xl shadow-xl w-full max-w-md p-6"
+                        onClick={(e) => e.stopPropagation()}
+                     >
+                        <h3 className="text-lg font-bold text-gray-900 mb-4">Cancel Product/Order</h3>
+                        <textarea
+                           value={cancelReason}
+                           onChange={(e) => setCancelReason(e.target.value)}
+                           placeholder="Reason for cancellation..."
+                           className="w-full p-3 border border-gray-200 rounded-lg mb-4 focus:ring-2 focus:ring-red-500 outline-none"
+                           rows={4}
+                        />
+                        <div className="flex justify-end gap-3">
+                           <button
+                              onClick={() => {
+                                 setIsCancelModalOpen(false);
+                                 setCancelReason("");
+                              }}
+                              className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg font-medium"
+                           >
+                              Close
+                           </button>
+                           <button
+                              onClick={handleConfirmCancel}
+                              disabled={loadingCancel}
+                              className="px-4 py-2 bg-red-600 text-white rounded-lg font-medium hover:bg-red-700 disabled:opacity-50"
+                           >
+                              {loadingCancel ? "Cancelling..." : "Confirm Cancel"}
+                           </button>
+                        </div>
+                     </motion.div>
+                  </motion.div>
+               )}
+            </AnimatePresence>
+
+            {/* Seller Modal */}
+            <AnimatePresence>
+               {showSellerModal && sellerDetails && (
+                  <motion.div
+                     initial={{ opacity: 0 }}
+                     animate={{ opacity: 1 }}
+                     exit={{ opacity: 0 }}
+                     className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+                     onClick={() => setShowSellerModal(false)}
+                  >
+                     <motion.div
+                        initial={{ scale: 0.95 }}
+                        animate={{ scale: 1 }}
+                        exit={{ scale: 0.95 }}
+                        className="bg-white rounded-xl shadow-xl w-full max-w-sm p-6"
+                        onClick={(e) => e.stopPropagation()}
+                     >
+                        <div className="flex items-center gap-3 mb-4">
+                           <FaStore className="w-6 h-6 text-blue-600" />
+                           <h3 className="text-lg font-bold text-gray-900">Seller Details</h3>
+                        </div>
+
+                        <div className="space-y-3 text-sm">
+                           <p><span className="text-gray-500 font-medium">Store Name:</span> <span className="text-gray-900 block font-semibold text-lg">{sellerDetails.storeName || "N/A"}</span></p>
+                           <p><span className="text-gray-500 font-medium">Email:</span> <span className="text-gray-900 block">{sellerDetails.email || "N/A"}</span></p>
+                           <p><span className="text-gray-500 font-medium">Phone:</span> <span className="text-gray-900 block">{sellerDetails.phone || "N/A"}</span></p>
+                           <p><span className="text-gray-500 font-medium">Address:</span> <span className="text-gray-900 block">{sellerDetails.address || "N/A"}</span></p>
+                           <p><span className="text-gray-500 font-medium">Description:</span> <span className="text-gray-700 block italic">{sellerDetails.storeDescription || "N/A"}</span></p>
+                        </div>
+
+                        <div className="flex justify-end mt-6">
+                           <button
+                              onClick={() => setShowSellerModal(false)}
+                              className="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700"
+                           >
+                              Close
+                           </button>
+                        </div>
+                     </motion.div>
+                  </motion.div>
+               )}
+            </AnimatePresence>
+
+            {/* QR Code Modal */}
+            <AnimatePresence>
+               {showQRModal && qrData && (
+                  <motion.div
+                     initial={{ opacity: 0 }}
+                     animate={{ opacity: 1 }}
+                     exit={{ opacity: 0 }}
+                     className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
+                     onClick={() => setShowQRModal(false)}
+                  >
+                     <motion.div
+                        initial={{ scale: 0.95, y: 20 }}
+                        animate={{ scale: 1, y: 0 }}
+                        exit={{ scale: 0.95, y: 20 }}
+                        className="bg-white rounded-2xl shadow-2xl w-full max-w-xs p-8 flex flex-col items-center"
+                        onClick={(e) => e.stopPropagation()}
+                     >
+                        <div className="w-full flex justify-between items-center mb-6">
+                           <h3 className="text-lg font-bold text-gray-900">Product QR Code</h3>
+                           <button
+                              onClick={() => setShowQRModal(false)}
+                              className="p-1 hover:bg-gray-100 rounded-full transition-colors"
+                           >
+                              <FiXCircle className="w-6 h-6 text-gray-400" />
+                           </button>
+                        </div>
+
+                        <div id="qr-code-to-print" className="bg-white p-4 rounded-xl border border-gray-100 shadow-inner mb-6">
+                           <QRCode value={qrData} size={200} />
+                        </div>
+
+                        <p className="text-sm text-gray-500 text-center mb-2 px-4">
+                           Scan this code at the agent station to process this product.
+                        </p>
+                        <code className="text-[10px] bg-gray-50 px-2 py-1 rounded text-gray-400 break-all w-full text-center">
+                           {qrData}
+                        </code>
+
+                        <div className="w-full flex gap-3 mt-8">
+                           <button
+                              onClick={handlePrintQR}
+                              className="flex-1 py-3 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
+                           >
+                              <FaPrint className="w-4 h-4" />
+                              Print QR
+                           </button>
+                           <button
+                              onClick={() => setShowQRModal(false)}
+                              className="flex-1 py-3 bg-gray-900 text-white rounded-xl font-semibold hover:bg-black transition-colors"
+                           >
+                              Done
+                           </button>
+                        </div>
+                     </motion.div>
+                  </motion.div>
+               )}
+            </AnimatePresence>
+
+            {/* Return Initiation Modal */}
+            <AnimatePresence>
+               {returnModalOpen && selectedProductForReturn && (
+                  <motion.div
+                     initial={{ opacity: 0 }}
+                     animate={{ opacity: 1 }}
+                     exit={{ opacity: 0 }}
+                     className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
+                     onClick={() => setReturnModalOpen(false)}
+                  >
+                     <motion.div
+                        initial={{ scale: 0.95, y: 20 }}
+                        animate={{ scale: 1, y: 0 }}
+                        exit={{ scale: 0.95, y: 20 }}
+                        className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl p-6 overflow-y-auto max-h-[95vh]"
+                        onClick={(e) => e.stopPropagation()}
+                     >
+                        <div className="flex justify-between items-center mb-4">
+                           <h3 className="text-xl font-bold text-gray-900">Return Management</h3>
+                           <button
+                              onClick={() => setReturnModalOpen(false)}
+                              className="p-1 hover:bg-gray-100 rounded-full transition-colors"
+                           >
+                              <FiXCircle className="w-6 h-6 text-gray-400" />
+                           </button>
+                        </div>
+                        {ReturnForm && (
+                           <ReturnForm
+                              product={selectedProductForReturn}
+                              fetchOrders={fetchOrderDetails}
+                              setOpenModal={setReturnModalOpen}
+                           />
+                        )}
+                     </motion.div>
+                  </motion.div>
+               )}
+            </AnimatePresence>
+
+            {/* Hidden QR Generator for Background Printing */}
+            <div style={{ display: 'none' }} aria-hidden="true">
+               <div id="hidden-qr-print-container">
+                  {qrData && <QRCode value={qrData} size={256} />}
+               </div>
+            </div>
+
+            {/* Tracking & Logistics Trail */}
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+               <div className="p-6 border-b border-gray-100 bg-gray-50/50">
+                  <h3 className="font-semibold text-gray-900 flex items-center gap-2">
+                     <FiTruck className="text-gray-400" /> Tracking & Logistics Trail
+                  </h3>
+               </div>
+               <div className="p-6">
+                  {order.products.some(p => p.riderOrders && p.riderOrders.length > 0) ? (
+                     <div className="space-y-8">
+                        {order.products.map((product, pIdx) => (
+                           product.riderOrders && product.riderOrders.length > 0 && (
+                              <div key={pIdx} className="space-y-4">
+                                 <div className="flex items-center gap-2">
+                                    <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold text-xs">
+                                       {pIdx + 1}
+                                    </div>
+                                    <h4 className="font-medium text-gray-800 text-sm">{product.product?.name || "Product"}</h4>
+                                 </div>
+
+                                 <div className="ml-4 border-l-2 border-gray-100 pl-8 space-y-6">
+                                    {product.riderOrders.map((ro, roIdx) => (
+                                       <div key={ro.id || roIdx} className="relative">
+                                          <div className="absolute -left-[41px] top-0 w-4 h-4 rounded-full bg-white border-2 border-blue-500 z-10"></div>
+                                          <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2">
+                                             <div>
+                                                <p className="text-sm font-bold text-gray-900">
+                                                   Rider: {ro.rider?.name || "Unassigned"} ({ro.status})
                                                 </p>
-                                                {ro.rider?.phone && (
+                                                <div className="mt-1 space-y-1">
                                                    <p className="text-xs text-gray-500 flex items-center gap-1">
-                                                      <FiUser className="w-3 h-3" /> Phone: {ro.rider.phone} | Plate: {ro.rider.numberPlate}
+                                                      <FiClock className="w-3 h-3" /> {ro.createdAt ? new Date(ro.createdAt).toLocaleString() : "Recent"}
                                                    </p>
-                                                )}
+                                                   {ro.rider?.phone && (
+                                                      <p className="text-xs text-gray-500 flex items-center gap-1">
+                                                         <FiUser className="w-3 h-3" /> Phone: {ro.rider.phone} | Plate: {ro.rider.numberPlate}
+                                                      </p>
+                                                   )}
+                                                </div>
+                                             </div>
+                                             <div className="text-right">
+                                                <span className={`inline-block px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${ro.status === "COMPLETED" ? "bg-green-100 text-green-700" :
+                                                   ro.status === "CANCELLED" ? "bg-red-100 text-red-700" :
+                                                      "bg-blue-100 text-blue-700"
+                                                   }`}>
+                                                   {ro.status}
+                                                </span>
                                              </div>
                                           </div>
-                                          <div className="text-right">
-                                             <span className={`inline-block px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${ro.status === "COMPLETED" ? "bg-green-100 text-green-700" :
-                                                ro.status === "CANCELLED" ? "bg-red-100 text-red-700" :
-                                                   "bg-blue-100 text-blue-700"
-                                                }`}>
-                                                {ro.status}
-                                             </span>
-                                          </div>
                                        </div>
-                                    </div>
-                                 ))}
+                                    ))}
 
-                                 {/* Static logs for statuses that don't have riderOrders yet */}
-                                 {product.adminReceived && (
-                                    <div className="relative">
-                                       <div className="absolute -left-[41px] top-0 w-4 h-4 rounded-full bg-white border-2 border-green-500 z-10"></div>
-                                       <p className="text-sm font-bold text-gray-900">Received at Hub / Agent Station</p>
-                                       <p className="text-xs text-gray-500">The product has been physically received and scanned.</p>
-                                    </div>
-                                 )}
+                                    {/* Static logs for statuses that don't have riderOrders yet */}
+                                    {product.adminReceived && (
+                                       <div className="relative">
+                                          <div className="absolute -left-[41px] top-0 w-4 h-4 rounded-full bg-white border-2 border-green-500 z-10"></div>
+                                          <p className="text-sm font-bold text-gray-900">Received at Hub / Agent Station</p>
+                                          <p className="text-xs text-gray-500">The product has been physically received and scanned.</p>
+                                       </div>
+                                    )}
+                                 </div>
                               </div>
-                           </div>
-                        )
-                     ))}
-                  </div>
-               ) : (
-                  <div className="text-center py-12">
-                     <FiClock className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-                     <p className="text-gray-500 text-sm">No rider assignments or detailed logs for this order yet.</p>
-                  </div>
-               )}
+                           )
+                        ))}
+                     </div>
+                  ) : (
+                     <div className="text-center py-12">
+                        <FiClock className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+                        <p className="text-gray-500 text-sm">No rider assignments or detailed logs for this order yet.</p>
+                     </div>
+                  )}
+               </div>
             </div>
-         </div>
 
-         <AssignmentSelectionModal
-            isOpen={isAssignSelectionModalOpen}
-            onClose={() => setIsAssignSelectionModalOpen(false)}
-            onSelect={(type) => {
-               setIsAssignSelectionModalOpen(false);
-               if (type === 'internal') {
-                  navigate(`/assign-courier/${assignmentData.addressId}/${assignmentData.productId}?productId=${assignmentData.productId}&orderId=${assignmentData.orderId}`);
-               } else {
-                  navigate(`/assign-external-courier/${assignmentData.addressId}/${assignmentData.productId}?productId=${assignmentData.productId}&orderId=${assignmentData.orderId}`);
-               }
-            }}
-         />
-      </div>
-   );
+            {/* Assignment Selection Modal */}
+            <AssignmentSelectionModal
+               isOpen={isAssignSelectionModalOpen}
+               onClose={() => setIsAssignSelectionModalOpen(false)}
+               onSelect={(type) => {
+                  setIsAssignSelectionModalOpen(false);
+                  if (type === 'internal') {
+                     navigate(`/assign-courier/${assignmentData?.addressId}/${assignmentData?.productId}?productId=${assignmentData?.productId}&orderId=${assignmentData?.orderId}`);
+                  } else {
+                     navigate(`/assign-external-courier/${assignmentData?.addressId}/${assignmentData?.productId}?productId=${assignmentData?.productId}&orderId=${assignmentData?.orderId}`);
+                  }
+               }}
+            />
+         </div>
+         );
 };
 
-// --- Selection Modal Component ---
-const AssignmentSelectionModal = ({ isOpen, onClose, onSelect }) => {
+         // --- Selection Modal Component ---
+         const AssignmentSelectionModal = ({isOpen, onClose, onSelect}) => {
    if (!isOpen) return null;
 
-   return (
-      <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
-         <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden animate-in zoom-in-95 duration-200">
-            <div className="p-8">
-               <div className="flex items-center justify-between mb-8">
-                  <div>
-                     <h3 className="text-xl font-black text-slate-900 tracking-tight">Dispatch Strategy</h3>
-                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">Select Fulfillment Method</p>
+         return (
+         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+            <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden">
+               <div className="p-8">
+                  <div className="flex items-center justify-between mb-8">
+                     <div>
+                        <h3 className="text-xl font-black text-slate-900 tracking-tight">Dispatch Strategy</h3>
+                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">Select Fulfillment Method</p>
+                     </div>
+                     <button onClick={onClose} className="w-10 h-10 bg-slate-50 rounded-xl flex items-center justify-center text-slate-400 hover:text-slate-900 transition-colors">
+                        <FiXCircle size={20} />
+                     </button>
                   </div>
-                  <button onClick={onClose} className="w-10 h-10 bg-slate-50 rounded-xl flex items-center justify-center text-slate-400 hover:text-slate-900 transition-colors">
-                     <FiXCircle size={20} />
-                  </button>
-               </div>
 
-               <div className="space-y-4">
-                  <button
-                     onClick={() => onSelect('internal')}
-                     className="w-full group p-6 bg-slate-50 border border-slate-100 rounded-2xl text-left hover:border-blue-500 hover:bg-blue-50/50 transition-all flex items-center gap-6"
-                  >
-                     <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform">
-                        <FiTruck size={28} className="text-blue-600" />
-                     </div>
-                     <div>
-                        <h4 className="font-black text-slate-900 uppercase tracking-tight text-sm mb-1">Internal Rider</h4>
-                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">Assign to hub-managed fleet</p>
-                     </div>
-                  </button>
+                  <div className="space-y-4">
+                     <button
+                        onClick={() => onSelect('internal')}
+                        className="w-full group p-6 bg-slate-50 border border-slate-100 rounded-2xl text-left hover:border-blue-500 hover:bg-blue-50/50 transition-all flex items-center gap-6"
+                     >
+                        <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform">
+                           <FiTruck size={28} className="text-blue-600" />
+                        </div>
+                        <div>
+                           <h4 className="font-black text-slate-900 uppercase tracking-tight text-sm mb-1">Internal Rider</h4>
+                           <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">Assign to hub-managed fleet</p>
+                        </div>
+                     </button>
 
-                  <button
-                     onClick={() => onSelect('external')}
-                     className="w-full group p-6 bg-slate-50 border border-slate-100 rounded-2xl text-left hover:border-emerald-500 hover:bg-emerald-50/50 transition-all flex items-center gap-6"
-                  >
-                     <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform">
-                        <FiPackage size={28} className="text-emerald-600" />
-                     </div>
-                     <div>
-                        <h4 className="font-black text-slate-900 uppercase tracking-tight text-sm mb-1">Courier Service</h4>
-                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">Outsource to 3rd party providers</p>
-                     </div>
-                  </button>
-               </div>
+                     <button
+                        onClick={() => onSelect('external')}
+                        className="w-full group p-6 bg-slate-50 border border-slate-100 rounded-2xl text-left hover:border-emerald-500 hover:bg-emerald-50/50 transition-all flex items-center gap-6"
+                     >
+                        <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform">
+                           <FiPackage size={28} className="text-emerald-600" />
+                        </div>
+                        <div>
+                           <h4 className="font-black text-slate-900 uppercase tracking-tight text-sm mb-1">Courier Service</h4>
+                           <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">Outsource to 3rd party providers</p>
+                        </div>
+                     </button>
+                  </div>
 
-               <div className="mt-8 pt-6 border-t border-slate-50">
-                  <p className="text-[10px] text-slate-400 font-bold text-center uppercase tracking-widest italic opacity-60">
-                     Verification required for all external dispatch
-                  </p>
+                  <div className="mt-8 pt-6 border-t border-slate-50">
+                     <p className="text-[10px] text-slate-400 font-bold text-center uppercase tracking-widest italic opacity-60">
+                        Verification required for all external dispatch
+                     </p>
+                  </div>
                </div>
             </div>
          </div>
-      </div>
-   );
+         );
 };
 
-export default OrderDetailsPage;
+         export default OrderDetailsPage;
