@@ -916,7 +916,7 @@ const OrderDetailsPage = () => {
             </div>
 
             {/* Sidebar - Summary & Actions */}
-            <div className="space-y-6">
+            <div className="lg:sticky lg:top-8 space-y-6 h-fit max-h-[calc(100vh-4rem)] overflow-y-auto pr-2 custom-scrollbar">
                <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
                   <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wider mb-4 flex items-center gap-2">
                      <FaMoneyBillWave className="text-gray-400" /> Financial Summary
