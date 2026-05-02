@@ -670,15 +670,20 @@ const OrderDetailsPage = () => {
                         const sellerEarnings = product.calculatedSellerEarnings || 0;
                         const commissionAmount = product.calculatedCommission || 0;
                         const commissionRate = product.calculatedCommissionRate || 0;
-                        const isAssignmentActive = product.assignmentExpiresAt &&
-                           new Date(product.assignmentExpiresAt) > new Date() &&
-                           product.assignmentStatus !== 'EXPIRED' &&
-                           product.assignmentStatus !== 'ACCEPTED';
-
                         const deliveryAssignment = product.deliveryAssignment || 
                            (product.deliveryAssignments && product.deliveryAssignments[0]) || 
                            order.deliveryAssignment || 
                            (order.deliveryAssignments && order.deliveryAssignments[0]);
+
+                        const isAssignmentPending = product.assignmentExpiresAt &&
+                           new Date(product.assignmentExpiresAt) > new Date() &&
+                           product.assignmentStatus !== 'EXPIRED' &&
+                           product.assignmentStatus !== 'ACCEPTED' &&
+                           deliveryAssignment?.status === 'PENDING';
+
+                        const isAssignmentAccepted = product.courierAccepted || 
+                           ['ACCEPTED', 'PICKED_UP', 'IN_TRANSIT', 'DELIVERED', 'ARRIVED_AT_STATION'].includes(deliveryAssignment?.status);
+
                         const cashCollection = product.cashCollection || order.cashCollection;
 
                         return (
@@ -793,8 +798,8 @@ const OrderDetailsPage = () => {
                                           )}
 
                                        {/* Courier Assignment Block */}
-                                       {product.adminReceived && !product.courierAccepted && product.deliveryStatus === "ReadyForLogistics" && !order.pickUpStation?.isPickupStation && (
-                                          isAssignmentActive ? (
+                                       {product.adminReceived && !isAssignmentAccepted && product.deliveryStatus === "ReadyForLogistics" && !order.pickUpStation?.isPickupStation && (
+                                          isAssignmentPending ? (
                                              <div className="flex flex-wrap items-center gap-2 w-full mt-1">
                                                 <ElapsedTimer assignmentExpiresAt={product.assignmentExpiresAt} />
                                                 <span className="px-2.5 py-1.5 bg-orange-50 text-orange-700 text-[10px] font-bold rounded-lg border border-orange-200 uppercase tracking-wider">
@@ -857,7 +862,7 @@ const OrderDetailsPage = () => {
                                           </span>
                                        )}
 
-                                       {product.courierAccepted && (
+                                       {isAssignmentAccepted && (
                                           <span className="px-3 py-1.5 bg-emerald-50 text-emerald-700 text-xs font-semibold rounded-lg border border-emerald-200 flex items-center gap-1.5">
                                              <FiCheckCircle className="w-3.5 h-3.5" />
                                              Courier Accepted — En Route
