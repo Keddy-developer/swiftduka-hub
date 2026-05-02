@@ -682,7 +682,7 @@ const OrderDetailsPage = () => {
                            deliveryAssignment?.status === 'PENDING';
 
                         const isAssignmentAccepted = product.courierAccepted || 
-                           ['ACCEPTED', 'PICKED_UP', 'IN_TRANSIT', 'DELIVERED', 'ARRIVED_AT_STATION'].includes(deliveryAssignment?.status);
+                           ['ACCEPTED', 'PICKED_UP', 'IN_TRANSIT'].includes(deliveryAssignment?.status);
 
                         const cashCollection = product.cashCollection || order.cashCollection;
 
@@ -798,7 +798,7 @@ const OrderDetailsPage = () => {
                                           )}
 
                                        {/* Courier Assignment Block */}
-                                       {product.adminReceived && !isAssignmentAccepted && product.deliveryStatus === "ReadyForLogistics" && !order.pickUpStation?.isPickupStation && (
+                                       {product.adminReceived && !isAssignmentAccepted && product.deliveryStatus === "ReadyForLogistics" && (
                                           isAssignmentPending ? (
                                              <div className="flex flex-wrap items-center gap-2 w-full mt-1">
                                                 <ElapsedTimer assignmentExpiresAt={product.assignmentExpiresAt} />
