@@ -786,6 +786,7 @@ const OrderDetailsPage = () => {
                                     <div className="flex flex-wrap gap-2 justify-end">
                                        {/* Mark Processing (Waiting Seller) */}
                                        {product.deliveryStatus !== "Cancelled" &&
+                                          product.deliveryStatus !== "Returned" &&
                                           product.deliveryStatus !== "Processing" &&
                                           product.deliveryStatus !== "Shipped" &&
                                           product.deliveryStatus !== "Delivered" &&
