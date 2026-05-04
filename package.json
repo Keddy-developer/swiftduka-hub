@@ -10,7 +10,8 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "start": "vite preview --port 80 --host"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.2.2",
